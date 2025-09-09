@@ -16,7 +16,7 @@ jest.mock(
   '@react-native-async-storage/async-storage',
   () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );  
-  jest.mock('react-native-responsive-fontsize', () => ({
+jest.mock('react-native-responsive-fontsize', () => ({
   RFValue: value => value,
   RFPercentage: value => value,
 }));
@@ -38,6 +38,3 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
   }),
 }));
 jest.mock('react-native-calendars', () => ({ Calendar: 'Calendar' }));
-
-
-}));
