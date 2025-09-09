@@ -1,40 +1,26 @@
-import React, {useEffect} from 'react';
-import {connect} from 'react-redux';
+import React, { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import PropTypes from 'prop-types';
 import SplashScreen from '../../components';
-import {loggedIn} from '../../../../redux/actions';
 
-export default function SplashScreenPage(props) {
-  const {navigation, onLoggedIn} = props;
-
-  const checkToken = async () => {
-    const response = await onLoggedIn();
-    if (response === 'goToCompleteProfile') {
-      navigation.navigate('CompleteProfile');
-    } else if (response) {
-      navigation.replace('Home');
-    } else {
-      navigation.replace('SignIn');
-    }
-  };
-
+export default function SplashScreenPage({ navigation }) {
   useEffect(() => {
-    checkToken();
-  }, []);
+    const checkUser = async () => {
+      const storedUser = await AsyncStorage.getItem('user');
+      if (storedUser) {
+        navigation.replace('Home');
+      } else {
+        navigation.replace('Welcome');
+      }
+    };
+    checkUser();
+  }, [navigation]);
 
   return <SplashScreen />;
 }
 
 SplashScreenPage.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
-  onLoggedIn: PropTypes.func.isRequired,
 };
 
-const mapDispatchToProps = dispatch => ({
-  onLoggedIn: () => dispatch(loggedIn()),
-});
-
-export const SplashScreenWrapper = connect(
-  null,
-  mapDispatchToProps,
-)(SplashScreenPage);
+export const SplashScreenWrapper = SplashScreenPage;
