@@ -1,4 +1,3 @@
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ADD_COMPLETED_WORKOUT,
@@ -22,41 +21,21 @@ import {
   GET_WEEK_PLAN,
   GET_WORKOUTS,
 } from '../constants';
-import { serverUrl } from '../../config';
 import { getJSON } from '../../utils/storageUtils';
 import { STORAGE_KEYS } from '../../storage/mmkv/keys';
 
 export const getRoutines = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'GET',
-    baseURL: serverUrl,
-    url: `api/user/getRoutines`,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-
-  if (request.success) {
-    dispatch({ type: GET_ROUTINES, payload: request.result });
-    return true;
-  }
-
-  return request.result || 'Something went wrong.';
+  const routinesString = await AsyncStorage.getItem('routines');
+  const routines = routinesString ? JSON.parse(routinesString) : [];
+  dispatch({ type: GET_ROUTINES, payload: routines });
+  return true;
 };
 
 export const addRoutine = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: 'api/user/addRoutines',
   //   data,
   //   headers: {
@@ -79,9 +58,7 @@ export const deleteRoutine = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteRoutine/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -103,9 +80,7 @@ export const getRoutineTasks = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'GET',
-  //   baseURL: serverUrl,
   //   url: `api/user/getRoutineTasks/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -128,9 +103,7 @@ export const addRoutineTask = (id, data) => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/addRoutineTask/${id}`,
   //   data,
   //   headers: {
@@ -154,9 +127,7 @@ export const editRoutineTask = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/editRoutineTask`,
   //   data,
   //   headers: {
@@ -180,9 +151,7 @@ export const deleteRoutineTask = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteRoutineTask`,
   //   data,
   //   headers: {
@@ -211,9 +180,7 @@ export const addCustomPlan = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: 'api/user/addCustomPlan',
   //   data,
   //   headers: {
@@ -237,9 +204,7 @@ export const deleteCustomPlan = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteCustomPlan/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -262,9 +227,7 @@ export const getWeekPlans = (id, week) => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'GET',
-  //   baseURL: serverUrl,
   //   url: `api/user/getWeekPlans/${id}/${week}`,
   //   headers: {
   //     auth_token: idToken,
@@ -287,9 +250,7 @@ export const addWeekPlan = (id, data) => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/addWeekPlan/${id}`,
   //   data,
   //   headers: {
@@ -313,9 +274,7 @@ export const editWeekPlan = (id, weekId, data) => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/editWeekPlan/${id}/${weekID}`,
   //   data,
   //   headers: {
@@ -337,27 +296,9 @@ export const editWeekPlan = (id, weekId, data) => async dispatch => {
 };
 
 export const getBrunchBodyPlans = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'GET',
-    baseURL: serverUrl,
-    url: `api/user/getBrunchBodyPlans`,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-
-  if (request.success) {
-    dispatch({ type: GET_BRUNCH_BODY_PLANS, payload: request.result });
-    return true;
-  }
-
-  return request.result || 'Something went wrong.';
+  const brunchPlans = getJSON(STORAGE_KEYS.PLANS.BRUNCH_BODY) || [];
+  dispatch({ type: GET_BRUNCH_BODY_PLANS, payload: brunchPlans });
+  return true;
 };
 
 export const getBrunchBodyWeekPlan = (id, week) => async dispatch => {
@@ -384,43 +325,10 @@ export const getBrunchBodyWeekPlan = (id, week) => async dispatch => {
 };
 
 export const getWorkouts = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-  const lastUpdatedTime = await AsyncStorage.getItem('last_updated_time');
-  const lastFetchedTimeWorkouts = await AsyncStorage.getItem(
-    'last_fetched_time_workouts',
-  );
-  if (
-    lastFetchedTimeWorkouts == null ||
-    (lastUpdatedTime !== null &&
-      parseInt(lastUpdatedTime, 10) - parseInt(lastFetchedTimeWorkouts, 10) > 0)
-  ) {
-    console.log(
-      'Inside getWorkouts',
-      lastFetchedTimeWorkouts - lastUpdatedTime,
-    );
-
-    const request = await axios({
-      method: 'GET',
-      baseURL: serverUrl,
-      url: `api/user/getMyWorkouts`,
-      headers: {
-        auth_token: idToken,
-        refresh_token: refreshToken,
-      },
-    })
-      .then(res => res.data)
-      .catch(err => err.response.data);
-
-    if (request.success) {
-      dispatch({ type: GET_WORKOUTS, payload: request.result });
-      return true;
-    }
-
-    return request.result || 'Something went wrong.';
-  }
-  console.log('No new Data Found getWorkouts');
-  return 'No new Data Found';
+  const workoutsString = await AsyncStorage.getItem('workouts');
+  const workouts = workoutsString ? JSON.parse(workoutsString) : [];
+  dispatch({ type: GET_WORKOUTS, payload: workouts });
+  return true;
 };
 
 export const addMyWorkout = data => async dispatch => {
@@ -430,37 +338,15 @@ export const addMyWorkout = data => async dispatch => {
 };
 
 export const editMyWorkout = (id, data) => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'POST',
-    baseURL: serverUrl,
-    url: `api/user/editMyWorkout/${id}`,
-    data,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-  console.log('request: ', request);
-  if (request.success) {
-    dispatch({ type: EDIT_WORKOUT, payload: request.result });
-    return true;
-  }
-
-  return request.result || 'Something went wrong.';
+  dispatch({ type: EDIT_WORKOUT, payload: { id, ...data } });
+  return true;
 };
 
 export const deleteMyWorkout = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteWorkout/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -482,9 +368,7 @@ export const addCompletedWorkout = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: 'api/user/addCustomPlan',
   //   data,
   //   headers: {
