@@ -7,23 +7,6 @@ module.exports.strings = {
     message: 'Splash Screen',
   },
 
-  signup: {
-    email: 'Email',
-    enterEmail: 'Enter Email',
-    pasword: 'Password',
-    enterPassword: 'Enter Password',
-    login: 'Login',
-    newAcc: 'Create a New Account',
-    or: 'Or',
-    loginWith: 'Login in with',
-    forgotPassword: 'Forgot Password',
-  },
-  signin: {
-    confirmEmail: 'Confirm Email',
-    confirmPassword: 'Confirm Password',
-    createAcc: 'Create Account',
-  },
-
   completeProfile: {
     labels: {
       name: 'What should we call you?',
