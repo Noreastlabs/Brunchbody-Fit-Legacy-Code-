@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from 'react-native-vector-icons/Ionicons';
 import {
   LogoHeader,
   TextButton,
@@ -35,8 +34,6 @@ export default function SignIn(props) {
     alertHeading,
     alertText,
     onDonePermissionModal,
-    googleSignIn,
-    socialLoader,
     resetLoader,
     forgotModalEmail,
     setForgotModalEmail,
@@ -45,11 +42,6 @@ export default function SignIn(props) {
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
-      {socialLoader && (
-        <View style={styles.socialLoaderContainer}>
-          <ActivityIndicator size="large" color="white" />
-        </View>
-      )}
 
       <ScrollView
         contentContainerStyle={styles.container}
@@ -103,18 +95,6 @@ export default function SignIn(props) {
             }}>
             <Text style={styles.accText}>{strings.signup.newAcc}</Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.orView}>
-          <Text style={styles.or}>{strings.signup.or}</Text>
-
-          <Text style={styles.otherOpt}>{strings.signup.loginWith}</Text>
-
-          <View style={styles.logoBtn}>
-            <TouchableOpacity onPress={googleSignIn} activeOpacity={0.5}>
-              <Icon name="logo-google" size={30} style={styles.google} />
-            </TouchableOpacity>
-          </View>
         </View>
 
         <View style={styles.bottomTextView}>
@@ -171,14 +151,12 @@ SignIn.propTypes = {
   setPassword: PropTypes.func.isRequired,
   onLoginHandler: PropTypes.func.isRequired,
   forgotPassModal: PropTypes.bool.isRequired,
-  socialLoader: PropTypes.bool.isRequired,
   setForgotPassModal: PropTypes.func.isRequired,
   confirmationModal: PropTypes.bool.isRequired,
   setConfirmationModal: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
-  googleSignIn: PropTypes.func.isRequired,
   resetLoader: PropTypes.bool.isRequired,
   forgotModalEmail: PropTypes.string.isRequired,
   setForgotModalEmail: PropTypes.func.isRequired,

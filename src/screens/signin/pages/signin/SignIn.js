@@ -2,18 +2,13 @@ import React, { useState } from 'react';
 import { BackHandler } from 'react-native';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { useFocusEffect } from '@react-navigation/native';
 import SignIn from '../../components';
-import { login, resetPassword, socialLogin } from '../../../../redux/actions';
+import { login, resetPassword } from '../../../../redux/actions';
 
-GoogleSignin.configure({
-  webClientId:
-    '719080501603-i321dfpt92o5ujad5mvcfeti30r48mfi.apps.googleusercontent.com',
-});
 
 export default function SignInPage(props) {
-  const { navigation, loginUser, socialLoginUser, onResetPassword } = props;
+  const { navigation, loginUser, onResetPassword } = props;
   const [loader, setLoader] = useState(false);
   const [resetLoader, setResetLoader] = useState(false);
   const [email, setEmail] = useState('test2@gmail.com');
@@ -23,7 +18,6 @@ export default function SignInPage(props) {
   const [confirmationModal, setConfirmationModal] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
-  const [socialLoader, setSocialLoader] = useState(false);
 
   const backAction = () => {
     BackHandler.exitApp();
@@ -47,31 +41,6 @@ export default function SignInPage(props) {
     setConfirmationModal(true);
   };
 
-  const googleSignIn = async () => {
-    const google = await GoogleSignin.signIn();
-
-    // Create a Google credential with the token
-    const googleCredential = {
-      token: google.idToken,
-      providerId: 'google.com',
-    };
-
-    setSocialLoader(true);
-    const response = await socialLoginUser({
-      ...googleCredential,
-    });
-
-    if (response === 'logging in') {
-      setSocialLoader(false);
-      navigation.replace('Home');
-    } else if (response === 'signing up') {
-      setSocialLoader(false);
-      navigation.replace('CompleteProfile');
-    } else {
-      setSocialLoader(false);
-      showMessage('Error!', 'Something went wrong');
-    }
-  };
 
   const onDonePermissionModal = () => {
     setConfirmationModal(false);
@@ -140,7 +109,6 @@ export default function SignInPage(props) {
     <SignIn
       navigation={navigation}
       loader={loader}
-      socialLoader={socialLoader}
       email={email}
       setEmail={setEmail}
       password={password}
@@ -153,7 +121,6 @@ export default function SignInPage(props) {
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}
-      googleSignIn={googleSignIn}
       resetLoader={resetLoader}
       forgotModalEmail={forgotModalEmail}
       setForgotModalEmail={setForgotModalEmail}
@@ -165,13 +132,11 @@ export default function SignInPage(props) {
 SignInPage.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
   loginUser: PropTypes.func.isRequired,
-  socialLoginUser: PropTypes.func.isRequired,
   onResetPassword: PropTypes.func.isRequired,
 };
 
 const mapDispatchToProps = dispatch => ({
   loginUser: data => dispatch(login(data)),
-  socialLoginUser: data => dispatch(socialLogin(data)),
   onResetPassword: data => dispatch(resetPassword(data)),
 });
 

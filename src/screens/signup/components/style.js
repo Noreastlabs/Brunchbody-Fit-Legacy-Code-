@@ -73,36 +73,6 @@ export default StyleSheet.create({
     fontSize: RFValue(13),
   },
 
-  orView: {
-    alignItems: 'center',
-  },
-
-  or: {
-    marginTop: 25,
-    fontSize: RFValue(18),
-    fontWeight: 'bold',
-    color: colors.secondary,
-  },
-
-  otherOpt: {
-    marginVertical: 25,
-    fontSize: RFValue(18),
-    fontWeight: 'bold',
-    color: colors.mainFont,
-  },
-
-  facebook: {
-    color: colors.tertiary,
-  },
-
-  google: {
-    color: colors.qccentError,
-  },
-
-  logoBtn: {
-    flexDirection: 'row',
-  },
-
   bottomTextView: {
     marginTop: 40,
     marginHorizontal: 50,

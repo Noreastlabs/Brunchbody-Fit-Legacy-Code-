@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   Linking,
 } from 'react-native';
-// import Icon from 'react-native-vector-icons/Ionicons';
 import PropTypes from 'prop-types';
 import {colors, strings} from '../../../resources';
 import styles from './style';
@@ -125,17 +124,6 @@ export default function SignUp(props) {
             <TextButton title="Cancel" onPress={() => navigation.goBack()} />
           </View>
 
-          {/* <View style={styles.orView}>
-            <Text style={styles.or}>{strings.signup.or}</Text>
-
-            <Text style={styles.otherOpt}>{strings.signup.loginWith}</Text>
-
-            <View style={styles.logoBtn}>
-              <TouchableOpacity activeOpacity={0.5}>
-                <Icon name="logo-google" size={30} style={styles.google} />
-              </TouchableOpacity>
-            </View>
-          </View> */}
         </View>
       </ScrollView>
 
