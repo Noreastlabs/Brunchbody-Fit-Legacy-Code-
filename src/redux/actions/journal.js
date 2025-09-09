@@ -1,4 +1,3 @@
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   EDIT_JOURNAL_ENTRY,
@@ -7,7 +6,6 @@ import {
   GET_TRAITS,
   SET_JOURNAL_ENTRY,
 } from '../constants';
-import { serverUrl } from '../../config';
 
 export const getAllJournalEntries = () => async dispatch => {
   await dispatch({ type: GET_ALL_JOURNAL_ENTRIES });
@@ -33,25 +31,8 @@ export const editJournalEntry = (id, data) => async dispatch => {
 };
 
 export const getTraits = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'GET',
-    baseURL: serverUrl,
-    url: `api/user/getTraits`,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-
-  if (request.success) {
-    dispatch({ type: GET_TRAITS, payload: request.result });
-    return true;
-  }
-
-  return request.result ? request.result : 'Something went wrong.';
+  const traitsString = await AsyncStorage.getItem('traits');
+  const traits = traitsString ? JSON.parse(traitsString) : [];
+  dispatch({ type: GET_TRAITS, payload: traits });
+  return true;
 };

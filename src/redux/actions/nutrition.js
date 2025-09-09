@@ -1,4 +1,3 @@
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ADD_MEAL,
@@ -20,53 +19,19 @@ import {
   SET_MEAL_ITEMS,
   SET_SUPPLEMENT_ITEMS,
 } from '../constants';
-import {serverUrl} from '../../config';
-import { clampRGBA } from 'react-native-reanimated/lib/typescript/Colors';
 
 export const getMeals = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-  const lastUpdatedTime = await AsyncStorage.getItem('last_updated_time');
-  const lastFetchedTimeMeals = await AsyncStorage.getItem(
-    'last_fetched_time_meals',
-  );
-  if (
-    lastFetchedTimeMeals == null ||
-    (lastUpdatedTime !== null &&
-      parseInt(lastUpdatedTime, 10) - parseInt(lastFetchedTimeMeals, 10) > 0)
-  ) {
-    console.log('Inside getMeals', lastFetchedTimeMeals - lastUpdatedTime);
-
-    const request = await axios({
-      method: 'GET',
-      baseURL: serverUrl,
-      url: `api/user/getMeals`,
-      headers: {
-        auth_token: idToken,
-        refresh_token: refreshToken,
-      },
-    })
-      .then(res => res.data)
-      .catch(err => err.response.data);
-
-    if (request.success) {
-      dispatch({type: GET_MEALS, payload: request.result});
-      return true;
-    }
-
-    return request.result ? request.result : 'Something went wrong.';
-  }
-  console.log('No new Data Found getMeals');
-  return 'No new Data Found';
+  const mealsString = await AsyncStorage.getItem('meals');
+  const meals = mealsString ? JSON.parse(mealsString) : [];
+  dispatch({ type: GET_MEALS, payload: meals });
+  return true;
 };
 
 export const addMeal = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: 'api/user/addMeals',
   //   data,
   //   headers: {
@@ -90,9 +55,7 @@ export const deleteMeal = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteMeal/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -115,9 +78,7 @@ export const getMealItems = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'GET',
-  //   baseURL: serverUrl,
   //   url: `api/user/getMealItems/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -146,9 +107,7 @@ export const addMealItems = (id, data) => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/addMealItems/${id}`,
   //   data,
   //   headers: {
@@ -172,9 +131,7 @@ export const editMealItem = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/editMealItem`,
   //   data,
   //   headers: {
@@ -200,9 +157,7 @@ export const deleteMealItem = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteMealItem`,
   //   data,
   //   headers: {
@@ -230,53 +185,17 @@ export const setSupplementItems = data => async dispatch => {
 };
 
 export const getSupplements = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-  const lastUpdatedTime = await AsyncStorage.getItem('last_updated_time');
-  const lastFetchedTimeSupplements = await AsyncStorage.getItem(
-    'last_fetched_time_supplements',
-  );
-  if (
-    lastFetchedTimeSupplements == null ||
-    (lastUpdatedTime !== null &&
-      parseInt(lastUpdatedTime, 10) - parseInt(lastFetchedTimeSupplements, 10) >
-        0)
-  ) {
-    console.log(
-      'Inside getSupplements',
-      lastFetchedTimeSupplements - lastUpdatedTime,
-    );
-
-    const request = await axios({
-      method: 'GET',
-      baseURL: serverUrl,
-      url: `api/user/getSupplements`,
-      headers: {
-        auth_token: idToken,
-        refresh_token: refreshToken,
-      },
-    })
-      .then(res => res.data)
-      .catch(err => err.response.data);
-
-    if (request.success) {
-      dispatch({type: GET_SUPPLEMENTS, payload: request.result});
-      return true;
-    }
-
-    return request.result ? request.result : 'Something went wrong.';
-  }
-  console.log('No new Data Found getSupplements');
-  return 'No new Data Found';
+  const supplementsString = await AsyncStorage.getItem('supplements');
+  const supplements = supplementsString ? JSON.parse(supplementsString) : [];
+  dispatch({ type: GET_SUPPLEMENTS, payload: supplements });
+  return true;
 };
 
 export const addSupplement = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: 'api/user/addSupplements',
   //   data,
   //   headers: {
@@ -300,9 +219,7 @@ export const deleteSupplement = id => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteSupplement/${id}`,
   //   headers: {
   //     auth_token: idToken,
@@ -340,9 +257,7 @@ export const getSupplementItems = id => async dispatch => {
   //     lastFetchedTimeSupplementsItem - lastUpdatedTime,
   //   );
 
-  //   const request = await axios({
   //     method: 'GET',
-  //     baseURL: serverUrl,
   //     url: `api/user/getSupplementItems/${id}`,
   //     headers: {
   //       auth_token: idToken,
@@ -369,9 +284,7 @@ export const addSupplementItems = (id, data) => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/addSupplementItems/${id}`,
   //   data,
   //   headers: {
@@ -397,9 +310,7 @@ export const editSupplementItem = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/editSupplementItem`,
   //   data,
   //   headers: {
@@ -425,9 +336,7 @@ export const deleteSupplementItem = data => async dispatch => {
   // const idToken = await AsyncStorage.getItem('auth_token');
   // const refreshToken = await AsyncStorage.getItem('refresh_token');
 
-  // const request = await axios({
   //   method: 'POST',
-  //   baseURL: serverUrl,
   //   url: `api/user/deleteSupplementItem`,
   //   data,
   //   headers: {
@@ -450,50 +359,15 @@ export const deleteSupplementItem = data => async dispatch => {
 };
 
 export const getMealCategories = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'GET',
-    baseURL: serverUrl,
-    url: `api/user/getMealCategories`,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-
-  if (request.success) {
-    dispatch({type: GET_MEAL_CATEGORIES, payload: request.result});
-    return true;
-  }
-
-  return request.result ? request.result : 'Something went wrong.';
+  const categoriesString = await AsyncStorage.getItem('meal_categories');
+  const categories = categoriesString ? JSON.parse(categoriesString) : [];
+  dispatch({ type: GET_MEAL_CATEGORIES, payload: categories });
+  return true;
 };
 
 export const getMealsDirectory = () => async dispatch => {
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'GET',
-    baseURL: serverUrl,
-    url: `api/user/getMealsDirectory`,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-
-  if (request.success) {
-    console.log('request.result', request.result);
-    dispatch({type: GET_MEALS_DIRECTORY, payload: request.result});
-    return true;
-  }
-
-  return request.result ? request.result : 'Something went wrong.';
+  const directoryString = await AsyncStorage.getItem('meals_directory');
+  const directory = directoryString ? JSON.parse(directoryString) : [];
+  dispatch({ type: GET_MEALS_DIRECTORY, payload: directory });
+  return true;
 };
