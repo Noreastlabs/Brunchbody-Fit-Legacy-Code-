@@ -197,7 +197,7 @@ export default function SettingPage(props) {
   const onLogoutHandler = async () => {
     const response = await logoutUser();
     if (response) {
-      navigation.replace('SignIn');
+      navigation.replace('Welcome');
       setIsPermissionModal(false);
     } else {
       showMessage('Error!', 'Something went wrong!');

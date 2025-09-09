@@ -57,7 +57,7 @@ export default function DeleteAccountPage(props) {
   };
 
   const onDonePermissionModal = () => {
-    if (check) navigation.navigate('SignIn');
+    if (check) navigation.navigate('Welcome');
     else setIsPermissionModal(false);
   };
 

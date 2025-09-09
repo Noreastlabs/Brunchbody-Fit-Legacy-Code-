@@ -6,8 +6,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
 
 import { WelcomeWrapper } from '../screens/welcome';
-import { SignUpWrapper } from '../screens/signup';
-import { SignInWrapper } from '../screens/signin';
 import { CompleteProfileWrapper } from '../screens/completeProfile/pages/completeProfile/CompleteProfile';
 import { MyAccountWrapper } from '../screens/setting/pages/MyProfile/MyAccount';
 import { DashboardWrapper } from '../screens/dashboard';
@@ -78,7 +76,7 @@ export default function RootNavigation() {
 
   // Get user from Redux
   const user = useSelector(state => state?.auth?.user);
-  const initialRoute = user && Object.keys(user).length > 0 ? 'Home' : 'SignIn';
+  const initialRoute = user && Object.keys(user).length > 0 ? 'Home' : 'Welcome';
 
   return (
     <DateProvider>
@@ -91,8 +89,6 @@ export default function RootNavigation() {
             name="CompleteProfile"
             component={CompleteProfileWrapper}
           />
-          <Stack.Screen name="SignUp" component={SignUpWrapper} />
-          <Stack.Screen name="SignIn" component={SignInWrapper} />
           <Stack.Screen name="Welcome" component={WelcomeWrapper} />
           <Stack.Screen name="Home" component={BottomTabNavigation} />
           <Stack.Screen name="WeightLog" component={WeightLogWrapper} />
