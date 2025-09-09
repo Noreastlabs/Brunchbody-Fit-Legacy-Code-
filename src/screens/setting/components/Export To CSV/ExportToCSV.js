@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   View,
   Switch,
-  TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import styles from './style';
@@ -17,7 +16,6 @@ import {
   PermissionModal,
   SafeAreaWrapper,
 } from '../../../../components';
-import {colors} from '../../../../resources';
 
 export default function ExportToCSV(props) {
   const {
@@ -30,8 +28,6 @@ export default function ExportToCSV(props) {
     setPermissionModal,
     alertHeading,
     alertText,
-    password,
-    setPassword,
     loader,
   } = props;
 
@@ -79,23 +75,8 @@ export default function ExportToCSV(props) {
               ))}
             </View>
           ))}
-          <View>
-            <Text style={styles.textStyle1}>Password</Text>
-            <TextInput
-              secureTextEntry
-              value={password}
-              placeholder="Password"
-              placeholderTextColor={colors.grey}
-              onChangeText={text => setPassword(text)}
-              style={styles.textInputStyle}
-            />
-            <View style={{padding: 20, paddingTop: 30}}>
-              <Button
-                loader={loader}
-                title="Export"
-                onPress={onExportHandler}
-              />
-            </View>
+          <View style={{padding: 20, paddingTop: 30}}>
+            <Button loader={loader} title="Export" onPress={onExportHandler} />
           </View>
         </View>
       </ScrollView>
@@ -127,7 +108,5 @@ ExportToCSV.propTypes = {
   alertText: PropTypes.string.isRequired,
   permissionModal: PropTypes.bool.isRequired,
   setPermissionModal: PropTypes.func.isRequired,
-  password: PropTypes.string.isRequired,
-  setPassword: PropTypes.func.isRequired,
   loader: PropTypes.bool.isRequired,
 };
