@@ -7,7 +7,6 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import { ExportToCSV } from '../../components';
-import { login } from '../../../../redux/actions';
 
 const listData = [
   {
@@ -61,13 +60,12 @@ const listData = [
 ];
 
 export default function ExportToCSVPage(props) {
-  const { navigation, journalEntriesList, loginUser, user } = props;
+  const { navigation, journalEntriesList } = props;
   const [entryType, setEntryType] = useState('');
   const [entryData, setEntryData] = useState(null);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
   const [permissionModal, setPermissionModal] = useState(false);
-  const [password, setPassword] = useState('');
   const [loader, setLoader] = useState(false);
 
   const showMessage = (heading, text) => {
@@ -173,9 +171,7 @@ export default function ExportToCSVPage(props) {
   };
 
   const onExportHandler = async () => {
-    if (password === '') {
-      showMessage('Error!', 'Please enter your password.');
-    } else if (!entryData) {
+    if (!entryData) {
       showMessage('Error!', 'Please select any one of the entries.');
     } else if (entryData.length === 0) {
       showMessage(
@@ -184,20 +180,8 @@ export default function ExportToCSVPage(props) {
       );
     } else {
       setLoader(true);
-
-      const response = await loginUser({
-        email: user.email,
-        password,
-      });
-
-      if (response) {
-        setPassword('');
-        setLoader(false);
-        handleClick();
-      } else {
-        setLoader(false);
-        showMessage('Error!', `Password is incorrect.`);
-      }
+      await handleClick();
+      setLoader(false);
     }
   };
 
@@ -213,8 +197,6 @@ export default function ExportToCSVPage(props) {
       alertText={alertText}
       permissionModal={permissionModal}
       setPermissionModal={setPermissionModal}
-      password={password}
-      setPassword={setPassword}
     />
   );
 }
@@ -222,20 +204,12 @@ export default function ExportToCSVPage(props) {
 ExportToCSVPage.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
   journalEntriesList: PropTypes.arrayOf(PropTypes.any).isRequired,
-  user: PropTypes.objectOf(PropTypes.any).isRequired,
-  loginUser: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = state => ({
-  user: state.auth?.user,
   journalEntriesList: state.journal?.allJournalEntriesList,
-});
-
-const mapDispatchToProps = dispatch => ({
-  loginUser: data => dispatch(login(data)),
 });
 
 export const ExportToCSVWrapper = connect(
   mapStateToProps,
-  mapDispatchToProps,
 )(ExportToCSVPage);
