@@ -73,36 +73,6 @@ export default StyleSheet.create({
     fontSize: RFValue(13),
   },
 
-  orView: {
-    alignItems: 'center',
-  },
-
-  or: {
-    marginTop: 25,
-    fontSize: RFValue(18),
-    fontWeight: 'bold',
-    color: colors.secondary,
-  },
-
-  otherOpt: {
-    marginVertical: 25,
-    fontSize: RFValue(18),
-    fontWeight: 'bold',
-    color: colors.mainFont,
-  },
-
-  facebook: {
-    color: colors.tertiary,
-  },
-
-  google: {
-    color: colors.qccentError,
-  },
-
-  logoBtn: {
-    flexDirection: 'row',
-  },
-
   forgotPassword: {
     marginTop: 30,
     fontSize: 20,
@@ -113,14 +83,5 @@ export default StyleSheet.create({
   bottomTextView: {
     alignSelf: 'center',
     marginVertical: RFValue(50),
-  },
-  socialLoaderContainer: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
   },
 });
