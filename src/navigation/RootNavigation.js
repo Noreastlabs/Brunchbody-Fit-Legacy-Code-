@@ -3,9 +3,8 @@ import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 // import ReactNativeAN from 'react-native-alarm-notification';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useSelector } from 'react-redux';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { WelcomeWrapper } from '../screens/welcome';
 import { CompleteProfileWrapper } from '../screens/completeProfile/pages/completeProfile/CompleteProfile';
 import { MyAccountWrapper } from '../screens/setting/pages/MyProfile/MyAccount';
 import { DashboardWrapper } from '../screens/dashboard';
@@ -74,9 +73,19 @@ export default function RootNavigation() {
   //   },
   // );
 
-  // Get user from Redux
-  const user = useSelector(state => state?.auth?.user);
-  const initialRoute = user && Object.keys(user).length > 0 ? 'Home' : 'Welcome';
+  const [initialRoute, setInitialRoute] = React.useState(null);
+
+  React.useEffect(() => {
+    const determineRoute = async () => {
+      const profileData = await AsyncStorage.getItem('user_profile');
+      setInitialRoute(profileData ? 'Home' : 'CompleteProfile');
+    };
+    determineRoute();
+  }, []);
+
+  if (!initialRoute) {
+    return null;
+  }
 
   return (
     <DateProvider>
@@ -89,7 +98,6 @@ export default function RootNavigation() {
             name="CompleteProfile"
             component={CompleteProfileWrapper}
           />
-          <Stack.Screen name="Welcome" component={WelcomeWrapper} />
           <Stack.Screen name="Home" component={BottomTabNavigation} />
           <Stack.Screen name="WeightLog" component={WeightLogWrapper} />
           <Stack.Screen
