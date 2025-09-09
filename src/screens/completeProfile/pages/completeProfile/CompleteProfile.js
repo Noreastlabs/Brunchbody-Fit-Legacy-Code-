@@ -1,17 +1,15 @@
 /* eslint-disable consistent-return */
 import React, {useState} from 'react';
-import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {profile} from '../../../../redux/actions';
+import {SET_USER} from '../../../../redux/constants';
 import {Name, Gender, Welcome, Weight} from '../../components';
 import {DateOfBirthWrapper} from './DateOfBirth';
 import {HeightWrapper} from './Height';
 
-export const CompleteProfilePage = props => {
-  const {createUserProfile} = props;
-
+export const CompleteProfilePage = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
   const [loader, setLoader] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('Name');
@@ -69,7 +67,7 @@ export const CompleteProfilePage = props => {
     } else if (screen === 'Welcome') {
       setLoader(true);
 
-      const profileResponse = await createUserProfile({
+      const profileData = {
         name,
         dob,
         height,
@@ -93,19 +91,20 @@ export const CompleteProfilePage = props => {
           },
           {id: 4, name: 'cal', value: '2000'},
         ],
-      });
-      if (profileResponse === true) {
-        setCurrentScreen(screen);
-        setName('');
-        setWeight('');
-        AsyncStorage.removeItem('dob');
-        AsyncStorage.removeItem('height');
-        AsyncStorage.removeItem('gender');
-        setLoader(false);
-      } else {
-        setLoader(false);
-        showMessage('Error!', profileResponse);
-      }
+      };
+
+      await AsyncStorage.setItem(
+        'user_profile',
+        JSON.stringify(profileData),
+      );
+      dispatch({type: SET_USER, payload: profileData});
+      setCurrentScreen(screen);
+      setName('');
+      setWeight('');
+      AsyncStorage.removeItem('dob');
+      AsyncStorage.removeItem('height');
+      AsyncStorage.removeItem('gender');
+      setLoader(false);
     } else {
       showMessage('Error!', 'This field is required!');
     }
@@ -173,15 +172,4 @@ export const CompleteProfilePage = props => {
   }
 };
 
-CompleteProfilePage.propTypes = {
-  createUserProfile: PropTypes.func.isRequired,
-};
-
-const mapDispatchToProps = dispatch => ({
-  createUserProfile: data => dispatch(profile(data)),
-});
-
-export const CompleteProfileWrapper = connect(
-  null,
-  mapDispatchToProps,
-)(CompleteProfilePage);
+export const CompleteProfileWrapper = CompleteProfilePage;

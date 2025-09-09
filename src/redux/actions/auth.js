@@ -5,50 +5,18 @@ import { serverUrl } from '../../config';
 import { SET_USER } from '../constants';
 
 export const loggedIn = () => async dispatch => {
-  console.log('Inside loggedIn');
+  const profileData = await AsyncStorage.getItem('user_profile');
 
-  const idToken = await AsyncStorage.getItem('auth_token');
-  const refreshToken = await AsyncStorage.getItem('refresh_token');
-
-  const request = await axios({
-    method: 'GET',
-    baseURL: serverUrl,
-    url: `api/user/isLoggedIn`,
-    headers: {
-      auth_token: idToken,
-      refresh_token: refreshToken,
-    },
-  })
-    .then(res => res.data)
-    .catch(() => false);
-
-  if (request.success) {
-    AsyncStorage.setItem('uid', request.result.uid);
-    AsyncStorage.setItem('auth_token', request.result.authToken);
-    AsyncStorage.setItem('refresh_token', request.result.refreshToken);
-    AsyncStorage.setItem(
-      'last_updated_time',
-      request?.result?.user?.lastUpdatedTime?.toString() || '',
-    );
-
-    AsyncStorage.getItem('last_updated_time').then(value => {
-      console.log('Inside loggedIn', value);
+  if (profileData) {
+    const user = JSON.parse(profileData);
+    dispatch({
+      type: SET_USER,
+      payload: user,
     });
-
-    const { user } = request.result;
-
-    if (user.weight && user.height) {
-      dispatch({
-        type: SET_USER,
-        payload: request.result.user,
-      });
-      return true;
-    }
-
-    return 'goToCompleteProfile';
+    return true;
   }
 
-  return false;
+  return 'goToCompleteProfile';
 };
 
 export const login = data => async dispatch => {
@@ -132,24 +100,16 @@ export const createAccount = data => async () => {
 };
 
 export const profile = data => async dispatch => {
-  const uid = await AsyncStorage.getItem('uid');
-  const idToken = await AsyncStorage.getItem('auth_token');
+  const existingProfile = await AsyncStorage.getItem('user_profile');
+  const parsedProfile = existingProfile ? JSON.parse(existingProfile) : {};
+  const updatedProfile = {...parsedProfile, ...data};
 
-  const request = await axios({
-    method: 'POST',
-    baseURL: serverUrl,
-    url: `api/user/profile/${uid}`,
-    data,
-  })
-    .then(res => res.data)
-    .catch(err => err.response.data);
-
-  if (request.success) {
-    if (idToken) dispatch(loggedIn());
-    return true;
-  }
-
-  return request.result;
+  await AsyncStorage.setItem('user_profile', JSON.stringify(updatedProfile));
+  dispatch({
+    type: SET_USER,
+    payload: updatedProfile,
+  });
+  return true;
 };
 
 export const changeEmail = data => async dispatch => {
