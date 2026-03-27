@@ -1,0 +1,7 @@
+# Copy these entries to ~/.gradle/gradle.properties (local machine)
+# or set equivalent BB_* environment variables in CI.
+
+BRUNCHBODY_RELEASE_STORE_FILE=/absolute/path/to/your/release.keystore
+BRUNCHBODY_RELEASE_STORE_PASSWORD=change-me
+BRUNCHBODY_RELEASE_KEY_ALIAS=release-key-alias
+BRUNCHBODY_RELEASE_KEY_PASSWORD=change-me
