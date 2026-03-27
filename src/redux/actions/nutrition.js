@@ -23,6 +23,8 @@ import {
 
 assertLocalOnlyMode('nutrition actions');
 
+// Legacy `api/user/...` action snippets were removed; this module is intentionally local-only.
+
 export const getMeals = () => async dispatch => {
   const mealsString = await AsyncStorage.getItem('meals');
   const meals = mealsString ? JSON.parse(mealsString) : [];

@@ -1,14 +1,15 @@
+import {LOCAL_ONLY} from './mode';
+
 export const APP_MODES = Object.freeze({
   LOCAL_ONLY: 'LOCAL_ONLY',
   REMOTE_SYNC: 'REMOTE_SYNC',
 });
 
-const requestedMode = process.env.APP_MODE;
-
-export const APP_MODE =
-  requestedMode && Object.values(APP_MODES).includes(requestedMode)
-    ? requestedMode
-    : APP_MODES.LOCAL_ONLY;
+/**
+ * Runtime mode is currently controlled by one documented feature flag.
+ * Keep APP_MODE exported so existing imports remain backwards compatible.
+ */
+export const APP_MODE = LOCAL_ONLY ? APP_MODES.LOCAL_ONLY : APP_MODES.REMOTE_SYNC;
 
 export const isLocalOnlyMode = () => APP_MODE === APP_MODES.LOCAL_ONLY;
 
