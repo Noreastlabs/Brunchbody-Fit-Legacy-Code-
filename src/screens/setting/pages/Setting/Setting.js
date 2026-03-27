@@ -107,13 +107,13 @@ const listData = [
       { id: 1, name: 'Version', type: '', screen: '' },
       {
         id: 2,
-        name: 'Terms of use',
+        name: 'Terms of Use',
         type: '',
         link: 'https://brunchbodyfit.com/terms-conditions/',
       },
       {
         id: 3,
-        name: 'Privacy policy',
+        name: 'Privacy Policy',
         type: '',
         link: 'https://brunchbodyfit.com/privacy-policy/',
       },
@@ -122,7 +122,7 @@ const listData = [
       { id: 6, name: 'Rate us', type: '', screen: '' },
       {
         id: 7,
-        name: 'Contact Us',
+        name: 'Support & Contact',
         type: '',
         link: 'https://brunchbodyfit.com/contact-us/',
       },
