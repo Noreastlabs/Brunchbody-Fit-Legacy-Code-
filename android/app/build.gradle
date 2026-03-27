@@ -71,6 +71,12 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+// Release signing values must come from ~/.gradle/gradle.properties or CI env vars.
+def releaseStoreFilePath = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_FILE").orElse(providers.environmentVariable("BB_RELEASE_STORE_FILE")).getOrNull()
+def releaseStorePassword = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_STORE_PASSWORD")).getOrNull()
+def releaseKeyAlias = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_ALIAS").orElse(providers.environmentVariable("BB_RELEASE_KEY_ALIAS")).getOrNull()
+def releaseKeyPassword = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_KEY_PASSWORD")).getOrNull()
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -85,7 +91,7 @@ android {
         versionName "1.0"
         buildConfigField "boolean", "IS_EDGE_TO_EDGE_ENABLED", "true"
     }
-    
+
     packagingOptions {
         pickFirst '**/libc++_shared.so'
         pickFirst '**/libjsc.so'
@@ -109,7 +115,7 @@ android {
         // Use pickFirst for all WindowUtilKt related files
         pickFirst '**/WindowUtilKt.*'
     }
-    
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -117,8 +123,16 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            if (releaseStoreFilePath != null) {
+                storeFile file(releaseStoreFilePath)
+            }
+            storePassword releaseStorePassword
+            keyAlias releaseKeyAlias
+            keyPassword releaseKeyPassword
+        }
     }
-    
+
     // Add this to handle duplicate class issues
     configurations.all {
         resolutionStrategy {
@@ -130,7 +144,7 @@ android {
             force 'com.facebook.react:react-native:0.80.2'
         }
     }
-    
+
     // Handle duplicate classes in release builds
     android.applicationVariants.all { variant ->
         if (variant.buildType.name == 'release') {
@@ -141,16 +155,14 @@ android {
             }
         }
     }
-    
+
     // Add specific configuration for release builds
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             // Add specific configuration to handle duplicate classes
@@ -159,7 +171,7 @@ android {
             }
         }
     }
-    
+
     // Add specific task to handle WindowUtilKt issue
     tasks.whenTaskAdded { task ->
         if (task.name.contains('mergeDexRelease')) {
@@ -176,6 +188,24 @@ android {
                     }
                 }
             }
+        }
+    }
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def isReleaseBuild = graph.allTasks.any { task ->
+        task.name.toLowerCase().contains("release")
+    }
+
+    if (isReleaseBuild) {
+        def missing = []
+        if (!releaseStoreFilePath) missing << "BRUNCHBODY_RELEASE_STORE_FILE / BB_RELEASE_STORE_FILE"
+        if (!releaseStorePassword) missing << "BRUNCHBODY_RELEASE_STORE_PASSWORD / BB_RELEASE_STORE_PASSWORD"
+        if (!releaseKeyAlias) missing << "BRUNCHBODY_RELEASE_KEY_ALIAS / BB_RELEASE_KEY_ALIAS"
+        if (!releaseKeyPassword) missing << "BRUNCHBODY_RELEASE_KEY_PASSWORD / BB_RELEASE_KEY_PASSWORD"
+
+        if (!missing.isEmpty()) {
+            throw new GradleException("Missing release signing values. Set in ~/.gradle/gradle.properties or CI secrets: ${missing.join(', ')}")
         }
     }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!-- Allow cleartext only for local development endpoints in debug builds. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain>10.0.2.2</domain>
+        <domain>10.0.3.2</domain>
+    </domain-config>
+</network-security-config>
