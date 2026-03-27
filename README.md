@@ -8,37 +8,30 @@ The project demonstrates a mobile interface with charts, scheduling tools, and s
 
 ## App Mode
 
-The app now has a central runtime mode config at `src/config/appMode.js`.
+Local/remote behavior is controlled by a single config flag in `src/config/mode.js`:
 
-- `LOCAL_ONLY` (default): all Redux actions operate only on local state/storage paths.
-- `REMOTE_SYNC`: reserved for future backend reintroduction.
+- `LOCAL_ONLY = true` (current default): all Redux actions use local data paths only.
+- `LOCAL_ONLY = false`: reserved for future backend reintroduction (`REMOTE_SYNC`).
 
-Current status: all previously commented `api/user/...` request blocks in `src/redux/actions/*` were removed permanently and **not** re-enabled in this branch. Remote sync is intentionally deferred until a complete backend contract is reintroduced.
+`src/config/appMode.js` maps this single flag to `APP_MODE` and keeps `assertLocalOnlyMode(...)` checks so unsupported remote code paths fail fast.
 
-## Local Data Architecture
+## Storage Map & Offline Behavior
 
-The app is local-first and persists domain data in two places:
+The app is local-first and can operate offline.
 
-### 1) Redux Persist (`AsyncStorage`, key = `root`)
+| Domain | Primary persistence | Storage key(s) | Offline behavior |
+| --- | --- | --- | --- |
+| Profile / user | Redux Persist via AsyncStorage | `root` (`auth` slice), bootstrap reads: `traits`, `user_profile` | Profile/traits load from local cache; edits stay on-device. |
+| Recreation | Redux Persist via AsyncStorage + MMKV for bundled plans | `root` (`recreation` slice), direct keys: `routines`, `workouts`; MMKV: `plans_brunch_body` (`STORAGE_KEYS.PLANS.BRUNCH_BODY`) | Routines/workouts remain editable offline; Brunch Body plan catalog reads from MMKV with no network dependency. |
+| Journal | Redux Persist via AsyncStorage | `root` (`journal` slice) | Journal entries and dashboard-derived values continue to work offline. |
+| Nutrition | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`nutrition` slice), direct keys: `meals`, `supplements`, `meal_categories`, `meals_directory` | Meals/supplements and nutrition directories remain fully available offline. |
+| Calendar | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`calendar` slice), direct key: `themes` | Themes/repeated themes continue to load/update without connectivity. |
+| Exercise | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`exercise` slice), direct key: `exercise_directory` | Exercise list and directory browsing/editing remain available offline. |
+| Todo | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`todo` slice), direct key: `todos` | Todo CRUD remains fully offline. |
 
-Redux slices are persisted via `redux-persist` in `src/redux/store/store.js`.
+### Notes on legacy API snippets
 
-| Domain | Slice | Typical Data |
-| --- | --- | --- |
-| Profile / user | `auth` | `user_profile`-derived user object |
-| Recreation | `recreation` | routines, routine items, custom plans, workouts, completed workouts |
-| Journal | `journal` | day entries, derived dashboard values |
-| Nutrition | `nutrition` | meals, meal items, supplements, supplement items, directories |
-| Calendar | `calendar` | themes, repeated themes, calendar frequency state |
-| Exercise | `exercise` | exercises and merged exercise data |
-| Todo | `todo` | todo tasks |
-
-### 2) Direct local storage reads
-
-Some actions also read bootstrap data directly from local storage:
-
-- `AsyncStorage`: `todos`, `themes`, `meals`, `supplements`, `meal_categories`, `meals_directory`, `exercise_directory`, `routines`, `workouts`, `traits`, `user_profile`.
-- `MMKV`: `plans_brunch_body` via `STORAGE_KEYS.PLANS.BRUNCH_BODY` for Brunch Body plans.
+In `src/redux/actions/{nutrition,recreation,calendar,exercise,todo}.js`, legacy commented `api/user/...` request snippets were removed and each module is explicitly guarded by `assertLocalOnlyMode(...)`.
 
 ## Migration Notes (future backend reintroduction)
 

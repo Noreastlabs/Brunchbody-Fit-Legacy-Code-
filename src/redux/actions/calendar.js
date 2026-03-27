@@ -17,6 +17,8 @@ import {
 
 assertLocalOnlyMode('calendar actions');
 
+// Legacy `api/user/...` action snippets were removed; this module is intentionally local-only.
+
 export const setTheme = data => async dispatch => {
   dispatch({type: SET_THEME, payload: data});
   return true;

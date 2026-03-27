@@ -11,6 +11,8 @@ import {
 
 assertLocalOnlyMode('exercise actions');
 
+// Legacy `api/user/...` action snippets were removed; this module is intentionally local-only.
+
 export const getExercises = () => async dispatch => {
   const exercisesString = await AsyncStorage.getItem('exercises');
   const exercises = exercisesString ? JSON.parse(exercisesString) : [];
