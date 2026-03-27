@@ -72,10 +72,12 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 // Release signing values must come from ~/.gradle/gradle.properties or CI env vars.
+// Do not commit release passwords/aliases in repository files.
 def releaseStoreFilePath = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_FILE").orElse(providers.environmentVariable("BB_RELEASE_STORE_FILE")).getOrNull()
 def releaseStorePassword = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_STORE_PASSWORD")).getOrNull()
 def releaseKeyAlias = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_ALIAS").orElse(providers.environmentVariable("BB_RELEASE_KEY_ALIAS")).getOrNull()
 def releaseKeyPassword = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_KEY_PASSWORD")).getOrNull()
+def hasReleaseSigningValues = [releaseStoreFilePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword].every { it != null && !it.toString().trim().isEmpty() }
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -124,12 +126,12 @@ android {
             keyPassword 'android'
         }
         release {
-            if (releaseStoreFilePath != null) {
+            if (hasReleaseSigningValues) {
                 storeFile file(releaseStoreFilePath)
+                storePassword releaseStorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
             }
-            storePassword releaseStorePassword
-            keyAlias releaseKeyAlias
-            keyPassword releaseKeyPassword
         }
     }
 
