@@ -16,6 +16,12 @@ If you discover a security issue, report it privately before opening any public 
 4. If credentials might be exposed, immediate rotation/revocation is required before any public fix notes.
 5. Public disclosure should happen only after a fix is merged and impacted keys/tokens are rotated.
 
+## OAuth Client Identifier Guidance
+
+- OAuth client IDs (for example `*.apps.googleusercontent.com` and reversed-client-id URL schemes) are **public identifiers** and may be stored in source-controlled app metadata.
+- OAuth client secrets, refresh/access tokens, authorization codes, and any private key material are **secrets** and must never be committed.
+- If a token or secret is exposed, revoke/rotate immediately and treat it as a security incident.
+
 ## Prohibited Secrets
 
 Never commit plaintext secrets or credential material, including:
