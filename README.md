@@ -29,6 +29,13 @@ The app is local-first and can operate offline.
 | Exercise | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`exercise` slice), direct key: `exercise_directory` | Exercise list and directory browsing/editing remain available offline. |
 | Todo | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`todo` slice), direct key: `todos` | Todo CRUD remains fully offline. |
 
+### No-cloud-sync guarantee (current behavior)
+
+- There is **no backend persistence** in the current build.
+- There is **no automatic cloud backup/sync** for user records, workouts, meals, todos, or themes.
+- Data continuity depends on local device storage (`AsyncStorage` + MMKV). Clearing app storage or uninstalling the app removes locally stored data.
+- Any future backend return must be explicitly enabled via the single app-mode switch (`LOCAL_ONLY` in `src/config/mode.js`).
+
 ### Notes on legacy API snippets
 
 In `src/redux/actions/{nutrition,recreation,calendar,exercise,todo}.js`, legacy commented `api/user/...` request snippets were removed and each module is explicitly guarded by `assertLocalOnlyMode(...)`.
