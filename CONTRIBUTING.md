@@ -7,12 +7,30 @@ Thank you for considering a contribution to this project! The goal of this clone
 1. Fork the repository and create your branch from `main`.
 2. Install dependencies with `yarn install`.
 3. Run `yarn lint` and `yarn test` to ensure your changes pass our checks.
+4. If you plan to run Android debug builds, generate a local debug keystore (outside this repo) at `~/.android/debug.keystore`:
+
+   ```bash
+   mkdir -p ~/.android
+   keytool -genkeypair -v \
+     -storetype PKCS12 \
+     -keystore ~/.android/debug.keystore \
+     -alias androiddebugkey \
+     -storepass android \
+     -keypass android \
+     -keyalg RSA \
+     -keysize 2048 \
+     -validity 10000 \
+     -dname "CN=Android Debug,O=Android,C=US"
+   ```
+
+   `android/app/debug.keystore` must never be committed.
 
 ## Guidelines
 
 - Follow the existing code style and project structure.
 - Features should respect the current scope: authentication and local onboarding were removed to keep the codebase light.
 - Submit pull requests with clear descriptions and reference any relevant issues.
+- Before pushing, run `./scripts/check-secrets.sh` to verify the repository does not include committed key artifacts (`*.keystore`, `*.jks`, `*.p12`, `*.pem`) or private key blocks.
 
 ## Questions?
 

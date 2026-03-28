@@ -2,7 +2,7 @@
 set -euo pipefail
 
 forbidden_ext_pattern='\.(keystore|jks|p12|pem)$'
-private_key_pattern='-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----'
+private_key_pattern='-----BEGIN (RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----'
 
 echo 'Checking tracked files for forbidden secret file extensions...'
 forbidden_files="$(git ls-files | grep -E "$forbidden_ext_pattern" || true)"
