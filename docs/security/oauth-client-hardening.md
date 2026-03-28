@@ -1,54 +1,55 @@
-# Google OAuth Client Hardening Checklist (iOS)
+# Google OAuth Hardening Record (iOS)
 
-This project currently uses the iOS OAuth URL scheme/client identifier declared in `ios/BrunchBody/Info.plist`:
+_Last updated: 2026-03-28_
 
-- Reversed client ID (redirect URL scheme):
-  - `com.googleusercontent.apps.719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6`
-- OAuth client ID:
-  - `719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6.apps.googleusercontent.com`
+## Current application behavior
 
-## 1) Map `Info.plist` client identifier to the Google Cloud OAuth app
+BrunchBody currently ships without Sign in with Google or any other OAuth-based login flow. Authentication/onboarding is local-only in the app runtime.
 
-In Google Cloud Console (**APIs & Services → Credentials**), this value maps to exactly one OAuth app:
+## 1) OAuth app mapping from prior iOS client identifier
 
-| Source in repo | Google Cloud object | Required production value |
-| --- | --- | --- |
-| `CFBundleURLSchemes` = `com.googleusercontent.apps.719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6` | iOS OAuth 2.0 Client ID | `719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6.apps.googleusercontent.com` |
-| iOS app identity (`PRODUCT_BUNDLE_IDENTIFIER`) | Authorized bundle ID on that iOS OAuth client | `com.brunchbody` |
+Historical iOS redirect scheme/client pair (removed from app metadata in this change):
 
-The reversed-client-id scheme must correspond to the same OAuth client as the iOS bundle ID above.
+- Reversed client ID scheme: `com.googleusercontent.apps.719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6`
+- OAuth client ID: `719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6.apps.googleusercontent.com`
 
-## 2) Restrict bundle IDs / redirect schemes to production-only values
+In Google Cloud Console (**Google Auth Platform → Clients** or **APIs & Services → Credentials**), this identifier maps to one iOS OAuth client. Use that exact client as the target for hardening/decommissioning actions below.
 
-In the iOS OAuth client configuration in Google Cloud:
+## 2) Authorized identity + redirect/scheme restrictions
 
-- Keep only bundle ID `com.brunchbody`.
-- Remove test, debug, localhost, and retired bundle IDs.
-- Ensure the app only uses the production reversed-client-id scheme:
-  - `com.googleusercontent.apps.719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6`
+Because OAuth is not used by the current app, the intended production/dev values are:
 
-In this repo, `Info.plist` registers that scheme once under `CFBundleURLTypes`.
+- **Production app OAuth redirect schemes:** none
+- **Development app OAuth redirect schemes:** none
+- **Authorized iOS bundle IDs on active OAuth clients for this app:** none
 
-## 3) Remove unused scopes and keep consent screen minimal
+Hardening action:
 
-In **Google Auth Platform → OAuth consent screen**:
+1. Remove inactive/test bundle IDs and redirect schemes from the mapped iOS OAuth client.
+2. Prefer disabling or deleting the unused iOS OAuth client entirely.
+3. Keep OAuth disabled unless a signed product requirement reintroduces Google sign-in.
 
-- Keep only baseline Sign in with Google scopes actually required by the app:
-  - `openid`
-  - `email`
-  - `profile`
-- Remove any extra scopes not required by current features (especially sensitive/restricted scopes).
-- Ensure app name, support email, authorized domain(s), and privacy policy links match production metadata.
-- Ensure publishing status and user type are correct for production release.
+Repository alignment for this decision:
 
-## 4) Secret handling policy (repo-level)
+- `CFBundleURLTypes` Google OAuth scheme was removed from `ios/BrunchBody/Info.plist`.
 
-OAuth **client IDs are public identifiers** and may appear in app metadata.
+## 3) Scope minimization + consent screen alignment
 
-Never commit any of the following:
+Since the app does not initiate Google OAuth:
 
-- OAuth client secrets
-- Refresh tokens / access tokens
-- Service account private keys
+- Remove all unused nonessential scopes from the consent screen configuration.
+- If no Google sign-in remains, keep no active public scope grants for this app/client.
+- Ensure consent screen metadata does not claim unsupported sign-in behavior.
 
-Store secrets in secure secret managers/CI variables and rotate immediately if exposure is suspected.
+If Google sign-in is reintroduced later, re-enable only the minimal baseline scopes required at launch (`openid`, `email`, `profile`) and document why each scope is needed.
+
+## 4) Decision log (2026-03-28)
+
+- Decision: Decommission Google OAuth usage for current mobile builds.
+- Repo control: iOS OAuth URL scheme removed from app metadata.
+- Cloud control required: disable/delete mapped iOS OAuth client and prune consent screen scopes to match current non-OAuth behavior.
+- Reintroduction gate: any future OAuth re-enable requires security review + documented scope justification.
+
+## Secret handling reminder
+
+OAuth client IDs are public identifiers and may appear in app metadata. Never commit client secrets, refresh/access tokens, or service-account private keys.
