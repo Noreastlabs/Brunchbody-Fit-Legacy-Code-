@@ -162,9 +162,9 @@ android {
     // Add specific configuration for release builds
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
         }
         release {
+            // Release builds must use the dedicated release signing config (never debug keys).
             signingConfig signingConfigs.release
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
