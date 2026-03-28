@@ -1,51 +1,44 @@
 # CRUD + Persistence QA Report
 
 Date: 2026-03-28
-Scope: profile, calendar themes, workouts/routines, meals/supplements, todos, exercises, MMKV hydration, upgrade persistence.
+Scope: profile, calendar themes, routines/workouts, exercises, meals/supplements, todos, MMKV hydration (`src/storage/mmkv/hydration.js`), and offline safety.
 
 ## Test execution
 - Command: `yarn test __tests__/localDataValidation.test.js --runInBand`
-- Result: PASS (12/12)
+  - Result: PASS (12/12)
+- Command: `HTTP_PROXY=http://127.0.0.1:9 HTTPS_PROXY=http://127.0.0.1:9 ALL_PROXY=socks5://127.0.0.1:9 yarn test __tests__/localDataValidation.test.js --runInBand`
+  - Result: PASS (12/12) with outbound network paths effectively blocked via invalid proxy endpoints.
+- Command: `yarn check:local-only`
+  - Result: PASS (no Firebase/AWS imports or `api/user/` references in `src/` while LOCAL_ONLY mode is enabled).
 
-## Coverage mapping
+## Pass/Fail Matrix
 
-### 1) CRUD + restart persistence for core domains
-- **Profile**
-  - `profile` action persists user data, merges updates, and `loggedIn` reloads saved data on relaunch.
-  - `loggedIn` no-data flow returns `goToCompleteProfile`.
-- **Calendar themes**
-  - add/edit/delete lifecycle validated in reducer.
-  - reload path validated via `GET_THEMES`.
-- **Workouts / routines**
-  - add/edit/delete workflow validated for workout and routine item chains.
-  - reload path validated via `GET_WORKOUTS` and `GET_ROUTINES`.
-- **Meals / supplements**
-  - add/edit/delete workflow validated for meals + meal items and supplements + supplement items.
-  - reload path validated via `GET_MEALS` and `GET_SUPPLEMENTS`.
-- **Todos**
-  - add/edit/delete lifecycle validated.
-  - reload path validated via `GET_TODO_TASKS`.
-- **Exercises**
-  - merge/add/edit/delete lifecycle validated.
-  - reload path validated via `GET_EXERCISES`.
+| Area | First launch | Relaunch / restart persistence | Network disabled | Status | Blocking? |
+|---|---|---|---|---|---|
+| Profile CRUD + persisted reload | PASS (`profile` + `loggedIn` path) | PASS (merged profile remains after relaunch simulation) | PASS | PASS | No |
+| Calendar themes CRUD + reload | N/A | PASS (`GET_THEMES`) | PASS | PASS | No |
+| Routines/workouts CRUD + reload | N/A | PASS (`GET_WORKOUTS`, `GET_ROUTINES`) | PASS | PASS | No |
+| Exercises CRUD + reload | N/A | PASS (`GET_EXERCISES`) | PASS | PASS | No |
+| Meals/supplements CRUD + reload | N/A | PASS (`GET_MEALS`, `GET_SUPPLEMENTS`) | PASS | PASS | No |
+| Todos CRUD + reload | N/A | PASS (`GET_TODO_TASKS`) | PASS | PASS | No |
+| MMKV hydration (`src/storage/mmkv/hydration.js`) | PASS (`IS_INITIALIZED=false` seeds + sets init flag) | PASS (`IS_INITIALIZED=true` skips seed writes) | PASS | PASS | No |
+| Hidden backend dependency check | N/A | N/A | PASS (`check:local-only` scan + offline test pass) | PASS | No |
 
-### 2) MMKV hydration behavior from `src/storage/mmkv/hydration.js`
-- First launch (`IS_INITIALIZED=false`): seed plans are written and initialization flag is set.
-- Subsequent launch (`IS_INITIALIZED=true`): seeding is skipped and no writes occur.
-
-### 3) Update path (old build → update → existing data intact)
-- Simulated upgrade payload from an "old build" was reloaded into all domains using current reducer/action ingestion paths.
-- Existing persisted entities remain readable after "update + relaunch" simulation.
+## MMKV hydration verification details
+- **First launch path**: with `storage.getBoolean(STORAGE_KEYS.IS_INITIALIZED)` mocked to `false`, `hydrateWorkoutPlans()` writes seed plans and sets `IS_INITIALIZED=true`.
+- **Relaunch path**: with the same key mocked `true`, `hydrateWorkoutPlans()` performs no writes.
 
 ## Defect log
 
-### Post-release items
+### Non-blocking issue observed
 1. **AUTH-001: malformed profile input produces `NaN` BMI/BMR values**
    - Area: Profile calculations (`authReducer` / `SET_USER`).
    - Repro: provide malformed `height`, `weight`, or `dob` values.
    - Current behavior: user object stores `'NaN'` for `bmi` and `bmr`.
-   - Impact: degraded profile metric quality; no crash observed.
+   - Impact: degraded profile metric quality; no crash observed in this scope.
    - Recommendation: add input validation + fallback defaults before BMI/BMR computation.
 
-### Release blockers
-- **None identified** from this automated reducer/action persistence test scope.
+## Release gate decision
+- **Release-blocking defects (data-loss or crash): NONE detected in this test scope.**
+- **Gate result: PASS.**
+- Policy used: any data-loss or crash defect would set gate result to **BLOCKED**.
