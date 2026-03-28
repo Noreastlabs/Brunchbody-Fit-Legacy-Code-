@@ -89,7 +89,7 @@ android {
         applicationId "com.brunchbody"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
+        versionCode 3
         versionName "1.0.0"
         buildConfigField "boolean", "IS_EDGE_TO_EDGE_ENABLED", "true"
     }
