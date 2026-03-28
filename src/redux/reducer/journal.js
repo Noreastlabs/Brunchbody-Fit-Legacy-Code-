@@ -86,6 +86,11 @@ const journalReducer = (state = initialState, action) => {
     case EDIT_JOURNAL_ENTRY: {
       const temp = Array.from(state.allJournalEntriesList);
       const index = temp.findIndex(i => i.id === action.payload.id);
+
+      if (index < 0) {
+        return state;
+      }
+
       const entryData = action.payload.data;
       temp[index] = {...temp[index], ...entryData};
 
