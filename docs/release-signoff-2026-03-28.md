@@ -52,6 +52,7 @@ Target release candidate: `1.0.1 (4)`.
 | iOS privacy manifest aligned with current behavior | Closed | Closed | plist review + local-only check | ✅ |
 | Android signed release artifact generated | Closed | **Open** | `assembleRelease` failed in env | ❌ |
 | iOS signed release artifact generated | Closed | **Open** | `xcodebuild` unavailable in env | ❌ |
+| Secret scan passed before public release tag | Closed | Closed | `./scripts/check-secrets.sh` + `docs/release/RELEASE_CHECKLIST.md` | ✅ |
 | Release notes published with explicit local-only data statement | Closed | Closed | `docs/release/RELEASE_NOTES_1.0.1-rc1.md` | ✅ |
 
 Checklist rule outcome: **NOT ALL BLOCKERS CLOSED**.

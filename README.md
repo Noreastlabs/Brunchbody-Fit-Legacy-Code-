@@ -41,11 +41,16 @@ This keeps the current local-only contract enforceable at review time.
 
 ## Secret & Keystore Guardrail
 
-A dedicated CI workflow (`.github/workflows/secret-scan.yml`) runs `./scripts/check-secrets.sh` on pushes and pull requests.
+A dedicated CI workflow (`.github/workflows/secret-scan.yml`) runs `./scripts/check-secrets.sh` on pushes and pull requests, and a repository pre-commit hook is provided at `.githooks/pre-commit`.
 
 The check fails if git-tracked content includes:
 - secret container file types (`*.keystore`, `*.jks`, `*.p12`, `*.pem`)
+- cloud access keys (for example AWS-style key IDs)
+- bearer tokens
+- database URLs with embedded credentials
 - private key blocks (for example `-----BEGIN ... PRIVATE KEY-----`)
+
+False-positive exclusions are tracked in `.secret-scan-exclusions` (lockfiles and other known-safe noisy files only).
 
 For local debug key setup and guidance on history cleanup before/after making the repository public, see `docs/secrets-and-debug-keys.md`.
 
@@ -142,6 +147,10 @@ No authentication or local onboarding steps are required; the application launch
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our process. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
+
+## Release Checklist
+
+Before creating a public release tag, complete `docs/release/RELEASE_CHECKLIST.md`, including a required passing secret scan gate.
 
 ## License
 
