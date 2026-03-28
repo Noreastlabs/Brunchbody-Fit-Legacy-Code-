@@ -3793,6 +3793,7 @@ __metadata:
   resolution: "BrunchBody@workspace:."
   dependencies:
     "@babel/core": "npm:^7.25.2"
+    "@babel/parser": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/runtime": "npm:^7.25.0"
     "@babel/types": "npm:7.25.2"

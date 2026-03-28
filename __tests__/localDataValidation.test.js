@@ -4,6 +4,8 @@ import recreationReducer from '../src/redux/reducer/recreation';
 import calendarReducer from '../src/redux/reducer/calendar';
 import exerciseReducer from '../src/redux/reducer/exercise';
 import authReducer from '../src/redux/reducer/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { loggedIn, profile } from '../src/redux/actions/auth';
 import {
   ADD_EXERCISE,
   ADD_MEAL,
@@ -251,6 +253,10 @@ describe('Local data validation - CRUD', () => {
 });
 
 describe('Persistence and hydration validation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   test('redux state can be reloaded through GET actions (simulated app restart/update)', () => {
     const persistedState = {
       todos: [{ id: 't1', title: 'Persisted' }],
@@ -290,6 +296,51 @@ describe('Persistence and hydration validation', () => {
     hydrateWorkoutPlans();
     expect(setJSON).not.toHaveBeenCalled();
     expect(storage.set).not.toHaveBeenCalled();
+  });
+
+  test('profile action persists and merges profile data across launches', async () => {
+    const dispatch = jest.fn();
+
+    await profile({
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      activity: 'Lightly Active',
+    })(dispatch);
+
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_profile',
+      expect.any(String),
+    );
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SET_USER,
+        payload: expect.objectContaining({ height: '5.06', weight: '135' }),
+      }),
+    );
+
+    dispatch.mockClear();
+    await profile({ weight: '140' })(dispatch);
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SET_USER,
+        payload: expect.objectContaining({
+          height: '5.06',
+          weight: '140',
+          gender: 'female',
+        }),
+      }),
+    );
+
+    const loginResult = await loggedIn()(dispatch);
+    expect(loginResult).toBe(true);
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SET_USER,
+        payload: expect.objectContaining({ height: '5.06', weight: '140' }),
+      }),
+    );
   });
 
   test('upgrade scenario keeps persisted entities readable after relaunch', () => {
@@ -355,6 +406,15 @@ describe('Persistence and hydration validation', () => {
       oldBuildPersisted.supplements,
     );
     expect(exercisesAfterUpgrade.exercises).toEqual(oldBuildPersisted.exercises);
+  });
+
+  test('loggedIn signals complete-profile flow when no persisted user exists', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(null);
+    const dispatch = jest.fn();
+
+    const loginResult = await loggedIn()(dispatch);
+    expect(loginResult).toBe('goToCompleteProfile');
+    expect(dispatch).not.toHaveBeenCalled();
   });
 });
 
