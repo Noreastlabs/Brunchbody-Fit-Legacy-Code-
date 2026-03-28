@@ -4,6 +4,7 @@ import recreationReducer from '../src/redux/reducer/recreation';
 import calendarReducer from '../src/redux/reducer/calendar';
 import exerciseReducer from '../src/redux/reducer/exercise';
 import authReducer from '../src/redux/reducer/auth';
+import journalReducer from '../src/redux/reducer/journal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { loggedIn, profile } from '../src/redux/actions/auth';
 import {
@@ -34,6 +35,7 @@ import {
   EDIT_TODO_TASK,
   EDIT_WORKOUT,
   EDIT_EXERCISE,
+  EDIT_JOURNAL_ENTRY,
   GET_EXERCISES,
   GET_MEALS,
   GET_ROUTINES,
@@ -419,6 +421,32 @@ describe('Persistence and hydration validation', () => {
 });
 
 describe('Edge-case validation', () => {
+
+  test('journal reducer ignores edits for non-existent entry ids without mutation', () => {
+    const initialEntry = {
+      id: 'journal-1',
+      createdOn: Date.now(),
+      DailyEntry: { feelingRate: '4' },
+    };
+
+    const state = {
+      ...journalReducer(undefined, { type: '@@INIT' }),
+      allJournalEntriesList: [initialEntry],
+    };
+
+    const nextState = journalReducer(state, {
+      type: EDIT_JOURNAL_ENTRY,
+      payload: {
+        id: 'missing-id',
+        data: { DailyEntry: { feelingRate: '1' } },
+      },
+    });
+
+    expect(nextState).toBe(state);
+    expect(nextState.allJournalEntriesList).toBe(state.allJournalEntriesList);
+    expect(nextState.allJournalEntriesList[0]).toBe(initialEntry);
+    expect(nextState.allJournalEntriesList[0].DailyEntry.feelingRate).toBe('4');
+  });
   test('auth reducer produces NaN for malformed profile values (defect characterization)', () => {
     const state = authReducer(undefined, {
       type: SET_USER,
