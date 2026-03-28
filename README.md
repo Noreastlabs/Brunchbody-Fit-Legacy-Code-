@@ -10,8 +10,9 @@ The project demonstrates a mobile interface with charts, scheduling tools, and s
 
 Local/remote behavior is controlled by a single config flag in `src/config/runtimeMode.js`:
 
-- `LOCAL_ONLY = true` (current default): all Redux actions use local data paths only.
-- `LOCAL_ONLY = false`: reserved for future backend reintroduction (`REMOTE_SYNC`).
+- `LOCAL_ONLY_MODE_ENABLED = true` (current default): all Redux actions use local data paths only.
+- `LOCAL_ONLY_MODE_ENABLED = false`: reserved for future backend reintroduction (`REMOTE_SYNC`).
+- `LOCAL_ONLY` is still exported as a backwards-compatible alias.
 
 `src/config/appMode.js` maps this single flag to `APP_MODE` and keeps `assertLocalOnlyMode(...)` checks so unsupported remote code paths fail fast.
 
@@ -31,7 +32,7 @@ When adding network features, keep production endpoints on HTTPS and confine any
 
 A dedicated CI workflow (`.github/workflows/local-only-guard.yml`) runs `npm run check:local-only` on pushes and pull requests.
 
-The check fails if `LOCAL_ONLY` is `true` **and** any source file under `src/` introduces:
+The check fails if `LOCAL_ONLY_MODE_ENABLED` is `true` (or legacy `LOCAL_ONLY` resolves to `true`) **and** any source file under `src/` introduces:
 - Firebase imports
 - AWS/AppSync/Amplify imports
 - `api/user/...` remote persistence calls
@@ -70,7 +71,7 @@ The app is local-first and can operate offline.
 - There is **no backend persistence** in the current build.
 - There is **no automatic cloud backup/sync** for user records, workouts, meals, todos, or themes.
 - Data continuity depends on local device storage (`AsyncStorage` + MMKV). Clearing app storage or uninstalling the app removes locally stored data.
-- Any future backend return must be explicitly enabled via the single app-mode switch (`LOCAL_ONLY` in `src/config/runtimeMode.js`).
+- Any future backend return must be explicitly enabled via the single app-mode switch (`LOCAL_ONLY_MODE_ENABLED` in `src/config/runtimeMode.js`).
 
 ### Notes on legacy API snippets
 

@@ -12,10 +12,14 @@ if (!fs.existsSync(runtimeModePath)) {
 }
 
 const runtimeModeSource = fs.readFileSync(runtimeModePath, 'utf8');
-const localOnlyMatch = runtimeModeSource.match(/LOCAL_ONLY\s*=\s*(true|false)/);
+const localOnlyMatch =
+  runtimeModeSource.match(/LOCAL_ONLY_MODE_ENABLED\s*=\s*(true|false)/) ||
+  runtimeModeSource.match(/LOCAL_ONLY\s*=\s*(true|false)/);
 
 if (!localOnlyMatch) {
-  console.error('[local-only-check] Could not determine LOCAL_ONLY value.');
+  console.error(
+    '[local-only-check] Could not determine LOCAL_ONLY_MODE_ENABLED/LOCAL_ONLY value.',
+  );
   process.exit(1);
 }
 
