@@ -42,3 +42,8 @@ Scope: profile, calendar themes, routines/workouts, exercises, meals/supplements
 - **Release-blocking defects (data-loss or crash): NONE detected in this test scope.**
 - **Gate result: PASS.**
 - Policy used: any data-loss or crash defect would set gate result to **BLOCKED**.
+
+
+## Blocker policy note
+- Critical-defect gate is enforced via `docs/qa/blocker-report-2026-03-28.md`.
+- Release promotion must remain blocked whenever any P0/P1 defect is open.
