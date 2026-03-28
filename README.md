@@ -15,6 +15,17 @@ Local/remote behavior is controlled by a single config flag in `src/config/runti
 
 `src/config/appMode.js` maps this single flag to `APP_MODE` and keeps `assertLocalOnlyMode(...)` checks so unsupported remote code paths fail fast.
 
+## Local-only Guardrail in CI
+
+A dedicated CI workflow (`.github/workflows/local-only-guard.yml`) runs `npm run check:local-only` on pushes and pull requests.
+
+The check fails if `LOCAL_ONLY` is `true` **and** any source file under `src/` introduces:
+- Firebase imports
+- AWS/AppSync/Amplify imports
+- `api/user/...` remote persistence calls
+
+This keeps the current local-only contract enforceable at review time.
+
 ## Storage Map & Offline Behavior
 
 The app is local-first and can operate offline.
