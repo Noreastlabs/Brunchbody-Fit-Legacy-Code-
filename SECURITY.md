@@ -4,7 +4,7 @@
 
 Please report suspected vulnerabilities **privately** before opening any public issue or pull request.
 
-### Disclosure contact
+### Disclosure channels
 
 Use one of the following private channels:
 
@@ -31,16 +31,27 @@ Secrets and key material must never be committed to git history.
 ### Never commit
 
 - Private keys (`-----BEGIN ... PRIVATE KEY-----`)
-- Keystores/cert bundles (`*.keystore`, `*.jks`, `*.p12`, `*.pem`)
+- Keystores/cert bundles (`*.keystore`, `*.jks`, `*.p12`, `*.pem`, `*.key`, `*.mobileprovision`)
 - Access tokens / bearer tokens / refresh tokens
 - Cloud provider keys (for example AWS access key IDs)
 - Database URLs containing embedded credentials
 - Signing credentials or signing property files containing plaintext secrets
+- `.env` files that contain signing passwords, API secrets, tokens, or private keys
+
+### Prohibited commit examples
+
+The following are examples of commits that are **not allowed**:
+
+- Adding `android/app/release.keystore` or `ios/certs/dist.p12` to git.
+- Committing `.env`, `.env.production`, or `android/signing.properties` with real secret values.
+- Committing a private-key block such as `-----BEGIN PRIVATE KEY-----` in any source/config/documentation file.
+- Adding a hardcoded token or URL with embedded credentials (for example `postgres://<credentials-redacted>@host/db`).
 
 ### Required controls
 
 - Run `./scripts/check-secrets.sh` before each push and before release tagging.
 - Keep long-lived secrets in secret managers or CI-protected variables.
+- Keep signing values and environment secrets in local developer paths or CI variables, never in tracked files.
 - Keep `.secret-scan-exclusions` minimal and limited to known-safe noisy paths only.
 - Treat accidental secret commits as incidents (see incident response below).
 
