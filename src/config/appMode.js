@@ -1,4 +1,4 @@
-import {LOCAL_ONLY} from './mode';
+import {LOCAL_ONLY} from './runtimeMode';
 
 export const APP_MODES = Object.freeze({
   LOCAL_ONLY: 'LOCAL_ONLY',

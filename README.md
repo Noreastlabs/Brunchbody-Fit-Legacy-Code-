@@ -8,7 +8,7 @@ The project demonstrates a mobile interface with charts, scheduling tools, and s
 
 ## App Mode
 
-Local/remote behavior is controlled by a single config flag in `src/config/mode.js`:
+Local/remote behavior is controlled by a single config flag in `src/config/runtimeMode.js`:
 
 - `LOCAL_ONLY = true` (current default): all Redux actions use local data paths only.
 - `LOCAL_ONLY = false`: reserved for future backend reintroduction (`REMOTE_SYNC`).
@@ -29,12 +29,25 @@ The app is local-first and can operate offline.
 | Exercise | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`exercise` slice), direct key: `exercise_directory` | Exercise list and directory browsing/editing remain available offline. |
 | Todo | Redux Persist via AsyncStorage + direct AsyncStorage bootstrap | `root` (`todo` slice), direct key: `todos` | Todo CRUD remains fully offline. |
 
+
+### Explicitly local vs intentionally not synced
+
+- **Stored locally (on-device only):**
+  - Redux Persist state in **AsyncStorage** (`root` key; includes `auth`, `journal`, `recreation`, `nutrition`, `calendar`, `exercise`, `todo` slices).
+  - Direct **AsyncStorage** bootstrap/domain keys: `traits`, `user_profile`, `routines`, `workouts`, `meals`, `supplements`, `meal_categories`, `meals_directory`, `themes`, `exercise_directory`, `todos`.
+  - **MMKV** key: `plans_brunch_body` (`STORAGE_KEYS.PLANS.BRUNCH_BODY`) for bundled Brunch Body plans.
+- **Intentionally not synced:**
+  - No Firebase sync.
+  - No AWS/AppSync/Amplify sync.
+  - No `api/user/...` network persistence paths in local-only mode.
+  - No cross-device reconciliation or cloud backup for user-generated data.
+
 ### No-cloud-sync guarantee (current behavior)
 
 - There is **no backend persistence** in the current build.
 - There is **no automatic cloud backup/sync** for user records, workouts, meals, todos, or themes.
 - Data continuity depends on local device storage (`AsyncStorage` + MMKV). Clearing app storage or uninstalling the app removes locally stored data.
-- Any future backend return must be explicitly enabled via the single app-mode switch (`LOCAL_ONLY` in `src/config/mode.js`).
+- Any future backend return must be explicitly enabled via the single app-mode switch (`LOCAL_ONLY` in `src/config/runtimeMode.js`).
 
 ### Notes on legacy API snippets
 
