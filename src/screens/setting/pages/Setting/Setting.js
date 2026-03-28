@@ -17,6 +17,13 @@ const initialState = {
   isTimePickerModal: false,
 };
 
+
+const ABOUT_LINKS = {
+  termsOfUse: 'https://brunchbodyfit.com/terms-conditions/',
+  privacyPolicy: 'https://brunchbodyfit.com/privacy-policy/',
+  supportAndContact: 'https://brunchbodyfit.com/contact-us/',
+};
+
 const listData = [
   {
     id: 1,
@@ -109,13 +116,13 @@ const listData = [
         id: 2,
         name: 'Terms of Use',
         type: '',
-        link: 'https://brunchbodyfit.com/terms-conditions/',
+        link: ABOUT_LINKS.termsOfUse,
       },
       {
         id: 3,
         name: 'Privacy Policy',
         type: '',
-        link: 'https://brunchbodyfit.com/privacy-policy/',
+        link: ABOUT_LINKS.privacyPolicy,
       },
       { id: 4, name: 'Tutorial', type: '', screen: 'Tutorials' },
       { id: 5, name: 'Abbrevations', type: '', screen: 'Abbrevations' },
@@ -124,7 +131,7 @@ const listData = [
         id: 7,
         name: 'Support & Contact',
         type: '',
-        link: 'https://brunchbodyfit.com/contact-us/',
+        link: ABOUT_LINKS.supportAndContact,
       },
     ],
     screen: '',
