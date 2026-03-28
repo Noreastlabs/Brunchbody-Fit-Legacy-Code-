@@ -39,6 +39,7 @@ android/keystore.properties
 *.p12
 *.pem
 *.key
+*.mobileprovision
 .kotlin/
 
 # node.js
