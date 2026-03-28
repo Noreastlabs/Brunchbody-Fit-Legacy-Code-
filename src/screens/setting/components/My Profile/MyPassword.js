@@ -105,10 +105,10 @@ export default function MyPassword(props) {
           <PermissionModal
             isInput
             loader={resetLoader}
-            heading="Reset Password"
+            heading="Reset Local Password"
             value={forgotModalEmail}
             onChangeText={text => setForgotModalEmail(text)}
-            text="Please enter the email address for your account."
+            text="Enter the email saved on this device to reset your local password."
             onDone={onResetPasswordHandler}
             onCancel={() => setForgotPassModal(false)}
           />
@@ -121,8 +121,8 @@ export default function MyPassword(props) {
         content={
           <PermissionModal
             isCancelBtn={false}
-            heading="Password Request Sent"
-            text="Check your email for the link to reset your password."
+            heading="Password Reset Saved"
+            text="Your local password reset request was saved on this device."
             onDone={() => setConfirmationModal(false)}
             onCancel={() => setConfirmationModal(false)}
           />
