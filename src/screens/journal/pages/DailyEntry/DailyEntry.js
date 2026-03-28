@@ -109,8 +109,9 @@ export default function DailyEntryPage(props) {
   };
 
   const onTraitSelect = () => {
-    if (selectedTraits.length < 4) selectedTraits.push(selectedOption);
-    else showMessage('Error!', `You can't select traits more than 4.`);
+    if (selectedTraits.length < 4) {
+      setSelectedTraits(prev => [...prev, selectedOption]);
+    } else showMessage('Error!', `You can't select traits more than 4.`);
 
     setIsVisible(false);
     setIsRemove(false);
@@ -131,8 +132,8 @@ export default function DailyEntryPage(props) {
     } else if (addToFavorite && traits.length === 8) {
       showMessage('Error!', `8 favorites max.`);
     } else {
-      traits.push(data);
-      selectedTraits.push(data);
+      setTraits(prev => [...prev, data]);
+      setSelectedTraits(prev => [...prev, data]);
       setNewTrait('');
       setIsVisible(false);
       setCreateItemModal(false);
