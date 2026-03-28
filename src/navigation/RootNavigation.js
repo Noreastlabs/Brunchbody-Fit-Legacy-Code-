@@ -54,16 +54,25 @@ const screenOptions = {
 };
 
 export default function RootNavigation() {
-  let dismissSubscription = null;
   const { RNAlarmNotification } = NativeModules;
 
-  if (Platform.OS === 'android' && RNAlarmNotification) {
-    const RNAlarmEmitter = new NativeEventEmitter(RNAlarmNotification);
-    dismissSubscription = RNAlarmEmitter.addListener(
-      'OnNotificationDismissed',
-      data => console.log(data),
-    );
-  }
+  React.useEffect(() => {
+    let subscription;
+
+    if (Platform.OS === 'android' && RNAlarmNotification) {
+      const RNAlarmEmitter = new NativeEventEmitter(RNAlarmNotification);
+      subscription = RNAlarmEmitter.addListener(
+        'OnNotificationDismissed',
+        data => console.log(data),
+      );
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [RNAlarmNotification]);
 
   // const openedSubscription = RNAlarmEmitter.addListener(
   //   'OnNotificationOpened',
