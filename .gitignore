@@ -35,6 +35,10 @@ android/keystore.properties
 # Keep Android signing/debug key material out of git-tracked files.
 # Do not add `!debug.keystore` or other negated keystore exceptions.
 *.keystore
+*.jks
+*.p12
+*.pem
+*.key
 .kotlin/
 
 # node.js
