@@ -27,7 +27,6 @@ import {STORAGE_KEYS} from '../../storage/mmkv/keys';
 
 assertLocalOnlyMode('recreation actions');
 
-// Legacy `api/user/...` action snippets were removed; this module is intentionally local-only.
 
 export const getRoutines = () => async dispatch => {
   const routinesString = await AsyncStorage.getItem('routines');

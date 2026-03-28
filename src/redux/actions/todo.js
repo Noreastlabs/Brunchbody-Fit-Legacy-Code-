@@ -9,7 +9,6 @@ import {
 
 assertLocalOnlyMode('todo actions');
 
-// Legacy `api/user/...` action snippets were removed; this module is intentionally local-only.
 
 export const getTodo = () => async dispatch => {
   const todosString = await AsyncStorage.getItem('todos');
