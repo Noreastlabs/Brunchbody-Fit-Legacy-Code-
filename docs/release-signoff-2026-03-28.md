@@ -1,56 +1,65 @@
 # Release Sign-off — 2026-03-28
 
 ## Scope
-- Validate public legal/support links in `Setting.js`.
-- Verify iOS privacy manifest alignment.
-- Bump release versions/build numbers.
-- Produce final release candidates and make go/no-go decision.
+1. Confirm privacy/legal/support links in `src/screens/setting/pages/Setting/Setting.js`.
+2. Verify privacy metadata alignment in `ios/BrunchBody/PrivacyInfo.xcprivacy`.
+3. Produce signed release artifacts and execute a go/no-go checklist requiring all blocker items closed.
+4. Publish release notes explicitly stating current local-only data behavior.
 
-## 1) Public link validation
-Validated HTTP reachability for:
-- Terms: `https://brunchbodyfit.com/terms-conditions/`
-- Privacy: `https://brunchbodyfit.com/privacy-policy/`
-- Contact: `https://brunchbodyfit.com/contact-us/`
+## 1) Settings privacy/legal/support links
+Links configured in-app:
+- Terms of Use: `https://brunchbodyfit.com/terms-conditions/`
+- Privacy Policy: `https://brunchbodyfit.com/privacy-policy/`
+- Support & Contact: `https://brunchbodyfit.com/contact-us/`
 
-Result: all three endpoints returned `HTTP 200 OK` on 2026-03-28 (UTC).
+Runtime verification (`curl -I`) on 2026-03-28 UTC:
+- Terms: `HTTP/1.1 200 OK`
+- Privacy: `HTTP/1.1 200 OK`
+- Contact: `HTTP/1.1 200 OK`
 
-## 2) iOS privacy metadata validation
-Reviewed `ios/BrunchBody/PrivacyInfo.xcprivacy` and app code usage patterns.
+Status: ✅ Confirmed.
 
-Current manifest declares:
-- Required-reason APIs:
-  - UserDefaults (`CA92.1`, `1C8F.1`, `C56D.1`)
-  - File timestamp (`C617.1`)
-  - System boot time (`35F9.1`)
-- No tracking (`NSPrivacyTracking=false`)
-- No collected data types in this manifest (`NSPrivacyCollectedDataTypes=[]`)
+## 2) iOS privacy metadata alignment
+Reviewed `ios/BrunchBody/PrivacyInfo.xcprivacy` via plist parsing.
 
-Assessment:
-- This remains consistent with app-level implementation and dependencies reviewed for this release.
-- No manifest change required for this release candidate.
+Declared values:
+- `NSPrivacyTracking = false`
+- `NSPrivacyCollectedDataTypes = []`
+- `NSPrivacyAccessedAPITypes`:
+  - `NSPrivacyAccessedAPICategoryUserDefaults`: `CA92.1`, `1C8F.1`, `C56D.1`
+  - `NSPrivacyAccessedAPICategoryFileTimestamp`: `C617.1`
+  - `NSPrivacyAccessedAPICategorySystemBootTime`: `35F9.1`
 
-## 3) Version/build bump
-Updated to release candidate `1.0.1 (4)`:
-- Android: `versionName "1.0.1"`, `versionCode 4`
-- iOS: `MARKETING_VERSION = 1.0.1`, `CURRENT_PROJECT_VERSION = 4`
-- Package metadata: `package.json` version `1.0.1`
+Cross-check:
+- Local-only storage posture remains in effect (`node scripts/check-local-only-mode.js` passed).
+- No privacy-manifest edits required for this candidate.
 
-## 4) Final smoke test and sign-off decision
-Smoke checks executed:
-- JavaScript lint
-- Unit tests
-- Android release build attempt
-- iOS release archive/build attempt
+Status: ✅ Aligned.
 
-### Decision
-**NO-GO** for production submission until signed artifacts are generated in CI/macOS signing pipeline.
+## 3) Signed artifacts + blocker-closure checklist
+Target release candidate: `1.0.1 (4)`.
 
-Rationale:
-- Link and privacy validations completed.
-- Version/build bumps are complete for candidate `1.0.1 (4)`.
-- Signed Android/iOS artifacts could not be produced in this container due missing build/signing tooling (`node_modules`/Gradle plugin missing, and `xcodebuild` unavailable).
+### Build/signing attempts
+- Android signed release artifact attempt: `cd android && ./gradlew assembleRelease`
+  - Result: ❌ Failed (React Native Gradle plugin path missing because `node_modules` is not present in this container).
+- iOS signed archive attempt: `xcodebuild ... archive`
+  - Result: ❌ Failed (`xcodebuild: command not found`; macOS/Xcode not available in this container).
 
-## Sign-off
-- Release operator: Codex agent
-- Timestamp (UTC): 2026-03-28
-- Status: Blocked pending signed build outputs from release CI/macOS environment.
+### Go/No-Go blocker checklist (all blockers must be closed)
+| Blocker item | Required state | Actual state | Evidence | Gate |
+| --- | --- | --- | --- | --- |
+| Settings legal/privacy/support links valid | Closed | Closed | HTTP 200 checks | ✅ |
+| iOS privacy manifest aligned with current behavior | Closed | Closed | plist review + local-only check | ✅ |
+| Android signed release artifact generated | Closed | **Open** | `assembleRelease` failed in env | ❌ |
+| iOS signed release artifact generated | Closed | **Open** | `xcodebuild` unavailable in env | ❌ |
+| Release notes published with explicit local-only data statement | Closed | Closed | `docs/release/RELEASE_NOTES_1.0.1-rc1.md` | ✅ |
+
+Checklist rule outcome: **NOT ALL BLOCKERS CLOSED**.
+
+### Release decision
+**NO-GO** (as of 2026-03-28 UTC).
+
+Required to move to GO:
+1. Run dependency install and Android signing in release CI with configured keystore secrets.
+2. Produce iOS signed archive/IPA on macOS runner with Xcode + signing cert/profile.
+3. Re-run this checklist and confirm every blocker row is closed.
