@@ -28,7 +28,11 @@ jest.mock('react-native-wheel-color-picker', () => 'WheelColorPicker');
 jest.mock('react-native-reanimated/lib/typescript/Colors', () => ({ clampRGBA: jest.fn() }), { virtual: true });
 jest.mock('react-native-swiper', () => 'Swiper');
 jest.mock('react-native-chart-kit', () => ({ LineChart: 'LineChart' }));
-jest.mock('@react-navigation/core', () => ({ useFocusEffect: jest.fn() }));
+jest.mock(
+  '@react-navigation/core',
+  () => ({ useFocusEffect: jest.fn() }),
+  { virtual: true },
+);
 jest.mock('react-native-scoped-storage', () => ({ createDocumentFile: jest.fn() }));
 jest.mock('react-native-fs', () => ({}));
 jest.mock('@react-navigation/bottom-tabs', () => ({
