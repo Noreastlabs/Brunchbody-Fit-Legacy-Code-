@@ -8,10 +8,14 @@ cd "$REPO_ROOT"
 source ./.secret-scan-config.sh
 
 RANGE="${SECRET_SCAN_RANGE:-}"
+REPORT_FILE="${SECRET_SCAN_REPORT_FILE:-secret-scan-report.txt}"
 for arg in "$@"; do
   case "$arg" in
     --range=*)
       RANGE="${arg#--range=}"
+      ;;
+    --report=*)
+      REPORT_FILE="${arg#--report=}"
       ;;
   esac
 done
@@ -21,6 +25,12 @@ cleanup() {
   rm -f "$hits_file"
 }
 trap cleanup EXIT
+
+: > "$REPORT_FILE"
+
+report() {
+  echo "$*" | tee -a "$REPORT_FILE"
+}
 
 build_exclude_args() {
   local exclude_file='.secret-scan-exclusions'
@@ -40,6 +50,35 @@ build_exclude_args() {
   printf '%s\n' "${args[@]}"
 }
 
+validate_exclusions() {
+  local -a raw_exclusions=("$@")
+  local exclusion
+
+  if [[ ${#raw_exclusions[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  report 'Validating exclusions (only lockfiles and validated binary false positives are allowed)...'
+
+  for exclusion in "${raw_exclusions[@]}"; do
+    local path="${exclusion#:(exclude)}"
+    if [[ ! "$path" =~ ${ALLOWED_EXCLUSION_PATHS_REGEX} ]]; then
+      report "❌ Invalid exclusion path: ${path}"
+      report "   Exclusions must be lockfiles or validated binary false positives."
+      return 1
+    fi
+
+    if ! git ls-files --error-unmatch "$path" >/dev/null 2>&1; then
+      report "❌ Invalid exclusion path: ${path}"
+      report '   Exclusions must point to tracked repository files.'
+      return 1
+    fi
+  done
+
+  report '✅ Exclusion validation passed.'
+  return 0
+}
+
 scan_content() {
   local scan_scope="$1"
   shift
@@ -50,9 +89,9 @@ scan_content() {
     local pattern="${PATTERN_REGEXES[$i]}"
 
     if git grep -nEI "$pattern" -- . "${pathspec[@]}" >"$hits_file" 2>/dev/null; then
-      echo "❌ Found ${label} in ${scan_scope}:"
-      cat "$hits_file"
-      echo
+      report "❌ Found ${label} in ${scan_scope}:"
+      cat "$hits_file" | tee -a "$REPORT_FILE"
+      report ''
       return 1
     fi
   done
@@ -67,10 +106,10 @@ scan_forbidden_filenames() {
     local matches
     matches="$(echo "$files" | grep -E "$FORBIDDEN_FILE_EXTENSIONS_REGEX" || true)"
     if [[ -n "$matches" ]]; then
-      echo '❌ Found files with forbidden credential-related extensions:'
-      echo "$matches"
-      echo
-      echo 'Remove these files from git tracking and store them outside the repository.'
+      report '❌ Found files with forbidden credential-related extensions:'
+      echo "$matches" | tee -a "$REPORT_FILE"
+      report ''
+      report 'Remove these files from git tracking and store them outside the repository.'
       return 1
     fi
   fi
@@ -80,12 +119,14 @@ scan_forbidden_filenames() {
 
 mapfile -t exclude_args < <(build_exclude_args)
 
-echo 'Checking tracked repository files for forbidden secret artifacts and patterns...'
+validate_exclusions "${exclude_args[@]}" || exit 1
+
+report 'Checking tracked repository files for forbidden secret artifacts and patterns...'
 scan_forbidden_filenames "$(git ls-files)" || exit 1
 scan_content 'tracked repository files' "${exclude_args[@]}" || exit 1
 
 if [[ -n "$RANGE" ]]; then
-  echo "Checking commit range ${RANGE} for newly introduced forbidden artifacts and secret patterns..."
+  report "Checking commit range ${RANGE} for newly introduced forbidden artifacts and secret patterns..."
 
   changed_files="$(git diff --name-only "$RANGE" -- || true)"
   scan_forbidden_filenames "$changed_files" || exit 1
@@ -107,13 +148,13 @@ if [[ -n "$RANGE" ]]; then
       (( skip_file == 1 )) && continue
 
       if git diff -U0 "$RANGE" -- "$file" | grep -E '^\+[^+]' | grep -nEI "$(IFS='|'; echo "${PATTERN_REGEXES[*]}")" >"$hits_file"; then
-        echo "❌ Found high-risk patterns introduced by commits in ${RANGE} (file: ${file}):"
-        cat "$hits_file"
-        echo
+        report "❌ Found high-risk patterns introduced by commits in ${RANGE} (file: ${file}):"
+        cat "$hits_file" | tee -a "$REPORT_FILE"
+        report ''
         exit 1
       fi
     done <<<"$changed_files"
   fi
 fi
 
-echo '✅ Secret scan passed.'
+report '✅ Secret scan passed.'
