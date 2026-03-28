@@ -158,6 +158,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## OAuth Security Notes
 
-- The iOS URL scheme in `ios/BrunchBody/Info.plist` includes the Google OAuth client identifier (`com.googleusercontent.apps.719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6`). This identifier is designed to be public and can safely appear in app metadata.
+- The app currently does **not** ship with Google OAuth runtime sign-in and no Google OAuth URL scheme is registered in `ios/BrunchBody/Info.plist`.
 - OAuth **client secrets**, service account private keys, refresh tokens, and access tokens are sensitive credentials and must never be committed.
-- For the full hardening/verification checklist (client lookup, redirect/bundle restrictions, scope minimization, and consent verification), see `docs/security/oauth-client-hardening.md`.
+- For the OAuth hardening/decommission decision record (client mapping, identity/redirect restrictions, scope minimization, and consent alignment), see `docs/security/oauth-client-hardening.md`.
