@@ -1,5 +1,7 @@
 # Key Material Storage (Internal)
 
+See [SECURITY.md](../../SECURITY.md) for required disclosure workflow and secret-handling rules that apply to all contributors.
+
 Do **not** store signing keys or certificates in this repository.
 
 Store local Android debug/release key material and Apple signing assets in developer-only paths outside the repo, for example:

@@ -1,5 +1,7 @@
 # Secrets and Debug Keystore Handling
 
+Follow [SECURITY.md](../SECURITY.md) first for vulnerability disclosure and repository-wide secret handling policy.
+
 ## Do not commit key material
 
 This repository must never track the following file types:

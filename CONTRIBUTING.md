@@ -35,6 +35,26 @@ Before opening a pull request, read and follow [SECURITY.md](SECURITY.md). Vulne
 
    `android/app/debug.keystore` must never be committed.
 
+
+## Environment & Signing Values (outside git)
+
+Store environment secrets and signing values outside this repository:
+
+- Keep signing credentials in CI-protected variables or approved secret managers.
+- Keep local-only values in untracked files/paths (for example OS keychain, `~/.config/...`, `%APPDATA%/...`).
+- Never commit populated `.env*` files, `android/signing.properties`, keystores, certificates, or private keys.
+- Use `android/signing.properties.example` only as a template and inject real values from local environment/CI.
+
+See `docs/security/KEY_MATERIAL_STORAGE.md` and `docs/secrets-and-debug-keys.md` for storage patterns and setup details.
+
+## Pre-merge checklist
+
+Before requesting review or merging, verify:
+
+- [ ] `./scripts/check-secrets.sh` passes with no high-risk findings.
+- [ ] Signing configuration is verified (release signing values sourced from secure environment/CI variables, no plaintext secrets in git).
+- [ ] Changes comply with [SECURITY.md](SECURITY.md).
+
 ## Guidelines
 
 - Follow the existing code style and project structure.

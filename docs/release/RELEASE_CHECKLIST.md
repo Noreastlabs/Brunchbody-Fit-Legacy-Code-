@@ -5,6 +5,7 @@ Use this checklist before creating a public release tag.
 ## Required gates
 
 - [ ] Local-only guardrail passes (`npm run check:local-only`).
+- [ ] **Pre-merge PR security checks completed** (`./scripts/check-secrets.sh` passes and signing-configuration verification is recorded in the PR checklist/review notes).
 - [ ] Secret scan passes with no high-risk findings (`./scripts/check-secrets.sh`).
 - [ ] Verify `.secret-scan-exclusions` still contains only low-risk/noisy files.
 - [ ] **Signing configuration check completed** (keystore/cert references are valid, credentials are sourced from secure environment variables, and no plaintext signing secrets are committed).

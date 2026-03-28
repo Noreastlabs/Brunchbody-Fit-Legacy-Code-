@@ -144,6 +144,9 @@ To preserve compatibility with existing local users when backend sync returns:
 
 No authentication or local onboarding steps are required; the application launches directly to the main interface.
 
+
+For secure onboarding/setup, read [SECURITY.md](SECURITY.md), [docs/secrets-and-debug-keys.md](docs/secrets-and-debug-keys.md), and [docs/security/KEY_MATERIAL_STORAGE.md](docs/security/KEY_MATERIAL_STORAGE.md) before configuring local environment/signing values.
+
 ## Contributing
 
 Contributions are welcome! **Before opening a PR, read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md)** so security disclosure, secret handling, and release expectations are followed from the start. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
