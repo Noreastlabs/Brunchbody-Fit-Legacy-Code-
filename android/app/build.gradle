@@ -79,6 +79,7 @@ def releaseKeyAlias = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_ALIAS").o
 def releaseKeyPassword = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_KEY_PASSWORD")).getOrNull()
 def hasReleaseSigningValues = [releaseStoreFilePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword].every { it != null && !it.toString().trim().isEmpty() }
 def releaseStoreFile = releaseStoreFilePath ? file(releaseStoreFilePath) : null
+def usesDebugKeystoreForRelease = releaseStoreFilePath?.toLowerCase()?.contains("debug.keystore") || releaseKeyAlias == "androiddebugkey"
 
 android {
     ndkVersion rootProject.ext.ndkVersion
@@ -210,6 +211,14 @@ gradle.taskGraph.whenReady { graph ->
 
         if (!missing.isEmpty()) {
             throw new GradleException("Missing release signing values. Set in ~/.gradle/gradle.properties or CI secrets: ${missing.join(', ')}")
+        }
+
+        if (!releaseStoreFile?.exists()) {
+            throw new GradleException("Release keystore file does not exist: ${releaseStoreFilePath}")
+        }
+
+        if (usesDebugKeystoreForRelease) {
+            throw new GradleException("Release signing cannot use debug keystore or androiddebugkey alias.")
         }
     }
 }
