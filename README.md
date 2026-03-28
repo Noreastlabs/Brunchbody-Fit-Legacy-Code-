@@ -136,3 +136,9 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for de
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
+## OAuth Client ID Security Note
+
+The iOS URL scheme in `ios/BrunchBody/Info.plist` includes the Google OAuth client identifier (`com.googleusercontent.apps.719080501603-jtfuc0ft8v83milid7pdfa92rfcc4vl6`). This identifier is designed to be public and can safely appear in app metadata.
+
+However, OAuth **client secrets**, service account private keys, and refresh tokens are sensitive credentials and must never be committed to this repository. Keep secrets only in secure secret stores/CI variables and rotate immediately if exposure is suspected.
