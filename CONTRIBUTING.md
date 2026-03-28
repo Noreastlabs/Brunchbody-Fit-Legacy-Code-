@@ -2,6 +2,10 @@
 
 Thank you for considering a contribution to this project! The goal of this clone is to provide a simplified codebase that does not rely on authentication or local onboarding.
 
+## Security First
+
+Before opening a pull request, read and follow [SECURITY.md](SECURITY.md). Vulnerabilities must be disclosed privately, and secret/signing material handling rules apply to every contribution.
+
 ## Getting Started
 
 1. Fork the repository and create your branch from `main`.
@@ -36,6 +40,7 @@ Thank you for considering a contribution to this project! The goal of this clone
 - Follow the existing code style and project structure.
 - Features should respect the current scope: authentication and local onboarding were removed to keep the codebase light.
 - Submit pull requests with clear descriptions and reference any relevant issues.
+- Confirm your PR complies with [SECURITY.md](SECURITY.md) disclosure and secret-handling requirements.
 - Before pushing, run `./scripts/check-secrets.sh` to verify the repository does not include committed key artifacts (`*.keystore`, `*.jks`, `*.p12`, `*.pem`), cloud keys, bearer tokens, DB URLs with embedded credentials, or private key blocks.
 - Keep `.secret-scan-exclusions` minimal and limited to known-safe noisy paths (for example lockfiles).
 
