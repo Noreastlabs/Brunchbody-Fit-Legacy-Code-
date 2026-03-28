@@ -6,7 +6,7 @@ Validation targets requested for local-first data behaviors:
 - Platform matrix: Android / iOS
 - Install state: fresh install / update install
 - Network state: offline / online
-- Local entities: todos, meals, supplements, workouts, routines, themes, profile
+- Local entities: profile, calendar themes, routines/workouts, meals/supplements, todos, exercises
 - Persistence mechanisms: redux-persist + AsyncStorage + MMKV hydration
 - Edge areas: malformed profile values, empty datasets, deletion flows, migration boundaries
 
@@ -28,18 +28,19 @@ Date executed: 2026-03-27 (UTC).
 ## Automated Validation Coverage (Executed)
 
 `__tests__/localDataValidation.test.js` validates:
-1. CRUD workflows for todos, meals, supplements, workouts, routines, themes.
+1. CRUD workflows for profile, calendar themes, routines/workouts, meals/supplements, todos, exercises.
 2. Profile reducer behavior for valid-shape action and malformed inputs.
 3. Simulated persistence reload behavior through GET actions (redux state repopulation model).
 4. MMKV hydration idempotence: seed only on first initialize.
-5. Empty dataset and deletion-with-missing-id edge behavior.
+5. Upgrade-readability simulation: legacy persisted payloads remain readable after candidate reducer replay.
+6. Empty dataset and deletion-with-missing-id edge behavior.
 
 ## Defect Log and Release Classification
 
 | Defect ID | Area | Severity | Release Class | Evidence |
 |---|---|---|---|---|
 | D-001 | Profile parsing | High | **Release blocker** | Malformed profile fields can lead to `bmi: "NaN"` and `bmr: "NaN"`, which can propagate to UI and calculations. |
-| D-002 | Update migration boundary | Medium | Post-release (short-term) | No explicit redux-persist migration/versioning strategy in store config; schema evolution may silently drop or mismatch state on app updates. |
+| D-002 | Update migration boundary | High | **Release blocker** | No explicit redux-persist migration/versioning strategy in store config; schema evolution may silently drop or mismatch state on app updates. |
 | D-003 | Device-matrix runtime validation gap | Medium | Post-release (must complete before GA if mobile QA policy requires it) | Android/iOS runtime matrix (offline/online + fresh/update) not executable in this CI container. |
 
 ## Recommended Exit Criteria Before Release

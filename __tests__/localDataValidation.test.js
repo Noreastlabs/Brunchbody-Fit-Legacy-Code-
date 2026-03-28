@@ -2,8 +2,10 @@ import todoReducer from '../src/redux/reducer/todo';
 import nutritionReducer from '../src/redux/reducer/nutrition';
 import recreationReducer from '../src/redux/reducer/recreation';
 import calendarReducer from '../src/redux/reducer/calendar';
+import exerciseReducer from '../src/redux/reducer/exercise';
 import authReducer from '../src/redux/reducer/auth';
 import {
+  ADD_EXERCISE,
   ADD_MEAL,
   ADD_MEAL_ITEMS,
   ADD_ROUTINE,
@@ -22,14 +24,22 @@ import {
   DELETE_THEME,
   DELETE_TODO_TASK,
   DELETE_WORKOUT,
+  DELETE_EXERCISE,
   EDIT_MEAL_ITEMS,
   EDIT_ROUTINE_ITEMS,
   EDIT_SUPPLEMENT_ITEMS,
   EDIT_THEME,
   EDIT_TODO_TASK,
   EDIT_WORKOUT,
+  EDIT_EXERCISE,
+  GET_EXERCISES,
+  GET_MEALS,
+  GET_ROUTINES,
+  GET_SUPPLEMENTS,
   GET_THEMES,
   GET_TODO_TASKS,
+  GET_WORKOUTS,
+  MERGE_EXERCISES,
   SET_USER,
 } from '../src/redux/constants';
 
@@ -214,6 +224,30 @@ describe('Local data validation - CRUD', () => {
     });
     expect(state.themes).toHaveLength(0);
   });
+
+  test('exercise reducer supports exercise CRUD', () => {
+    let state = exerciseReducer(undefined, { type: '@@INIT' });
+    state = exerciseReducer(state, { type: MERGE_EXERCISES });
+
+    state = exerciseReducer(state, {
+      type: ADD_EXERCISE,
+      payload: { name: 'My Custom Row', type: 'Back' },
+    });
+    const exerciseId = state.exercises[0].id;
+    expect(state.exercises[0].name).toBe('My Custom Row');
+
+    state = exerciseReducer(state, {
+      type: EDIT_EXERCISE,
+      payload: { id: exerciseId, data: { name: 'My Custom Row v2' } },
+    });
+    expect(state.exercises[0].name).toBe('My Custom Row v2');
+
+    state = exerciseReducer(state, {
+      type: DELETE_EXERCISE,
+      payload: { id: exerciseId },
+    });
+    expect(state.exercises).toHaveLength(0);
+  });
 });
 
 describe('Persistence and hydration validation', () => {
@@ -256,6 +290,71 @@ describe('Persistence and hydration validation', () => {
     hydrateWorkoutPlans();
     expect(setJSON).not.toHaveBeenCalled();
     expect(storage.set).not.toHaveBeenCalled();
+  });
+
+  test('upgrade scenario keeps persisted entities readable after relaunch', () => {
+    const oldBuildPersisted = {
+      auth: {
+        user: {
+          dob: '01/01/1995',
+          gender: 'male',
+          height: '5.10',
+          weight: '171',
+          activity: 'Moderately Active',
+        },
+      },
+      todo: [{ id: 't-1', title: 'legacy todo', checked: false }],
+      calendarThemes: [{ id: 'th-1', name: 'Legacy Theme', color: '#111' }],
+      workouts: [{ id: 'w-1', name: 'Legacy Push Day' }],
+      routines: [{ id: 'r-1', name: 'Legacy Mobility', items: [] }],
+      meals: [{ id: 'm-1', name: 'Legacy Lunch', items: [] }],
+      supplements: [{ id: 's-1', name: 'Legacy Supp', items: [] }],
+      exercises: [{ id: 'e-1', name: 'Legacy Squat', type: 'Legs' }],
+    };
+
+    const authAfterUpgrade = authReducer(undefined, {
+      type: SET_USER,
+      payload: oldBuildPersisted.auth.user,
+    });
+    const todoAfterUpgrade = todoReducer(undefined, {
+      type: GET_TODO_TASKS,
+      payload: oldBuildPersisted.todo,
+    });
+    const calendarAfterUpgrade = calendarReducer(undefined, {
+      type: GET_THEMES,
+      payload: oldBuildPersisted.calendarThemes,
+    });
+    const workoutAfterUpgrade = recreationReducer(undefined, {
+      type: GET_WORKOUTS,
+      payload: oldBuildPersisted.workouts,
+    });
+    const routinesAfterUpgrade = recreationReducer(workoutAfterUpgrade, {
+      type: GET_ROUTINES,
+      payload: oldBuildPersisted.routines,
+    });
+    const mealsAfterUpgrade = nutritionReducer(undefined, {
+      type: GET_MEALS,
+      payload: oldBuildPersisted.meals,
+    });
+    const supplementsAfterUpgrade = nutritionReducer(mealsAfterUpgrade, {
+      type: GET_SUPPLEMENTS,
+      payload: oldBuildPersisted.supplements,
+    });
+    const exercisesAfterUpgrade = exerciseReducer(undefined, {
+      type: GET_EXERCISES,
+      payload: oldBuildPersisted.exercises,
+    });
+
+    expect(authAfterUpgrade.user).toMatchObject(oldBuildPersisted.auth.user);
+    expect(todoAfterUpgrade.todoTasks).toEqual(oldBuildPersisted.todo);
+    expect(calendarAfterUpgrade.themes).toEqual(oldBuildPersisted.calendarThemes);
+    expect(routinesAfterUpgrade.workouts).toEqual(oldBuildPersisted.workouts);
+    expect(routinesAfterUpgrade.routines).toEqual(oldBuildPersisted.routines);
+    expect(supplementsAfterUpgrade.meals).toEqual(oldBuildPersisted.meals);
+    expect(supplementsAfterUpgrade.supplements).toEqual(
+      oldBuildPersisted.supplements,
+    );
+    expect(exercisesAfterUpgrade.exercises).toEqual(oldBuildPersisted.exercises);
   });
 });
 
