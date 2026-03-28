@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "check:local-only": "node scripts/check-local-only-mode.js"
+    "check:local-only": "node scripts/check-local-only-mode.js",
+    "check:secrets": "./scripts/check-secrets.sh"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",

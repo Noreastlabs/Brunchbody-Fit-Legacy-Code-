@@ -33,7 +33,6 @@ android/keystore.properties
 *.hprof
 .cxx/
 *.keystore
-!debug.keystore
 .kotlin/
 
 # node.js

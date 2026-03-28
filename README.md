@@ -39,6 +39,16 @@ The check fails if `LOCAL_ONLY_MODE_ENABLED` is `true` (or legacy `LOCAL_ONLY` r
 
 This keeps the current local-only contract enforceable at review time.
 
+## Secret & Keystore Guardrail
+
+A dedicated CI workflow (`.github/workflows/secret-scan.yml`) runs `./scripts/check-secrets.sh` on pushes and pull requests.
+
+The check fails if git-tracked content includes:
+- secret container file types (`*.keystore`, `*.jks`, `*.p12`, `*.pem`)
+- private key blocks (for example `-----BEGIN ... PRIVATE KEY-----`)
+
+For local debug key setup and guidance on history cleanup before/after making the repository public, see `docs/secrets-and-debug-keys.md`.
+
 ## Storage Map & Offline Behavior
 
 The app is local-first and can operate offline.
