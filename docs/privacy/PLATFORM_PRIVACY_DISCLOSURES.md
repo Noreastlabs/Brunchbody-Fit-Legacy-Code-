@@ -1,6 +1,6 @@
-# Platform Privacy Disclosures (Release Candidate 1.0.0-rc1)
+# Platform Privacy Disclosures (Release Candidate 1.0.0-rc2)
 
-_Last reviewed: 2026-03-27_
+_Last reviewed: 2026-03-28_
 
 ## iOS App Store Connect + Privacy Manifest
 
@@ -34,4 +34,7 @@ Declare the following for this release candidate:
   - `https://brunchbodyfit.com/terms-conditions/`
   - `https://brunchbodyfit.com/privacy-policy/`
   - `https://brunchbodyfit.com/contact-us/`
-
+- Repository scan confirms user data persistence is local-device storage only in current app paths:
+  - AsyncStorage is used across profile, navigation bootstrap, and Redux action persistence.
+  - No analytics/ads SDKs are integrated for tracking or third-party data sharing.
+  - Export-to-CSV writes files locally via `react-native-fs`.
