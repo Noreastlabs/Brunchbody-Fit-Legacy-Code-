@@ -49,3 +49,29 @@ Prepared next candidate versions:
 **NO-GO** for final signed release promotion from this environment.
 
 Reason: signed artifacts cannot be produced here due missing mobile build toolchains/signing environment, and lint gate is currently failing.
+
+## 5) Android Cleartext / Network Policy Re-test (Production Config)
+Validated Android production configuration remains HTTPS-only:
+
+- `android/app/src/main/AndroidManifest.xml` has `android:usesCleartextTraffic="false"`.
+- `android/app/src/main/res/xml/network_security_config.xml` has `cleartextTrafficPermitted="false"` base policy.
+- Debug-only local HTTP allowance remains isolated to:
+  - `android/app/src/debug/AndroidManifest.xml`
+  - `android/app/src/debug/res/xml/network_security_config.xml` (`localhost`, `10.0.2.2`, `10.0.3.2`)
+
+Network-adjacent path verification under production assumptions:
+
+- Outbound web links in settings are HTTPS-only (`terms`, `privacy`, `contact`).
+- No active `http://` application endpoints were found under `src/` (excluding SVG/XML namespace constants).
+- No active API hook usage (`fetch(` / `axios` call sites) was found in current local-only code paths.
+
+Commands used:
+
+```bash
+rg -n "usesCleartextTraffic|networkSecurityConfig" android/app/src/main/AndroidManifest.xml android/app/src/debug/AndroidManifest.xml
+rg -n "cleartextTrafficPermitted|domain-config|localhost|10.0.2.2|10.0.3.2" android/app/src/main/res/xml/network_security_config.xml android/app/src/debug/res/xml/network_security_config.xml
+rg -n "http://|https://|Linking\.openURL|fetch\(|axios|api/user/" src android/app/src -S
+for u in https://brunchbodyfit.com/terms-conditions/ https://brunchbodyfit.com/privacy-policy/ https://brunchbodyfit.com/contact-us/; do curl -I -L -s -o /tmp/hdr -w "%{http_code} %{url_effective}
+" "$u"; done
+```
+

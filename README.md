@@ -15,6 +15,18 @@ Local/remote behavior is controlled by a single config flag in `src/config/runti
 
 `src/config/appMode.js` maps this single flag to `APP_MODE` and keeps `assertLocalOnlyMode(...)` checks so unsupported remote code paths fail fast.
 
+## Android Network Security Policy (Production HTTPS-only)
+
+Android release builds enforce HTTPS-only traffic:
+
+- `android/app/src/main/AndroidManifest.xml` sets `android:usesCleartextTraffic="false"`.
+- `android/app/src/main/res/xml/network_security_config.xml` sets `<base-config cleartextTrafficPermitted="false" />`.
+- Cleartext allowances are permitted only for local development in debug scope:
+  - `android/app/src/debug/AndroidManifest.xml`
+  - `android/app/src/debug/res/xml/network_security_config.xml` (localhost + emulator loopback addresses only)
+
+When adding network features, keep production endpoints on HTTPS and confine any HTTP localhost exceptions to debug-only manifests/config.
+
 ## Local-only Guardrail in CI
 
 A dedicated CI workflow (`.github/workflows/local-only-guard.yml`) runs `npm run check:local-only` on pushes and pull requests.
