@@ -146,11 +146,11 @@ No authentication or local onboarding steps are required; the application launch
 
 ## Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our process. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
+Contributions are welcome! **Before opening a PR, read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md)** so security disclosure, secret handling, and release expectations are followed from the start. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
 
 ## Release Checklist
 
-Before creating a public release tag, complete `docs/release/RELEASE_CHECKLIST.md`, including a required passing secret scan gate.
+Before creating a public release tag, complete `docs/release/RELEASE_CHECKLIST.md`, including required secret-scan, signing-configuration, and network-security checks, plus explicit release-owner sign-off before tagging.
 
 ## License
 
