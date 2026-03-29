@@ -1,6 +1,6 @@
 # Google OAuth Hardening Record (iOS)
 
-_Last updated: 2026-03-29_
+_Last updated: 2026-03-29 (OAuth review refresh)_
 
 ## Current application behavior
 
@@ -54,6 +54,11 @@ If Google sign-in is reintroduced later, re-enable only the minimal baseline sco
 
 - **2026-03-28:** Decommission Google OAuth usage for current mobile builds.
 - **2026-03-29:** Re-validated repository state (`Info.plist` + bundle identifier settings) and reaffirmed cloud hardening requirements (bundle/scheme restrictions and scope cleanup).
+- **2026-03-29 (refresh):** Completed targeted review checklist:
+  - Reviewed `ios/BrunchBody/Info.plist` for iOS OAuth client identifiers and redirect schemes (none present).
+  - Confirmed only intended iOS bundle identifier in project build settings (`com.brunchbody`).
+  - Re-confirmed expected cloud posture: only intended bundle ID allowed if client retained, no redirect schemes, and unused scopes removed from consent/app configuration.
+  - Noted operational limitation: Google Cloud Console settings cannot be directly validated from repository contents; console verification remains a required manual control by a project owner with cloud access.
 - Repo control: iOS OAuth URL scheme removed from app metadata.
 - Cloud control required: disable/delete mapped iOS OAuth client and prune consent screen scopes to match current non-OAuth behavior.
 - Reintroduction gate: any future OAuth re-enable requires security review + documented scope justification.
