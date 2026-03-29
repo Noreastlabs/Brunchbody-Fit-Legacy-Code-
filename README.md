@@ -59,6 +59,10 @@ To enforce this before merge, set branch protection on protected branches (for e
 
 For local debug key setup and guidance on history cleanup before/after making the repository public, see `docs/secrets-and-debug-keys.md`.
 
+Developer note (local debug keystore only):
+- Keep `android/app/debug.keystore` untracked; use `~/.android/debug.keystore` for local Android debug builds.
+- If you do not already have one, generate it with `keytool` as documented in `docs/secrets-and-debug-keys.md`.
+
 ## Storage Map & Offline Behavior
 
 The app is local-first and can operate offline.
