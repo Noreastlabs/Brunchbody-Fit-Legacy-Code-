@@ -77,7 +77,6 @@ export default function CaloriesPage(props) {
     user,
   } = props;
 
-  console.log(myCompletedWorkouts, 'myCompletedWorkoutmyCompletedWorkoutss');
   const { entryData, entryId } = route.params;
   const [loader, setLoader] = useState(false);
   const [modalLoader, setModalLoader] = useState(false);
