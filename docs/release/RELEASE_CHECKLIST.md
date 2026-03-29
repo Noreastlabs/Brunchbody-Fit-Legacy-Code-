@@ -4,6 +4,7 @@ Use this checklist before creating a public release tag.
 
 ## Required gates
 
+- [ ] **Release Security Gating Checklist completed and archived** (`docs/release/RELEASE_SECURITY_GATING_CHECKLIST.md` completed, signed by Engineering owner + Release manager, and stored under the release candidate artifacts path).
 - [ ] Local-only guardrail passes (`npm run check:local-only`).
 - [ ] **Pre-merge PR security checks completed** (`./scripts/check-secrets.sh` passes and signing-configuration verification is recorded in the PR checklist/review notes).
 - [ ] Secret scan passes with no high-risk findings (`./scripts/check-secrets.sh`).
@@ -26,4 +27,4 @@ Before tagging, a release owner must explicitly sign off that every required gat
 
 ## Tagging rule
 
-Do **not** create or push public release tags until every required gate is checked **and** explicit release owner sign-off is recorded.
+Do **not** create or push public release tags until every required gate is checked, explicit release owner sign-off is recorded, and the completed security gating checklist is stored with release artifacts for traceability.
