@@ -6,7 +6,7 @@ This project keeps signing and key material out of source control.
 
 For local Android debug builds, use the standard user-level debug keystore at `~/.android/debug.keystore` (outside this repository). Gradle in this project is configured to read from that path.
 
-If you do not have a debug keystore yet, generate it locally:
+If you do not have a debug keystore yet, generate it locally. Do **not** place `debug.keystore` inside this repository.
 
 ```bash
 mkdir -p ~/.android
