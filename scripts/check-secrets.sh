@@ -50,6 +50,40 @@ build_exclude_args() {
   printf '%s\n' "${args[@]}"
 }
 
+validate_exclusion_justifications() {
+  local -a raw_exclusions=("$@")
+  local justification_file='.secret-scan-exclusions-justifications.csv'
+
+  if [[ ${#raw_exclusions[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  if [[ ! -f "$justification_file" ]]; then
+    report "❌ Missing ${justification_file}."
+    report '   Every exclusion must be explicitly justified and periodically re-reviewed.'
+    return 1
+  fi
+
+  local path
+  for exclusion in "${raw_exclusions[@]}"; do
+    path="${exclusion#:(exclude)}"
+
+    if [[ "$path" == *'*'* || "$path" == *'?'* || "$path" == *'['* ]]; then
+      report "❌ Invalid exclusion path: ${path}"
+      report '   Globs are not permitted; exclusions must be exact file paths.'
+      return 1
+    fi
+
+    if ! awk -F',' -v target="$path" 'NR > 1 && $1 == target { found=1 } END { exit(found ? 0 : 1) }' "$justification_file"; then
+      report "❌ Missing justification metadata for exclusion: ${path}"
+      report "   Add a reviewed entry to ${justification_file} before allowlisting this file."
+      return 1
+    fi
+  done
+
+  return 0
+}
+
 validate_exclusions() {
   local -a raw_exclusions=("$@")
   local exclusion
@@ -74,6 +108,8 @@ validate_exclusions() {
       return 1
     fi
   done
+
+  validate_exclusion_justifications "${raw_exclusions[@]}" || return 1
 
   report '✅ Exclusion validation passed.'
   return 0
