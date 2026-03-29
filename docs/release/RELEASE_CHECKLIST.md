@@ -7,6 +7,7 @@ Use this checklist before creating a public release tag.
 - [ ] Local-only guardrail passes (`npm run check:local-only`).
 - [ ] **Pre-merge PR security checks completed** (`./scripts/check-secrets.sh` passes and signing-configuration verification is recorded in the PR checklist/review notes).
 - [ ] Secret scan passes with no high-risk findings (`./scripts/check-secrets.sh`).
+- [ ] **One-time tracked key-material verification completed (blocking)** (`./scripts/verify-no-tracked-key-material.sh` returns no tracked `*.keystore`, `*.jks`, `*.p12`, `*.pem`, `*.key`, `*.mobileprovision` files).
 - [ ] Verify `.secret-scan-exclusions` still contains only low-risk/noisy files.
 - [ ] **Signing configuration check completed** (keystore/cert references are valid, credentials are sourced from secure environment variables, and no plaintext signing secrets are committed).
 - [ ] **Network-security check completed** (Android release manifest/config keep HTTPS-only policy with no release cleartext exceptions).
