@@ -152,7 +152,6 @@ export default function DailyEntryPage(props) {
     let response = null;
     // Replace slashes with dashes for consistent date parsing
     const d = new Date(entryData.date.replace(/\//g, '-'));
-    console.log(d.toString(), 'fiuasdfiasdgfjasgdf', entryData.date);
     d.setHours(0, 0, 0, 0);
 
     if (d.getTime() > new Date().getTime()) {

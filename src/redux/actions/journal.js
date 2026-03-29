@@ -13,19 +13,16 @@ export const getAllJournalEntries = () => async dispatch => {
 };
 
 export const getJournalEntries = date => async dispatch => {
-  console.log('Getting journal entries for date:', date);
   await dispatch({ type: GET_JOURNAL_ENTRIES, payload: { date } });
   await dispatch({ type: GET_ALL_JOURNAL_ENTRIES });
 };
 
 export const addJournalEntry = (date, data) => async dispatch => {
-  console.log('Adding journal entry:', { date, data });
   await dispatch({ type: SET_JOURNAL_ENTRY, payload: { date, data } });
   return true;
 };
 
 export const editJournalEntry = (id, data) => async dispatch => {
-  console.log('Editing journal entry:', { id, data });
   await dispatch({ type: EDIT_JOURNAL_ENTRY, payload: { id, data } });
   return true;
 };

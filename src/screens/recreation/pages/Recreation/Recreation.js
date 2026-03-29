@@ -26,7 +26,6 @@ import {
 } from '../../../../redux/actions';
 import { useTodayKey } from '../../../../context/DateProvider';
 import { SET_USER } from '../../../../redux/constants';
-import { clampRGBA } from 'react-native-reanimated/lib/typescript/Colors';
 
 const workoutOptionsData = [
   { id: 1, name: 'BRUNCH BODY' },
