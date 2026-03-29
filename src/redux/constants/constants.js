@@ -1,4 +1,6 @@
 export const SET_USER = 'SET_USER';
+export const CLEAR_USER = 'CLEAR_USER';
+export const RESET_APP = 'RESET_APP';
 
 export const SET_JOURNAL_ENTRY = 'SET_JOURNAL_ENTRY';
 export const EDIT_JOURNAL_ENTRY = 'EDIT_JOURNAL_ENTRY';

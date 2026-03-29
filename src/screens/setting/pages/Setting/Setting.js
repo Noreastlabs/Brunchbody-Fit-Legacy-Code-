@@ -204,7 +204,11 @@ export default function SettingPage(props) {
   const onLogoutHandler = async () => {
     const response = await logoutUser();
     if (response) {
-      navigation.replace('Welcome');
+      const rootNavigation = navigation.getParent?.() || navigation;
+      rootNavigation.reset({
+        index: 0,
+        routes: [{ name: 'CompleteProfile' }],
+      });
       setIsPermissionModal(false);
     } else {
       showMessage('Error!', 'Something went wrong!');

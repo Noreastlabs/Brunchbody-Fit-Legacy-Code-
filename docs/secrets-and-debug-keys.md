@@ -24,9 +24,9 @@ CI enforces this with `.github/workflows/secret-scan.yml`, and the local script 
 
 False-positive path exclusions are maintained in `.secret-scan-exclusions` and should stay narrow (lockfiles/noisy generated assets only) with rationale documented inline.
 
-CI fails by default on detections. The only exception path is an explicitly approved PR label: `security-override-approved`.
+CI fails by default on detections. An override is only allowed on pull requests after explicit security review by adding **both** labels: `security-review-approved` and `secret-scan-override-approved`.
 
-For protected branches (such as `main`), require the status check **`Secret scan (changed + full repo)`** in branch protection rules before merge.
+For protected branches (such as `main`), require the status check **`Secret scan (required)`** in branch protection rules before merge.
 
 ## Android debug keystore setup (local only)
 

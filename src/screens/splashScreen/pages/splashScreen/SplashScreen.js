@@ -14,7 +14,7 @@ export default function SplashScreenPage(props) {
     } else if (response) {
       navigation.replace('Home');
     } else {
-      navigation.replace('Welcome');
+      navigation.replace('CompleteProfile');
     }
   };
 

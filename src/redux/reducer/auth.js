@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-properties */
-import { SET_USER } from '../constants';
+import { CLEAR_USER, SET_USER } from '../constants';
 
 const initialState = {
   user: {},
@@ -71,6 +71,8 @@ const authReducer = (state = initialState, action) => {
         user: { ...userData, bmi, bmr },
       };
     }
+    case CLEAR_USER:
+      return initialState;
     default:
       return state;
   }

@@ -153,7 +153,11 @@ scan_forbidden_filenames() {
   return 0
 }
 
-mapfile -t exclude_args < <(build_exclude_args)
+exclude_args=()
+while IFS= read -r exclude_arg; do
+  [[ -z "$exclude_arg" ]] && continue
+  exclude_args+=("$exclude_arg")
+done < <(build_exclude_args)
 
 validate_exclusions "${exclude_args[@]}" || exit 1
 

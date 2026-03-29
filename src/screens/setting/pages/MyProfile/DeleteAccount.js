@@ -57,8 +57,15 @@ export default function DeleteAccountPage(props) {
   };
 
   const onDonePermissionModal = () => {
-    if (check) navigation.navigate('Welcome');
-    else setIsPermissionModal(false);
+    if (check) {
+      const rootNavigation = navigation.getParent?.() || navigation;
+      rootNavigation.reset({
+        index: 0,
+        routes: [{ name: 'CompleteProfile' }],
+      });
+    } else {
+      setIsPermissionModal(false);
+    }
   };
 
   return (

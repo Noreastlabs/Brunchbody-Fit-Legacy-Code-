@@ -1,0 +1,222 @@
+import React from 'react';
+import ReactTestRenderer from 'react-test-renderer';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  changeEmail,
+  changePassword,
+  deleteAccount,
+  logout,
+  resetPassword,
+} from '../src/redux/actions/auth';
+import { CLEAR_USER, RESET_APP, SET_USER } from '../src/redux/constants';
+import SettingPage from '../src/screens/setting/pages/Setting/Setting';
+import DeleteAccountPage from '../src/screens/setting/pages/MyProfile/DeleteAccount';
+import { hydrateWorkoutPlans } from '../src/storage/mmkv/hydration';
+import { storage } from '../src/storage/mmkv';
+
+jest.mock('../src/storage/mmkv', () => ({
+  storage: {
+    clearAll: jest.fn(),
+  },
+}));
+
+jest.mock('../src/storage/mmkv/hydration', () => ({
+  hydrateWorkoutPlans: jest.fn(),
+}));
+
+jest.mock('../src/screens/setting/components', () => {
+  const MockReact = require('react');
+
+  return {
+    Setting: props => MockReact.createElement('mock-setting', props),
+    DeleteAccount: props => MockReact.createElement('mock-delete-account', props),
+  };
+});
+
+describe('Local account actions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('changeEmail persists the device-local email and updates auth state', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({
+        dob: '01/01/1995',
+        gender: 'female',
+        height: '5.06',
+        weight: '135',
+        email: 'old@example.com',
+      }),
+    );
+    const dispatch = jest.fn();
+
+    const result = await changeEmail({ email: 'new@example.com' })(dispatch);
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_profile',
+      expect.any(String),
+    );
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SET_USER,
+        payload: expect.objectContaining({ email: 'new@example.com' }),
+      }),
+    );
+  });
+
+  test('changePassword updates the device-local password when the current password matches', async () => {
+    AsyncStorage.getItem
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          email: 'saved@example.com',
+        }),
+      )
+      .mockResolvedValueOnce('old-pass');
+
+    const result = await changePassword({
+      email: 'saved@example.com',
+      password: 'old-pass',
+      newPassword: 'new-pass',
+    })();
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'local_password',
+      'new-pass',
+    );
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith(
+      'local_password_reset_requested_at',
+    );
+  });
+
+  test('resetPassword clears the stored local password after email verification', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({
+        email: 'saved@example.com',
+      }),
+    );
+
+    const result = await resetPassword({
+      email: 'saved@example.com',
+    })();
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('local_password');
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'local_password_reset_requested_at',
+      expect.any(String),
+    );
+  });
+
+  test('logout clears local profile credentials and auth state', async () => {
+    const dispatch = jest.fn();
+
+    const result = await logout()(dispatch);
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        'user_profile',
+        'local_password',
+        'local_password_reset_requested_at',
+      ]),
+    );
+    expect(dispatch).toHaveBeenCalledWith({ type: CLEAR_USER });
+  });
+
+  test('deleteAccount resets persisted app state and rehydrates bundled plans', async () => {
+    AsyncStorage.getItem
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          email: 'saved@example.com',
+        }),
+      )
+      .mockResolvedValueOnce('local-pass');
+    const dispatch = jest.fn();
+
+    const result = await deleteAccount({
+      email: 'saved@example.com',
+      password: 'local-pass',
+    })(dispatch);
+
+    expect(result).toBe(true);
+    expect(dispatch).toHaveBeenCalledWith({ type: RESET_APP });
+    expect(AsyncStorage.clear).toHaveBeenCalled();
+    expect(storage.clearAll).toHaveBeenCalled();
+    expect(hydrateWorkoutPlans).toHaveBeenCalled();
+  });
+});
+
+describe('Settings/account navigation', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('logout resets the root navigator to CompleteProfile', async () => {
+    const rootNavigation = { reset: jest.fn() };
+    const navigation = {
+      getParent: jest.fn(() => rootNavigation),
+      reset: jest.fn(),
+    };
+    const logoutUser = jest.fn().mockResolvedValue(true);
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SettingPage navigation={navigation} logoutUser={logoutUser} />,
+      );
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-setting').props.onLogoutHandler();
+    });
+
+    expect(rootNavigation.reset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: 'CompleteProfile' }],
+    });
+  });
+
+  test('delete account returns the user to CompleteProfile after success confirmation', async () => {
+    const rootNavigation = { reset: jest.fn() };
+    const navigation = {
+      getParent: jest.fn(() => rootNavigation),
+      reset: jest.fn(),
+    };
+    const deleteUserAccount = jest.fn().mockResolvedValue(true);
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <DeleteAccountPage
+          navigation={navigation}
+          deleteUserAccount={deleteUserAccount}
+        />,
+      );
+    });
+
+    await ReactTestRenderer.act(async () => {
+      const props = renderer.root.findByType('mock-delete-account').props;
+      props.setEmail('saved@example.com');
+      props.setPassword('local-pass');
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-delete-account').props.onDeleteAccount();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-delete-account').props.onDonePermissionModal();
+    });
+
+    expect(deleteUserAccount).toHaveBeenCalledWith({
+      email: 'saved@example.com',
+      password: 'local-pass',
+    });
+    expect(rootNavigation.reset).toHaveBeenCalledWith({
+      index: 0,
+      routes: [{ name: 'CompleteProfile' }],
+    });
+  });
+});

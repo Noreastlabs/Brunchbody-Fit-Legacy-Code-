@@ -9,8 +9,9 @@ import recreationReducer from '../reducer/recreation';
 import calendarReducer from '../reducer/calendar';
 import exerciseReducer from '../reducer/exercise';
 import todoReducer from '../reducer/todo';
+import { RESET_APP } from '../constants';
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
   auth: authReducer,
   recreation: recreationReducer,
   journal: journalReducer,
@@ -19,6 +20,14 @@ const rootReducer = combineReducers({
   exercise: exerciseReducer,
   todo: todoReducer,
 });
+
+const rootReducer = (state, action) => {
+  if (action.type === RESET_APP) {
+    return appReducer(undefined, action);
+  }
+
+  return appReducer(state, action);
+};
 
 const persistConfig = {
   key: 'root',

@@ -53,9 +53,9 @@ The check scans both the full tracked repository and pull-request diffs/commit r
 
 False-positive exclusions are tracked in `.secret-scan-exclusions` (lockfiles and vetted binary artifacts only), with documented rationale per entry.
 
-Secret scan hits fail CI by default. An override is only allowed on pull requests after explicit security review by adding **both** labels: `security-review-approved` and `security-override-approved`.
+Secret scan hits fail CI by default. An override is only allowed on pull requests after explicit security review by adding **both** labels: `security-review-approved` and `secret-scan-override-approved`.
 
-To enforce this before merge, set branch protection on protected branches (for example `main`) to require the status check **`Secret scan (changed + full repo)`**.
+To enforce this before merge, set branch protection on protected branches (for example `main`) to require the status check **`Secret scan (required)`**.
 
 For contributor-side prevention, install the repository hook path once per clone so every commit runs the same secret scan locally:
 

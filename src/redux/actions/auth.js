@@ -1,8 +1,28 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { SET_USER } from '../constants';
+import { storage } from '../../storage/mmkv';
+import { hydrateWorkoutPlans } from '../../storage/mmkv/hydration';
+import { CLEAR_USER, RESET_APP, SET_USER } from '../constants';
+
+const USER_PROFILE_KEY = 'user_profile';
+const LOCAL_PASSWORD_KEY = 'local_password';
+const LOCAL_PASSWORD_RESET_REQUEST_KEY = 'local_password_reset_requested_at';
+const TRANSIENT_PROFILE_KEYS = ['name', 'dob', 'height', 'weight', 'gender'];
+
+const loadStoredProfile = async () => {
+  const profileData = await AsyncStorage.getItem(USER_PROFILE_KEY);
+  return profileData ? JSON.parse(profileData) : null;
+};
+
+const saveStoredProfile = async (profileData, dispatch) => {
+  await AsyncStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profileData));
+  dispatch({
+    type: SET_USER,
+    payload: profileData,
+  });
+};
 
 export const loggedIn = () => async dispatch => {
-  const profileData = await AsyncStorage.getItem('user_profile');
+  const profileData = await AsyncStorage.getItem(USER_PROFILE_KEY);
 
   if (profileData) {
     const user = JSON.parse(profileData);
@@ -17,15 +37,111 @@ export const loggedIn = () => async dispatch => {
 };
 
 export const profile = data => async dispatch => {
-  const existingProfile = await AsyncStorage.getItem('user_profile');
-  const parsedProfile = existingProfile ? JSON.parse(existingProfile) : {};
+  const parsedProfile = (await loadStoredProfile()) || {};
   const updatedProfile = { ...parsedProfile, ...data };
 
-  await AsyncStorage.setItem('user_profile', JSON.stringify(updatedProfile));
-  dispatch({
-    type: SET_USER,
-    payload: updatedProfile,
-  });
+  await saveStoredProfile(updatedProfile, dispatch);
   return true;
 };
 
+export const logout = () => async dispatch => {
+  await AsyncStorage.multiRemove([
+    USER_PROFILE_KEY,
+    LOCAL_PASSWORD_KEY,
+    LOCAL_PASSWORD_RESET_REQUEST_KEY,
+    ...TRANSIENT_PROFILE_KEYS,
+  ]);
+
+  dispatch({
+    type: CLEAR_USER,
+  });
+
+  return true;
+};
+
+export const changeEmail = ({ email }) => async dispatch => {
+  const existingProfile = await loadStoredProfile();
+
+  if (!existingProfile) {
+    return 'Complete your profile before updating the local email.';
+  }
+
+  await saveStoredProfile({ ...existingProfile, email }, dispatch);
+  return true;
+};
+
+export const changePassword =
+  ({ email, password, newPassword }) =>
+  async () => {
+    const existingProfile = await loadStoredProfile();
+
+    if (!existingProfile) {
+      return 'Complete your profile before changing the local password.';
+    }
+
+    if (existingProfile.email && existingProfile.email !== email) {
+      return 'Enter the email saved on this device.';
+    }
+
+    const storedPassword = await AsyncStorage.getItem(LOCAL_PASSWORD_KEY);
+    if (storedPassword && storedPassword !== password) {
+      return 'Current password is incorrect.';
+    }
+
+    await AsyncStorage.setItem(LOCAL_PASSWORD_KEY, newPassword);
+    await AsyncStorage.removeItem(LOCAL_PASSWORD_RESET_REQUEST_KEY);
+    return true;
+  };
+
+export const resetPassword = ({ email }) => async () => {
+  const existingProfile = await loadStoredProfile();
+
+  if (!existingProfile) {
+    return 'Complete your profile before resetting the local password.';
+  }
+
+  if (!existingProfile.email) {
+    return 'Save a local email on this device before resetting the password.';
+  }
+
+  if (existingProfile.email !== email) {
+    return 'Enter the email saved on this device.';
+  }
+
+  await AsyncStorage.removeItem(LOCAL_PASSWORD_KEY);
+  await AsyncStorage.setItem(
+    LOCAL_PASSWORD_RESET_REQUEST_KEY,
+    new Date().toISOString(),
+  );
+
+  return true;
+};
+
+export const deleteAccount =
+  ({ email, password }) =>
+  async dispatch => {
+    const existingProfile = await loadStoredProfile();
+
+    if (!existingProfile) {
+      return 'No local profile was found on this device.';
+    }
+
+    if (existingProfile.email && existingProfile.email !== email) {
+      return 'Enter the email saved on this device.';
+    }
+
+    const storedPassword = await AsyncStorage.getItem(LOCAL_PASSWORD_KEY);
+    if (storedPassword && storedPassword !== password) {
+      return 'Password is incorrect.';
+    }
+
+    dispatch({
+      type: RESET_APP,
+    });
+
+    await AsyncStorage.clear();
+    storage.clearAll();
+    hydrateWorkoutPlans();
+
+    return true;
+  };
