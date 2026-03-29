@@ -65,8 +65,8 @@ The following are examples of commits that are **not allowed**:
 - Keep long-lived secrets in secret managers or CI-protected variables.
 - Keep signing values and environment secrets in local developer paths or CI variables, never in tracked files.
 - Keep `.secret-scan-exclusions` minimal, limited to known-safe noisy paths only, and document rationale for each entry.
-- Secret-scan detections fail CI by default; any exception requires explicit security approval (`security-override-approved` PR label).
-- On protected branches, require the status check `Secret scan (changed + full repo)` before merge.
+- Secret-scan detections fail CI by default; any exception requires explicit security approval via **both** PR labels: `security-override-approved` and `security-review-approved`.
+- On protected branches, require the status check `Secret scan (changed + full repo)` before merge (see `.github/branch-protection.required-checks.md`).
 - Treat accidental secret commits as incidents (see incident response below).
 
 > OAuth client IDs (for example `*.apps.googleusercontent.com` and reversed-client-id URL schemes) are public identifiers, not secrets.
