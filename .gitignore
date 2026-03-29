@@ -33,6 +33,7 @@ android/keystore.properties
 *.hprof
 .cxx/
 # Keep signing/debug key material out of git-tracked files.
+# No debug-keystore unignore override; keystore files must remain ignored.
 android/app/debug.keystore
 *.keystore
 *.jks
