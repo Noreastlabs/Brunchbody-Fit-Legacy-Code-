@@ -11,8 +11,11 @@ PATTERN_LABELS=(
   'Firebase tokens'
   'GitHub tokens'
   'Generic API key assignments'
+  'Generic token assignments'
+  'Generic key/private-key assignments'
   'Bearer tokens'
   'Database URLs with embedded credentials'
+  'Connection string assignments'
   'Private key headers'
 )
 
@@ -22,8 +25,11 @@ PATTERN_REGEXES=(
   '\bAIza[0-9A-Za-z\-_]{35}\b'
   '\bAAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140}\b'
   '\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,255}\b|\bgithub_pat_[A-Za-z0-9_]{80,255}\b'
-  '\b(api[_-]?key|secret|token)[[:space:]]*[=:][[:space:]]*["'"'"'`]?[A-Za-z0-9_\-]{16,}["'"'"'`]?\b'
+  '\b(api[_-]?key|secret)[[:space:]]*[=:][[:space:]]*["'"'"'`]?[A-Za-z0-9_\-]{16,}["'"'"'`]?\b'
+  '\b(access[_-]?token|id[_-]?token|refresh[_-]?token|auth[_-]?token|token)[[:space:]]*[=:][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+\/-]{16,}["'"'"'`]?\b'
+  '\b(private[_-]?key|secret[_-]?key|signing[_-]?key)[[:space:]]*[=:][[:space:]]*["'"'"'`]?[A-Za-z0-9._~+\/-]{16,}["'"'"'`]?\b'
   '\bBearer[[:space:]]+[A-Za-z0-9._~+\/-]{20,}=*\b'
   '\b(postgres|postgresql|mysql|mariadb|mongodb|mongodb\+srv|redis):\/\/[^[:space:]:/]+:[^[:space:]@/]+@[^[:space:]]+'
+  '\b(connection[_-]?string|conn(?:ection)?[_-]?str(?:ing)?|database[_-]?url|db[_-]?url)[[:space:]]*[=:][[:space:]]*["'"'"'`]?[A-Za-z0-9;=._~+\/-]{16,}["'"'"'`]?\b'
   '-----BEGIN (RSA |EC |DSA |OPENSSH |ENCRYPTED )?PRIVATE KEY-----'
 )
