@@ -47,3 +47,29 @@ Status: ✅ PASS (production cleartext disabled; debug exceptions are local-only
 
 ## Overall status
 **PASS** — no tracked key material and no high-risk secret/PII literals detected in source/config; Android release-signing and network-hardening controls remain configured correctly.
+
+---
+
+## Final release-gate rerun — 2026-03-29
+
+### Checklist item 4 (full scans rerun after remediation)
+- Command: `npm run check:secrets` and `./scripts/check-secrets.sh --report=docs/security/artifacts/secret-scan-report-2026-03-29.txt`
+  - Result: ✅ PASS (no high-risk secret patterns in tracked content; exclusion policy validation passed)
+- Command: `./scripts/verify-no-tracked-key-material.sh`
+  - Result: ✅ PASS (no tracked key/certificate files with restricted extensions)
+- Command: `npm run check:local-only`
+  - Result: ✅ PASS (`LOCAL_ONLY` protections active, no Firebase/AWS imports or `api/user/` usage in `src/`)
+
+### Sensitive findings status
+- New high-severity sensitive findings since remediation: **None detected** in rerun scans.
+- Net state: secret/key-material controls are clean in repository scope at rerun time.
+
+### Residual risk (post-rerun)
+1. Secret scan is pattern/signature based; encoded, transformed, or context-dependent sensitive data can evade regex detection.
+2. This check confirms repository/config state only; it does not attest build-time secret injection behavior in external CI, app stores, or runtime telemetry.
+3. Release gating still requires explicit Engineering/Security owner sign-off per checklist before public release authorization.
+
+### Final release decision (checklist + scan evidence)
+- **Decision: NO-GO (conditional hold).**
+- Reasoning: technical scans are clean, but checklist gate requires explicit Engineering/Security owner sign-off and recorded completion fields before public release can be approved.
+- Recommendation: obtain and document owner sign-off and evidence links for checklist rows 1–4, then re-issue final release approval.
