@@ -1,0 +1,1 @@
+PASS: no SSN/PAN-like structured patterns found.
