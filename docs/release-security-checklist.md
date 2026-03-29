@@ -1,33 +1,36 @@
 # Release Security Checklist
 
-Use this checklist for every release candidate before creating or pushing a release tag.
+Complete this checklist for **every release candidate** before creating/pushing a release tag or changing repository visibility to public.
 
-## Blocking release requirements (must all pass)
+## Required security checks (all required)
 
-Complete each check, attach evidence, and record explicit owner sign-off. The repo/app **cannot** be marked ready for public release until every blocking item is complete.
+| # | Required check | How to verify | Evidence to attach |
+|---|---|---|---|
+| 1 | **Clean scan** | Run release security scans (for example: `./scripts/check-secrets.sh --report=<report_path>` and any RC-required scan suite) and confirm there are no unresolved findings. | Attach scan outputs and report files in the release-candidate audit folder. |
+| 2 | **No tracked keys** | Run `./scripts/verify-no-tracked-key-material.sh` and confirm no tracked key/certificate artifacts are present. | Attach command output in the release-candidate audit folder. |
+| 3 | **Android release hardening verified** | Verify release-safe Android settings in `android/app/build.gradle`, `android/app/src/main/AndroidManifest.xml`, and `android/app/src/main/res/xml/network_security_config.xml`. | Attach verification notes or command output in the release-candidate audit folder. |
 
-| # | Requirement | Verification command / source | Evidence attachment | Owner sign-off (required) | Date (UTC) |
-|---|---|---|---|---|---|
-| 1 | **Clean secret scan** | `./scripts/check-secrets.sh --report=<report_path>` | Attach CLI output + report file in RC audit docs. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
-| 2 | **No tracked key artifacts** | `./scripts/verify-no-tracked-key-material.sh` | Attach command output in RC audit docs. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
-| 3 | **Production Android security settings verified** | Verify `android/app/build.gradle`, `android/app/src/main/AndroidManifest.xml`, and `android/app/src/main/res/xml/network_security_config.xml` release-safe settings. | Attach verification notes/output excerpt in RC audit docs. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
-| 4 | **Full repository scans rerun after remediation** | Re-run all release scans after remediation and confirm clean status/review disposition. | Attach all rerun outputs to release candidate documentation. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
+## Owner sign-off (required)
 
-## Mandatory release gating sequence
+All three owner approvals are mandatory.
 
-1. Run and document all checklist verification steps above.
-2. Attach rerun scan outputs to the release candidate audit documentation.
-3. Obtain **explicit sign-off** from the named Engineering/Security owner.
-4. **Only after** steps 1–3 are complete, mark the repository/application as **ready for public release**.
+- Engineering owner sign-off: `________________`  Date (UTC): `YYYY-MM-DD`
+- Security owner sign-off: `________________`  Date (UTC): `YYYY-MM-DD`
+- Release manager sign-off: `________________`  Date (UTC): `YYYY-MM-DD`
 
-## Final release readiness gate
+## Release gate policy (blocking)
 
-- [ ] Checklist requirements 1–4 completed with evidence links.
-- [ ] Explicit Engineering/Security owner sign-off recorded.
-- [ ] Repository/app marked ready for public release (allowed only after both checks above).
+The release is blocked until this checklist is fully completed.
 
-Release manager name/handle: `________________`
+- [ ] All required security checks (1-3) completed.
+- [ ] Evidence for each check attached in release-candidate audit docs.
+- [ ] Engineering, Security, and Release Manager sign-offs recorded.
 
-Engineering/Security owner name/handle: `________________`
+**Policy:** Do **not** create/push the release tag and do **not** change repository/app visibility to public until every box above is checked.
 
-Date (UTC): `YYYY-MM-DD`
+## Archival requirement (required)
+
+After approval and release execution:
+
+- [ ] Save this completed checklist alongside the release artifacts (same release-candidate or release archive folder).
+- [ ] Keep links/paths to the attached evidence with the archived checklist for traceability.
