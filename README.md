@@ -43,14 +43,19 @@ This keeps the current local-only contract enforceable at review time.
 
 A dedicated CI workflow (`.github/workflows/secret-scan.yml`) runs `./scripts/check-secrets.sh` on pushes and pull requests, and a repository pre-commit hook is provided at `.githooks/pre-commit`.
 
-The check fails if git-tracked content includes:
+The check scans both the full tracked repository and pull-request diffs/commit ranges, and fails by default if it detects:
 - secret container file types (`*.keystore`, `*.jks`, `*.p12`, `*.pem`)
-- cloud access keys (for example AWS-style key IDs)
+- cloud credential patterns (for example AWS key IDs and secret-access-key style assignments)
+- API key assignments and known token formats (for example GitHub/Firebase/GCP)
 - bearer tokens
 - database URLs with embedded credentials
 - private key blocks (for example `-----BEGIN ... PRIVATE KEY-----`)
 
-False-positive exclusions are tracked in `.secret-scan-exclusions` (lockfiles and other known-safe noisy files only).
+False-positive exclusions are tracked in `.secret-scan-exclusions` (lockfiles and vetted binary artifacts only), with documented rationale per entry.
+
+Any exception requires explicit security approval by adding the `security-override-approved` PR label; without it, secret detections fail CI.
+
+To enforce this before merge, set branch protection on protected branches (for example `main`) to require the status check **`Secret scan (changed + full repo)`**.
 
 For local debug key setup and guidance on history cleanup before/after making the repository public, see `docs/secrets-and-debug-keys.md`.
 

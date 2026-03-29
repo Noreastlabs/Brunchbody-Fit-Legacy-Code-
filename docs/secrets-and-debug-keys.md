@@ -14,13 +14,17 @@ This repository must never track the following file types:
 It also must never contain:
 
 - private key blocks (for example: `-----BEGIN ... PRIVATE KEY-----`)
-- cloud key IDs (for example AWS-style key IDs)
-- bearer tokens
+- cloud credentials (for example AWS-style key IDs and secret-access-key patterns)
+- API key or token assignments (including bearer tokens)
 - database URLs with embedded credentials
 
 CI enforces this with `.github/workflows/secret-scan.yml`, and the local script `scripts/check-secrets.sh` can be run before pushing changes. A pre-commit hook is provided at `.githooks/pre-commit`.
 
-False-positive path exclusions are maintained in `.secret-scan-exclusions` and should stay narrow (lockfiles/noisy generated assets only).
+False-positive path exclusions are maintained in `.secret-scan-exclusions` and should stay narrow (lockfiles/noisy generated assets only) with rationale documented inline.
+
+CI fails by default on detections. The only exception path is an explicitly approved PR label: `security-override-approved`.
+
+For protected branches (such as `main`), require the status check **`Secret scan (changed + full repo)`** in branch protection rules before merge.
 
 ## Android debug keystore setup (local only)
 
