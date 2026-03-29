@@ -74,3 +74,28 @@ Required policy for this repository:
 - Never commit client secrets, refresh/access tokens, or service-account private keys.
 - Store secrets only in local secure developer paths, CI-protected variables, or approved secret managers.
 - Treat any accidental commit of secrets/tokens as a security incident requiring immediate rotation/revocation.
+
+## 6) 2026-03-29 targeted audit execution (requested checklist)
+
+This section records execution of the requested four-step OAuth audit:
+
+1. **Audit client ID referenced in `ios/BrunchBody/Info.plist`:**
+   - Result: no OAuth client ID is present in `Info.plist` and no OAuth redirect scheme is registered (`CFBundleURLTypes` absent).
+   - `CFBundleIdentifier` remains indirect (`$(PRODUCT_BUNDLE_IDENTIFIER)`), with iOS project settings resolving to `com.brunchbody`.
+2. **Restrict provider app identity / redirect schemes to intended environments:**
+   - Required target posture in provider console:
+     - Authorized iOS app identity: none (preferred if OAuth client is removed) or `com.brunchbody` only.
+     - Authorized redirect schemes: none for both production and development.
+   - Execution status: repository-side verification complete; provider-console enforcement requires a maintainer with Google Cloud access.
+3. **Remove unused scopes and verify consent settings:**
+   - Required target posture in provider console:
+     - Remove nonessential scopes and keep no active Google OAuth scopes for this app while OAuth remains unused.
+     - Ensure consent-screen text does not advertise unsupported Google sign-in capability.
+   - Execution status: policy documented and revalidated in-repo; console-side scope/consent verification remains an owner action.
+4. **Document audit in security documentation:**
+   - Completed by this section update.
+
+Evidence commands used during this audit window:
+
+- `rg -n "PRODUCT_BUNDLE_IDENTIFIER|com\\.brunchbody|CFBundleURLTypes|googleusercontent|apps\\.googleusercontent" ios/BrunchBody.xcodeproj/project.pbxproj ios/BrunchBody/Info.plist docs/security/oauth-client-hardening.md -S`
+- `sed -n '1,220p' ios/BrunchBody/Info.plist`
