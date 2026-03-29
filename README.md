@@ -154,7 +154,7 @@ For secure onboarding/setup, read [SECURITY.md](SECURITY.md), [docs/secrets-and-
 
 ## Contributing
 
-Contributions are welcome! **Before opening a PR, read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md)** so security disclosure, secret handling, and release expectations are followed from the start. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
+Contributions are welcome! **Before opening a PR, read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md)** so security disclosure, secret handling, and release expectations are followed from the start. Complete the pre-merge checklist in [CONTRIBUTING.md](CONTRIBUTING.md#pre-merge-checklist), including required secret-scan pass and signing-configuration review. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
 
 ## Release Checklist
 

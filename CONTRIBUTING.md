@@ -38,6 +38,16 @@ Before opening a pull request, read and follow [SECURITY.md](SECURITY.md). Vulne
 
 ## Environment & Signing Values (outside git)
 
+### Local secrets and signing values (must be outside git)
+
+When developing or preparing releases, keep all sensitive values outside tracked project files:
+
+- Store signing secrets and API credentials in CI protected variables, OS keychain, or approved secrets manager.
+- Keep local overrides in untracked files/paths only (for example, `~/.config/...`, `%APPDATA%/...`, or shell profile exports).
+- Treat `*.example` files as templates only; never replace placeholders with real values in git-tracked files.
+- If a secret is committed accidentally, rotate/revoke immediately and follow the incident steps in `SECURITY.md`.
+
+
 Store environment secrets and signing values outside this repository:
 
 - Keep signing credentials in CI-protected variables or approved secret managers.
@@ -51,8 +61,8 @@ See `docs/security/KEY_MATERIAL_STORAGE.md` and `docs/secrets-and-debug-keys.md`
 
 Before requesting review or merging, verify:
 
-- [ ] `./scripts/check-secrets.sh` passes with no high-risk findings.
-- [ ] Signing configuration is verified (release signing values sourced from secure environment/CI variables, no plaintext secrets in git).
+- [ ] `./scripts/check-secrets.sh` passes with no high-risk findings (required before merge).
+- [ ] Signing configuration is reviewed and verified (release signing values sourced from secure environment/CI variables, no plaintext secrets in git).
 - [ ] Changes comply with [SECURITY.md](SECURITY.md).
 
 ## Guidelines

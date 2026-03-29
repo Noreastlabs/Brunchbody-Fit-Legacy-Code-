@@ -2,6 +2,8 @@
 
 ## Reporting a Vulnerability (Private Disclosure)
 
+This project follows a **private-first** vulnerability disclosure process. Do not post exploit details in public issues, discussions, or pull requests before maintainers complete triage and mitigation.
+
 Please report suspected vulnerabilities **privately** before opening any public issue or pull request.
 
 ### Disclosure channels
@@ -18,13 +20,23 @@ When reporting, include:
 - Whether any credential, token, or signing material may have been exposed.
 - Suggested mitigation (if available).
 
+### Triage and remediation workflow
+
+After intake, maintainers will:
+
+1. Confirm receipt and classify severity/affected scope.
+2. Reproduce and validate impact in a private channel.
+3. Prepare and review a remediation patch.
+4. Rotate/revoke any exposed secrets or signing credentials before disclosure.
+5. Coordinate publication timing with reporter when applicable.
+
 ### Response expectations
 
 - Initial acknowledgement target: **within 3 business days**.
 - Triage updates: provided during investigation until resolution.
 - Public disclosure: only after remediation is merged and any exposed secrets are rotated/revoked.
 
-## Secret Handling Rules
+## Secret Handling Standards
 
 Secrets and key material must never be committed to git history.
 
