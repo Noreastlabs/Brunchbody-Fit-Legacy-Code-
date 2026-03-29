@@ -122,7 +122,8 @@ android {
 
     signingConfigs {
         debug {
-            storeFile file('debug.keystore')
+            // Keep debug signing material outside the repository tree.
+            storeFile file("${System.properties['user.home']}/.android/debug.keystore")
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'

@@ -4,13 +4,14 @@ This project keeps signing and key material out of source control.
 
 ## Debug keystore (local only)
 
-For local Android debug builds, let Gradle/Android tooling create `android/app/debug.keystore` automatically, or generate one locally with `keytool` if needed.
+For local Android debug builds, use the standard user-level debug keystore at `~/.android/debug.keystore` (outside this repository). Gradle in this project is configured to read from that path.
 
-Example (from repo root):
+If you do not have a debug keystore yet, generate it locally:
 
 ```bash
+mkdir -p ~/.android
 keytool -genkeypair -v \
-  -keystore android/app/debug.keystore \
+  -keystore ~/.android/debug.keystore \
   -alias androiddebugkey \
   -storepass android \
   -keypass android \
