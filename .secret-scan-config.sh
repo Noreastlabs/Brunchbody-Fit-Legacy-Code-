@@ -2,7 +2,7 @@
 # Shared secret scanning policy for local checks and CI.
 
 FORBIDDEN_FILE_EXTENSIONS_REGEX='\.(keystore|jks|p12|pfx|pem|key|crt|cer|der|mobileprovision|provisionprofile)$'
-ALLOWED_EXCLUSION_PATHS_REGEX='(^|/)([^/]+\.lock|gradle-wrapper\.jar)$'
+ALLOWED_EXCLUSION_PATHS_REGEX='^(Gemfile\.lock|yarn\.lock|ios/Podfile\.lock|android/gradle/wrapper/gradle-wrapper\.jar)$'
 
 PATTERN_LABELS=(
   'AWS access key IDs'
