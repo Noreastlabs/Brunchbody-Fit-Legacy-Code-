@@ -2,30 +2,32 @@
 
 Use this checklist for every release candidate before creating or pushing a release tag.
 
-## Blocking security verification items
+## Blocking release requirements (must all pass)
 
-Complete each check and capture evidence links (CI job, log snippet, or review comment). Every item requires a named reviewer sign-off before tagging.
+Complete each check, attach evidence, and record explicit owner sign-off. The repo/app **cannot** be marked ready for public release until every blocking item is complete.
 
-| # | Checklist item | Verification details | Reviewer sign-off (required) | Date (UTC) |
-|---|---|---|---|---|
-| 1 | Secret scan pass | Run `./scripts/check-secrets.sh` and confirm pass with no unresolved high-risk findings. | Name/handle: `________________` | `YYYY-MM-DD` |
-| 2 | No tracked key artifacts | Run `./scripts/verify-no-tracked-key-material.sh` and confirm no tracked key artifacts (`*.keystore`, `*.jks`, `*.p12`, `*.pem`, `*.key`, `*.mobileprovision`). | Name/handle: `________________` | `YYYY-MM-DD` |
-| 3 | Android production security checks complete | Verify release build security checks below are complete and documented. | Name/handle: `________________` | `YYYY-MM-DD` |
-| 3a | `android/app/build.gradle` release signing config verified | Confirm `release` signing config does not include hardcoded secrets, uses secure environment/CI-provided credentials, and references the correct production keystore path/alias. | Name/handle: `________________` | `YYYY-MM-DD` |
-| 3b | `android/app/src/main/AndroidManifest.xml` cleartext policy verified | Confirm release configuration preserves HTTPS-only behavior and does not allow cleartext traffic for production. | Name/handle: `________________` | `YYYY-MM-DD` |
+| # | Requirement | Verification command / source | Evidence attachment | Owner sign-off (required) | Date (UTC) |
+|---|---|---|---|---|---|
+| 1 | **Clean secret scan** | `./scripts/check-secrets.sh --report=<report_path>` | Attach CLI output + report file in RC audit docs. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
+| 2 | **No tracked key artifacts** | `./scripts/verify-no-tracked-key-material.sh` | Attach command output in RC audit docs. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
+| 3 | **Production Android security settings verified** | Verify `android/app/build.gradle`, `android/app/src/main/AndroidManifest.xml`, and `android/app/src/main/res/xml/network_security_config.xml` release-safe settings. | Attach verification notes/output excerpt in RC audit docs. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
+| 4 | **Full repository scans rerun after remediation** | Re-run all release scans after remediation and confirm clean status/review disposition. | Attach all rerun outputs to release candidate documentation. | Engineering/Security owner: `________________` | `YYYY-MM-DD` |
 
-## Pre-tag release approval
+## Mandatory release gating sequence
 
-Before tagging, verify that all checklist rows above are complete and signed by named reviewers.
+1. Run and document all checklist verification steps above.
+2. Attach rerun scan outputs to the release candidate audit documentation.
+3. Obtain **explicit sign-off** from the named Engineering/Security owner.
+4. **Only after** steps 1–3 are complete, mark the repository/application as **ready for public release**.
 
-- [ ] **Release manager approval (required):** All blocking security items are completed, evidence is attached, and reviewer sign-offs are recorded.
-- Release manager name/handle: `________________`
-- Date (UTC): `YYYY-MM-DD`
+## Final release readiness gate
 
-## Audit archival requirement
+- [ ] Checklist requirements 1–4 completed with evidence links.
+- [ ] Explicit Engineering/Security owner sign-off recorded.
+- [ ] Repository/app marked ready for public release (allowed only after both checks above).
 
-After release approval and tagging:
+Release manager name/handle: `________________`
 
-- [ ] Archive the completed checklist with the release artifacts for auditability.
-- [ ] Store the archive in the release artifact/audit location used by the team (for example, the release candidate audit folder).
-- [ ] Ensure the archived record includes: checklist file, reviewer names, UTC dates, and evidence links.
+Engineering/Security owner name/handle: `________________`
+
+Date (UTC): `YYYY-MM-DD`

@@ -1,33 +1,57 @@
-# Release Security Report — 2026-03-29 (UTC)
+# Release Security Report — 1.0.3-rc.1 — 2026-03-29 (UTC)
 
-## Scope (Post-Cleanup Rerun)
-1. Re-ran the same regex-based secret/PII/artifact sweep used in the latest audit.
-2. Verified rerun outputs are clean of keys/tokens and sensitive artifacts.
-3. Issued explicit release go/no-go decision.
+## Scope
+1. Re-run full repository security scans after remediation.
+2. Verify production Android security settings.
+3. Record required Engineering/Security owner sign-off gate.
+4. Mark release readiness **only** after checklist pass + explicit sign-off.
 
-## Evidence (commands + outcomes)
-- `./scripts/check-secrets.sh --report=secret-scan-report-2026-03-29-rerun.txt` → **PASS**
-- `./scripts/verify-no-tracked-key-material.sh` → **PASS**
-- `git ls-files | rg -n -i '(social security|\bssn\b|date of birth|\bdob\b|passport|driver.?s license|credit card|\bcvv\b|routing number)'` → **PASS (no matches)**
-- `rg -n --hidden -g '!node_modules/**' -g '!.git/**' -e '\\b\\d{3}-\\d{2}-\\d{4}\\b' -e '\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\\b' .` → **PASS (no matches)**
-- `git ls-files | rg -n -i '(google-services\\.json|GoogleService-Info\\.plist|awsconfiguration\\.json|amplifyconfiguration\\.json|firebase.*\\.json|\\.env(\\.|$)|terraform\\.tfstate|credentials\\.json|service-account.*\\.json|id_rsa|id_dsa|\\.pem$|\\.p12$|\\.jks$|\\.keystore$)'` → **REVIEWED (single match: `ios/.xcode.env`)**
+## Full repository scan rerun (post-remediation)
 
-## Scan Cleanliness Verification
-- No secrets/tokens were detected by the rerun sweep.
-- No tracked key/certificate artifacts were detected.
-- The only regex hit in tracked filenames remains `ios/.xcode.env`, reviewed as a non-secret environment bootstrap file.
+### Commands executed
+- `./scripts/check-secrets.sh --report=docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/secret-scan-2026-03-29.txt`
+- `./scripts/verify-no-tracked-key-material.sh`
+- `git ls-files | rg -n -i '(social security|\bssn\b|date of birth|\bdob\b|passport|driver.?s license|credit card|\bcvv\b|routing number)'`
+- `rg -n --hidden -g '!node_modules/**' -g '!.git/**' -e '\\b\\d{3}-\\d{2}-\\d{4}\\b' -e '\\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12})\\b' .`
+- `git ls-files | rg -n -i '(google-services\\.json|GoogleService-Info\\.plist|awsconfiguration\\.json|amplifyconfiguration\\.json|firebase.*\\.json|\\.env(\\.|$)|terraform\\.tfstate|credentials\\.json|service-account.*\\.json|id_rsa|id_dsa|\\.pem$|\\.p12$|\\.jks$|\\.keystore$)'`
 
-## Concise Summary
-### What was fixed
-- Post-cleanup security sweep was rerun using the same regex-based commands as the latest audit.
-- Secret scan report was regenerated and remains clean.
+### Outcomes
+- Secret scan: **PASS**
+- Tracked key artifact scan: **PASS**
+- PII keyword scan: **PASS (no matches)**
+- Structured PII/PAN regex scan: **PASS (no matches)**
+- Tracked sensitive filename scan: **REVIEWED** (`ios/.xcode.env` filename match only)
 
-### What remains
-- Non-blocking reviewed item: `ios/.xcode.env` filename match (no credential content identified).
-- Residual inherent limitation: regex scans are heuristic and may miss obfuscated/non-standard formats.
+### Attached outputs (release candidate docs)
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/check-secrets-cli-2026-03-29.txt`
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/secret-scan-2026-03-29.txt`
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/no-tracked-key-artifacts-2026-03-29.txt`
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/pii-keyword-scan-2026-03-29.txt`
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/structured-pii-pan-scan-2026-03-29.txt`
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/tracked-sensitive-artifacts-scan-2026-03-29.txt`
 
-## Explicit Decision
-**GO** — checks pass for this release gate.
+## Production Android security settings verification
 
-## Release Action
-Proceed with **public release**.
+Verified and captured in:
+- `docs/release/candidates/1.0.3-rc.1/audit/scan-outputs/android-production-security-verification-2026-03-29.txt`
+
+Checks covered:
+- Release signing configuration and debug-signing guardrails in `android/app/build.gradle`.
+- Production manifest cleartext policy in `android/app/src/main/AndroidManifest.xml`.
+- Base cleartext deny policy in `android/app/src/main/res/xml/network_security_config.xml`.
+
+Result: **PASS** (settings verified for production release posture).
+
+## Required explicit owner sign-off
+
+Engineering/Security owner: `________________`  
+Decision: `APPROVE` / `REJECT` (circle one)  
+Date (UTC): `YYYY-MM-DD`
+
+> Release status rule: repository/app can be marked ready for public release **only after** completed checklist evidence **and** explicit Engineering/Security owner sign-off.
+
+## Release readiness status
+
+- Checklist completion: ✅ Completed with evidence attached.
+- Explicit Engineering/Security owner sign-off: ⏳ Pending.
+- Public release readiness: **NOT READY** until sign-off is completed.

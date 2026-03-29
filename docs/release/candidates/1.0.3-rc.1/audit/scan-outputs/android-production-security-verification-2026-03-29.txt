@@ -1,0 +1,45 @@
+=== android/app/build.gradle release signing checks ===
+75:// Do not commit release passwords/aliases in repository files.
+76:def releaseStoreFilePath = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_FILE").orElse(providers.environmentVariable("BB_RELEASE_STORE_FILE")).getOrNull()
+77:def releaseStorePassword = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_STORE_PASSWORD")).getOrNull()
+78:def releaseKeyAlias = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_ALIAS").orElse(providers.environmentVariable("BB_RELEASE_KEY_ALIAS")).getOrNull()
+79:def releaseKeyPassword = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_KEY_PASSWORD")).getOrNull()
+80:def hasReleaseSigningValues = [releaseStoreFilePath, releaseStorePassword, releaseKeyAlias, releaseKeyPassword].every { it != null && !it.toString().trim().isEmpty() }
+81:def releaseStoreFile = releaseStoreFilePath ? file(releaseStoreFilePath) : null
+82:def usesDebugKeystoreForRelease = releaseStoreFilePath?.toLowerCase()?.contains("debug.keystore") || releaseKeyAlias == "androiddebugkey"
+123:    signingConfigs {
+125:            storeFile file('debug.keystore')
+127:            keyAlias 'androiddebugkey'
+130:        release {
+132:                storeFile releaseStoreFile
+133:                storePassword releaseStorePassword
+134:                keyAlias releaseKeyAlias
+135:                keyPassword releaseKeyPassword
+152:    // Handle duplicate classes in release builds
+154:        if (variant.buildType.name == 'release') {
+163:    // Add specific configuration for release builds
+164:    buildTypes {
+166:            signingConfig signingConfigs.debug
+168:        release {
+169:            // Release builds must use the dedicated release signing config (never debug keys).
+170:            signingConfig signingConfigs.release
+185:                def buildDir = new File("${project.buildDir}/intermediates/project_dex_archive/release/dexBuilderRelease/out")
+202:        task.name.toLowerCase().contains("release")
+207:        if (!releaseStoreFilePath) missing << "BRUNCHBODY_RELEASE_STORE_FILE / BB_RELEASE_STORE_FILE"
+208:        if (!releaseStorePassword) missing << "BRUNCHBODY_RELEASE_STORE_PASSWORD / BB_RELEASE_STORE_PASSWORD"
+209:        if (!releaseKeyAlias) missing << "BRUNCHBODY_RELEASE_KEY_ALIAS / BB_RELEASE_KEY_ALIAS"
+210:        if (!releaseKeyPassword) missing << "BRUNCHBODY_RELEASE_KEY_PASSWORD / BB_RELEASE_KEY_PASSWORD"
+213:            throw new GradleException("Missing release signing values. Set in ~/.gradle/gradle.properties or CI secrets: ${missing.join(', ')}")
+216:        if (!releaseStoreFile?.exists()) {
+217:            throw new GradleException("Release keystore file does not exist: ${releaseStoreFilePath}")
+221:            throw new GradleException("Release signing cannot use debug keystore or androiddebugkey alias.")
+
+=== android/app/src/main/AndroidManifest.xml cleartext settings ===
+15:      android:usesCleartextTraffic="false"
+16:      android:networkSecurityConfig="@xml/network_security_config"
+
+=== android/app/src/main/res/xml/network_security_config.xml base-config ===
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>
