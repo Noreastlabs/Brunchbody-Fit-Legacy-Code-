@@ -14,6 +14,7 @@ Use this checklist before creating a public release tag.
 - [ ] Signed Android release artifact generated.
 - [ ] Signed iOS release artifact generated.
 - [ ] Release notes published with local-only data behavior statement.
+- [ ] **Final security report approved (blocking)** (latest RC final report is approved by release owner/security approver before public tag creation).
 
 ## Explicit release sign-off (required)
 
