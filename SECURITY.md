@@ -52,7 +52,9 @@ The following are examples of commits that are **not allowed**:
 - Run `./scripts/check-secrets.sh` before each push and before release tagging.
 - Keep long-lived secrets in secret managers or CI-protected variables.
 - Keep signing values and environment secrets in local developer paths or CI variables, never in tracked files.
-- Keep `.secret-scan-exclusions` minimal and limited to known-safe noisy paths only.
+- Keep `.secret-scan-exclusions` minimal, limited to known-safe noisy paths only, and document rationale for each entry.
+- Secret-scan detections fail CI by default; any exception requires explicit security approval (`security-override-approved` PR label).
+- On protected branches, require the status check `Secret scan (changed + full repo)` before merge.
 - Treat accidental secret commits as incidents (see incident response below).
 
 > OAuth client IDs (for example `*.apps.googleusercontent.com` and reversed-client-id URL schemes) are public identifiers, not secrets.
