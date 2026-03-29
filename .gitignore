@@ -33,7 +33,7 @@ android/keystore.properties
 *.hprof
 .cxx/
 # Keep signing/debug key material out of git-tracked files.
-# Do not add negation patterns (for example `!debug.keystore`).
+android/app/debug.keystore
 *.keystore
 *.jks
 *.p12

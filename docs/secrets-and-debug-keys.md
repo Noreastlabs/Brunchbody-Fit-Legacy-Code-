@@ -10,6 +10,8 @@ This repository must never track the following file types:
 - `*.jks`
 - `*.p12`
 - `*.pem`
+- `*.key`
+- `*.mobileprovision`
 
 It also must never contain:
 
@@ -31,6 +33,8 @@ For protected branches (such as `main`), require the status check **`Secret scan
 `android/app/debug.keystore` is intentionally **not** tracked by git.
 
 For local Android debug builds, use your user-level debug keystore under `~/.android/debug.keystore`.
+
+Developer setup note: generate/use the debug key locally on your machine and keep it outside the repository.
 
 Generate one if needed:
 
@@ -64,4 +68,6 @@ Example (`git filter-repo`) patterns to remove:
 - `*.jks`
 - `*.p12`
 - `*.pem`
+- `*.key`
+- `*.mobileprovision`
 - known paths such as `android/app/debug.keystore`
