@@ -32,8 +32,8 @@ android/keystore.properties
 *.iml
 *.hprof
 .cxx/
-# Keep Android signing/debug key material out of git-tracked files.
-# Do not add `!debug.keystore` or other negated keystore exceptions.
+# Keep signing/debug key material out of git-tracked files.
+# Never re-include debug keystores (for example with `!debug.keystore`).
 *.keystore
 *.jks
 *.p12
