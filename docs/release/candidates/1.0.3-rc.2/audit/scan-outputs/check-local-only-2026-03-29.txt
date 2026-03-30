@@ -1,0 +1,4 @@
+yarn run v1.22.22
+$ node scripts/check-local-only-mode.js
+[local-only-check] Passed: no Firebase/AWS imports or api/user/ calls found in src/.
+Done in 0.35s.

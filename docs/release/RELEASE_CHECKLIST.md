@@ -14,8 +14,8 @@ Use this checklist before creating a public release tag.
 - [ ] **Network-security check completed** (Android release manifest/config keep HTTPS-only policy with no release cleartext exceptions).
 - [ ] Signed Android release artifact generated.
 - [ ] Signed iOS release artifact generated.
-- [ ] Release notes published with local-only data behavior statement.
-- [ ] **Final security report approved (blocking)** (latest RC final report, e.g. `docs/release/candidates/1.0.3-rc.1/audit/release-security-report-2026-03-29.md`, is approved by release owner/security approver before public tag creation).
+- [ ] Release notes published with local-only data behavior statement (for example `docs/release/RELEASE_NOTES_1.0.3-rc.2.md`).
+- [ ] **Final security report approved (blocking)** (latest RC final report, e.g. `docs/release/candidates/1.0.3-rc.2/audit/release-security-report-2026-03-29.md`, is approved by release owner/security approver before public tag creation).
 
 ## Explicit release sign-off (required)
 

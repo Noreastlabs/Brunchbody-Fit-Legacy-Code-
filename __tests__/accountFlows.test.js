@@ -5,6 +5,7 @@ import {
   changeEmail,
   changePassword,
   deleteAccount,
+  loggedIn,
   logout,
   resetPassword,
 } from '../src/redux/actions/auth';
@@ -38,8 +39,10 @@ describe('Local account actions', () => {
     jest.clearAllMocks();
   });
 
-  test('changeEmail persists the device-local email and updates auth state', async () => {
-    AsyncStorage.getItem.mockResolvedValueOnce(
+  test('changeEmail persists the device-local email across relaunch', async () => {
+    const dispatch = jest.fn();
+    await AsyncStorage.setItem(
+      'user_profile',
       JSON.stringify({
         dob: '01/01/1995',
         gender: 'female',
@@ -48,16 +51,20 @@ describe('Local account actions', () => {
         email: 'old@example.com',
       }),
     );
-    const dispatch = jest.fn();
 
     const result = await changeEmail({ email: 'new@example.com' })(dispatch);
+    const relaunchDispatch = jest.fn();
+    const loginResult = await loggedIn()(relaunchDispatch);
 
     expect(result).toBe(true);
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-      'user_profile',
-      expect.any(String),
-    );
+    expect(loginResult).toBe(true);
     expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: SET_USER,
+        payload: expect.objectContaining({ email: 'new@example.com' }),
+      }),
+    );
+    expect(relaunchDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: SET_USER,
         payload: expect.objectContaining({ email: 'new@example.com' }),
@@ -176,6 +183,31 @@ describe('Settings/account navigation', () => {
       index: 0,
       routes: [{ name: 'CompleteProfile' }],
     });
+  });
+
+  test('settings still expose the Export to CSV entry in the RC2 build', async () => {
+    const navigation = {
+      getParent: jest.fn(),
+      reset: jest.fn(),
+    };
+    const logoutUser = jest.fn();
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SettingPage navigation={navigation} logoutUser={logoutUser} />,
+      );
+    });
+
+    const exportSection = renderer.root
+      .findByType('mock-setting')
+      .props.listData.find(item => item.title === 'Export to CSV');
+
+    expect(exportSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ screen: 'ExportToCSV' }),
+      ]),
+    );
   });
 
   test('delete account returns the user to CompleteProfile after success confirmation', async () => {

@@ -1,0 +1,37 @@
+yarn run v1.22.22
+$ jest --watch=false
+PASS __tests__/accountFlows.test.js
+PASS __tests__/localDataValidation.test.js
+  ● Console
+
+    console.log
+      Hydrating MMKV with workout plans...
+
+      at log (src/storage/mmkv/hydration.js:11:13)
+
+    console.log
+      Workout plans saved to MMKV.
+
+      at log (src/storage/mmkv/hydration.js:14:13)
+
+PASS __tests__/App.test.js
+  ● Console
+
+    console.log
+      Hydrating MMKV with workout plans...
+
+      at log (src/storage/mmkv/hydration.js:11:13)
+
+    console.log
+      Workout plans saved to MMKV.
+
+      at log (src/storage/mmkv/hydration.js:14:13)
+
+A worker process has failed to exit gracefully and has been force exited. This is likely caused by tests leaking due to improper teardown. Try running with --detectOpenHandles to find leaks. Active timers can also cause this, ensure that .unref() was called on them.
+
+Test Suites: 3 passed, 3 total
+Tests:       22 passed, 22 total
+Snapshots:   0 total
+Time:        2.585 s
+Ran all test suites.
+Done in 3.85s.

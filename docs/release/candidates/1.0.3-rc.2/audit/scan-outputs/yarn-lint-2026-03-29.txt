@@ -1,0 +1,643 @@
+yarn run v1.22.22
+$ eslint .
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/scripts/check-local-only-mode.js
+  36:61   warning  Unnecessary escape character: \"  no-useless-escape
+  36:67   warning  Unnecessary escape character: \"  no-useless-escape
+  36:115  warning  Unnecessary escape character: \"  no-useless-escape
+  36:121  warning  Unnecessary escape character: \"  no-useless-escape
+  36:139  warning  Unnecessary escape character: \"  no-useless-escape
+  36:145  warning  Unnecessary escape character: \"  no-useless-escape
+  36:193  warning  Unnecessary escape character: \"  no-useless-escape
+  36:199  warning  Unnecessary escape character: \"  no-useless-escape
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/Button/Button.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomHeader/CustomHeader.js
+  23:23  warning  Inline style: { tintColor: 'white' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/AddCardioExercise.js
+   1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+   2:19  warning  'react/no-array-index-key' rule is disabled but never reported      eslint-comments/no-unused-disable
+  44:22  warning  Inline style: { flex: 0.3 }                                         react-native/no-inline-styles
+  62:28  warning  Inline style: { width: '80%' }                                      react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/AddExerciseModal.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  2:19  warning  'react/no-array-index-key' rule is disabled but never reported      eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/AddRemoveTheme.js
+    1:19  warning  'no-nested-ternary' rule is disabled but never reported  eslint-comments/no-unused-disable
+   99:22  warning  Inline style: { flexWrap: 'wrap' }                       react-native/no-inline-styles
+  116:26  warning  Inline style: { width: '60%' }                           react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/AddSingleExercise.js
+  51:22  warning  Inline style: { flex: 0.3 }     react-native/no-inline-styles
+  66:28  warning  Inline style: { width: '80%' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/CalculationContent.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/ClearTheme.js
+  28:22  warning  Inline style: { flex: 1 }           react-native/no-inline-styles
+  34:30  warning  Inline style: { width: '100%' }     react-native/no-inline-styles
+  37:22  warning  Inline style: { flex: 1 }           react-native/no-inline-styles
+  42:20  warning  Inline style: { marginBottom: 13 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/CreateItemContent.js
+   1:19  warning  'no-nested-ternary' rule is disabled but never reported  eslint-comments/no-unused-disable
+   2:19  warning  'no-shadow' rule is disabled but never reported          eslint-comments/no-unused-disable
+  60:38  warning  Inline style: { width: '80%' }                           react-native/no-inline-styles
+  63:32  warning  Inline style: { flex: 0.3 }                              react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/CustomModal.js
+  17:42  warning  Inline style: { flexGrow: 1, paddingVertical: 10 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/DatePickerModal.js
+   1:19  warning  'eqeqeq' rule is disabled but never reported  eslint-comments/no-unused-disable
+  49:50  warning  Inline style: { marginTop: 0 }                react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/HeightPickerModal.js
+  25:24  warning  Inline style: { paddingHorizontal: 10 }               react-native/no-inline-styles
+  27:22  warning  Inline style: { width: 100, height: 200 }             react-native/no-inline-styles
+  48:17  warning  Inline style: { textAlign: 'center', marginTop: 10 }  react-native/no-inline-styles
+  55:24  warning  Inline style: { paddingHorizontal: 10 }               react-native/no-inline-styles
+  57:22  warning  Inline style: { width: 100, height: 200 }             react-native/no-inline-styles
+  78:17  warning  Inline style: { textAlign: 'center', marginTop: 10 }  react-native/no-inline-styles
+  95:50  warning  Inline style: { marginTop: 0 }                        react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/ItineraryDetail.js
+  40:40  warning  Inline style: { marginLeft: 10 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/NurtitionItems.js
+  42:18  warning  Inline style: { marginTop: 30 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/ProgramDetailModal.js
+  21:5   warning  'showTable' is assigned a value but never used  no-unused-vars
+  32:22  warning  Inline style: { alignItems: 'center' }          react-native/no-inline-styles
+  69:18  warning  Inline style: { marginTop: 20 }                 react-native/no-inline-styles
+  78:22  warning  Inline style: { padding: 16 }                   react-native/no-inline-styles
+  79:24  warning  Inline style: { textAlign: 'center' }           react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/SelectModalContent.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  2:19  warning  'no-nested-ternary' rule is disabled but never reported             eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/TimePickerModal.js
+   4:10  warning  'RFValue' is defined but never used  no-unused-vars
+  40:18  warning  Inline style: { flex: 1 }            react-native/no-inline-styles
+  43:24  warning  Inline style: { flex: 1 }            react-native/no-inline-styles
+  53:24  warning  Inline style: { flex: 1 }            react-native/no-inline-styles
+  63:24  warning  Inline style: { flex: 1 }            react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomModal/WheelPickerContent.js
+   1:19  warning  'react/no-array-index-key' rule is disabled but never reported  eslint-comments/no-unused-disable
+  29:48  warning  Inline style: { alignItems: 'center' }                          react-native/no-inline-styles
+  32:22  warning  Inline style: { width: '95%', height: 250 }                     react-native/no-inline-styles
+  47:26  warning  Inline style: { textAlign: 'center' }                           react-native/no-inline-styles
+  70:50  warning  Inline style: { marginTop: 0 }                                  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomText/CustomText.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/CustomTextArea/CustomTextArea.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+  2:19  warning  'prettier/prettier' rule is disabled but never reported        eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/ProgramTable/ProgramTable.js
+   14:49  warning  Inline style: { width: '40%' }                                                                         react-native/no-inline-styles
+   17:49  warning  Inline style: { textAlign: 'center' }                                                                  react-native/no-inline-styles
+   20:49  warning  Inline style: { textAlign: 'center' }                                                                  react-native/no-inline-styles
+   23:49  warning  Inline style: { textAlign: 'right' }                                                                   react-native/no-inline-styles
+   32:37  warning  Expected '===' and instead saw '=='                                                                    eqeqeq
+   43:24  warning  Inline style: { width: '40%' }                                                                         react-native/no-inline-styles
+   49:21  warning  Inline style: { width: '100%' }                                                                        react-native/no-inline-styles
+   58:48  warning  Inline style: { textAlign: 'center' }                                                                  react-native/no-inline-styles
+   61:48  warning  Inline style: { textAlign: 'center' }                                                                  react-native/no-inline-styles
+   64:48  warning  Inline style: { textAlign: 'right' }                                                                   react-native/no-inline-styles
+   71:47  warning  'index' is already declared in the upper scope on line 28 column 25                                    no-shadow
+   77:30  warning  Inline style: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginTop: 'index !== 0 ? 15 : 0'
+}  react-native/no-inline-styles
+   92:52  warning  Inline style: { textAlign: 'center' }                                                                  react-native/no-inline-styles
+   97:52  warning  Inline style: { textAlign: 'center' }                                                                  react-native/no-inline-styles
+  101:56  warning  Inline style: { textAlign: 'right' }                                                                   react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/SafeAreaWrapper/SafeAreaWrapper.js
+  6:27  warning  Inline style: { flex: 1 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/SupersetExeComp/SupersetExeComp.js
+  30:22  warning  Inline style: { flex: 0.3 }     react-native/no-inline-styles
+  48:28  warning  Inline style: { width: '80%' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/Text/Text.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/TextButton/TextButton.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/TextInput/TextInput.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/TopTabs/TopTabs.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/components/WeeklyTable/WeeklyTable.js
+   2:19  warning  'react/no-array-index-key' rule is disabled but never reported                             eslint-comments/no-unused-disable
+  32:19  warning  Inline style: {
+  backgroundColor: 'dayData?.plan.length > 0 ? colors.secondary : null'
+}  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/navigation/BottomTabNavigation.js
+    1:19  warning  'react/prop-types' rule is disabled but never reported                                                                                                                                                                                                                                                                                                                                                                            eslint-comments/no-unused-disable
+   18:9   warning  'insets' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                       no-unused-vars
+   41:23  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “BottomTabNavigation” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+   55:23  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “BottomTabNavigation” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+   69:23  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “BottomTabNavigation” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+   83:23  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “BottomTabNavigation” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+   93:23  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “BottomTabNavigation” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+  107:23  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “BottomTabNavigation” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/redux/actions/calendar.js
+  1:19  warning  'no-use-before-define' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/redux/actions/recreation.js
+  115:73  warning  Expected '===' and instead saw '=='  eqeqeq
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/redux/reducer/auth.js
+  1:19  warning  'no-restricted-properties' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/redux/reducer/calendar.js
+  1:19  warning  'no-nested-ternary' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/redux/reducer/journal.js
+  1:19  warning  'array-callback-return' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/root-container/RootContainer.js
+  16:20  warning  Inline style: { flex: 1 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/CalendarMenu.js
+  33:20  warning  Inline style: { flexDirection: 'row' }                    react-native/no-inline-styles
+  42:20  warning  Inline style: { flexDirection: 'row', marginBottom: 10 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/ClearTheme.js
+  29:20  warning  Inline style: { flexDirection: 'row' }  react-native/no-inline-styles
+  38:34  warning  Inline style: { margin: 7 }             react-native/no-inline-styles
+  39:24  warning  Inline style: { fontSize: 20 }          react-native/no-inline-styles
+  47:21  warning  Inline style: { fontSize: 20 }          react-native/no-inline-styles
+  51:16  warning  Inline style: { margin: 10 }            react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/CloseIcon.js
+  11:12  warning  Inline style: { marginTop: -18, marginRight: -12 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/ColorPicker.js
+  25:34  warning  Inline style: { flexGrow: 1, paddingVertical: 10 }                           react-native/no-inline-styles
+  28:20  warning  Inline style: { flexDirection: 'row', justifyContent: 'space-between' }      react-native/no-inline-styles
+  39:27  warning  Inline style: { height: 30, width: 30, borderRadius: 15 }                    react-native/no-inline-styles
+  41:22  warning  Inline style: { height: 400 }                                                react-native/no-inline-styles
+  47:22  warning  Inline style: { flexDirection: 'row', alignItems: 'center', marginTop: 10 }  react-native/no-inline-styles
+  53:28  warning  Inline style: { fontSize: 24, padding: 10 }                                  react-native/no-inline-styles
+  58:26  warning  Inline style: { width: 40, height: 40 }                                      react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/CreateTheme.js
+  25:20  warning  Inline style: { flexDirection: 'row', justifyContent: 'space-between' }  react-native/no-inline-styles
+  42:20  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  46:20  warning  Inline style: { width: 40, height: 40, marginLeft: 10, borderWidth: 2 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/EditTask.js
+  21:20  warning  Inline style: { flexDirection: 'row' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/EditTodo.js
+   1:19  warning  'no-nested-ternary' rule is disabled but never reported                  eslint-comments/no-unused-disable
+   2:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported       eslint-comments/no-unused-disable
+  51:42  warning  Inline style: { flexGrow: 1, paddingVertical: 10 }                       react-native/no-inline-styles
+  52:22  warning  Inline style: { flexDirection: 'row', justifyContent: 'space-between' }  react-native/no-inline-styles
+  73:26  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  82:26  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  94:26  warning  Inline style: { alignItems: 'center' }                                   react-native/no-inline-styles
+  96:43  warning  Inline style: { fontSize: 20, marginBottom: 0 }                          react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/ModalButton.js
+  1:19  warning  'react/forbid-prop-types' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/MyThemes.js
+   3:10  warning  'Headline' is defined but never used                                     no-unused-vars
+  22:20  warning  Inline style: { flexDirection: 'row', justifyContent: 'space-between' }  react-native/no-inline-styles
+  23:40  warning  Inline style: { fontSize: 24, fontWeight: 'bold' }                       react-native/no-inline-styles
+  26:39  warning  Inline style: { fontSize: 20, fontWeight: '600' }                        react-native/no-inline-styles
+  35:18  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  46:18  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  57:18  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  68:18  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/Todo.js
+  11:16  warning  Inline style: { margin: 20 }                        react-native/no-inline-styles
+  12:18  warning  Inline style: { fontSize: 30, fontWeight: 'bold' }  react-native/no-inline-styles
+  28:18  warning  Inline style: { fontSize: 20, fontWeight: 'bold' }  react-native/no-inline-styles
+  54:18  warning  Inline style: { fontSize: 20, fontWeight: 'bold' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/components/Writing.js
+  12:14  warning  Inline style: {
+  flex: 1,
+  flexWrap: 'wrap',
+  flexDirection: 'row',
+  alignItems: 'center'
+}  react-native/no-inline-styles
+  46:14  warning  Inline style: { alignItems: 'flex-end' }                                                         react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/calendar/pages/calendar/Calendar.js
+  47:5  warning  'onGetThemes' is assigned a value but never used        no-unused-vars
+  50:5  warning  'onGetTodo' is assigned a value but never used          no-unused-vars
+  62:5  warning  'updateUserProfile' is assigned a value but never used  no-unused-vars
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/components/BackButton.js
+  14:21  warning  Inline style: { tintColor: 'white' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/components/ChooseButton.js
+  5:29  warning  'consistent-return' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/components/ChooseInput.js
+  1:16  warning  'useState' is defined but never used                     no-unused-vars
+  8:29  warning  'consistent-return' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/components/ChooseLabel.js
+  5:29  warning  'consistent-return' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/components/DateOfBirth.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/components/Height.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/pages/completeProfile/CompleteProfile.js
+  1:19  warning  'consistent-return' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/pages/completeProfile/DateOfBirth.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/completeProfile/pages/completeProfile/Height.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/components/Carousel.js
+   1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  54:18  warning  Inline style: { marginTop: 10 }                                     react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/components/Day.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/components/Details.js
+  11:18  warning  Inline style: { flex: 1 }           react-native/no-inline-styles
+  22:24  warning  Inline style: { flexWrap: 'wrap' }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/components/Month.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/components/Week.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/components/Year.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/dashboard/pages/Dashboard/Dashboard.js
+  1:19  warning  'no-nested-ternary' rule is disabled but never reported             eslint-comments/no-unused-disable
+  2:19  warning  'no-undef' rule is disabled but never reported                      eslint-comments/no-unused-disable
+  3:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/components/Calories.js
+    2:19  warning  'no-nested-ternary' rule is disabled but never reported  eslint-comments/no-unused-disable
+  138:52  warning  Inline style: { textAlign: 'center' }                    react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/components/DailyEntry.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/components/TraitDirectory.js
+   1:19  warning  'arrow-body-style' rule is disabled but never reported  eslint-comments/no-unused-disable
+  28:39  warning  Inline style: { marginBottom: 10 }                      react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/pages/Calories/Calories.js
+   72:5   warning  'onGetMealItems' is assigned a value but never used   no-unused-vars
+   75:5   warning  'onGetMyWorkouts' is assigned a value but never used  no-unused-vars
+  117:15  warning  'setBmr' is assigned a value but never used           no-unused-vars
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/pages/DailyEntry/DailyEntry.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/pages/Journal/Journal.js
+  65:5  warning  'getAllTraits' is assigned a value but never used     no-unused-vars
+  69:5  warning  'today' is assigned a value but never used            no-unused-vars
+  73:5  warning  'todoListDate' is assigned a value but never used     no-unused-vars
+  77:5  warning  'setTodoListDate' is assigned a value but never used  no-unused-vars
+  78:5  warning  'resetToToday' is assigned a value but never used     no-unused-vars
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/pages/QuarterlyEntry/QuarterlyEntry.js
+  1:19  warning  'no-param-reassign' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/journal/pages/WeeklyEntry/WeeklyEntry.js
+  1:19  warning  'no-param-reassign' rule is disabled but never reported             eslint-comments/no-unused-disable
+  2:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/components/Meal.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/components/MealDetail.js
+  87:26  warning  Inline style: { marginRight: 25 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/components/MealDirectory.js
+  22:39  warning  Inline style: { marginBottom: 10 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/components/MealsList.js
+  41:19  warning  Inline style: { justifyContent: 'space-between' }  react-native/no-inline-styles
+  46:57  warning  Inline style: { marginLeft: 0 }                    react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/components/Nutrition.js
+   1:19  warning  'no-nested-ternary' rule is disabled but never reported             eslint-comments/no-unused-disable
+   2:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  96:32  warning  Inline style: { flexGrow: 1 }                                       react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/components/Supplement.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/pages/Meal/Meal.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/pages/MealDetail/MealDetail.js
+  1:19  warning  'default-case' rule is disabled but never reported                  eslint-comments/no-unused-disable
+  2:19  warning  'no-fallthrough' rule is disabled but never reported                eslint-comments/no-unused-disable
+  3:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/pages/MealDirectory/MealDirectory.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/pages/MealsList/MealsList.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/pages/Nutrition/Nutrition.js
+  2:19  warning  'react/destructuring-assignment' rule is disabled but never reported  eslint-comments/no-unused-disable
+  3:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported    eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/nutrition/pages/Supplement/Supplement.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/components/BodyPlans.js
+  28:22  warning  Inline style: { flex: 0.2 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/components/EditProgram.js
+   1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  90:44  warning  Inline style: { alignSelf: 'center' }                               react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/components/EditRoutine.js
+   1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  70:24  warning  Inline style: { marginTop: 10 }                                     react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/components/MyExercises.js
+  93:24  warning  Inline style: { marginTop: 10 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/components/ProgramManager.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/pages/EditProgram/EditProgram.js
+  1:19  warning  'no-lonely-if' rule is disabled but never reported                  eslint-comments/no-unused-disable
+  2:19  warning  'no-use-before-define' rule is disabled but never reported          eslint-comments/no-unused-disable
+  4:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/pages/EditRoutine/EditRoutine.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/pages/MyExercises/MyExercises.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/pages/ProgramManager/ProgramManager.js
+  2:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/pages/Recreation/Recreation.js
+   73:5   warning  'getUserRoutines' is assigned a value but never used                            no-unused-vars
+   75:5   warning  'getUserCustomPlans' is assigned a value but never used                         no-unused-vars
+   78:5   warning  'onGetExercises' is assigned a value but never used                             no-unused-vars
+   82:5   warning  'onGetMyWorkouts' is assigned a value but never used                            no-unused-vars
+   85:5   warning  'onEditMyWorkout' is assigned a value but never used                            no-unused-vars
+   88:5   warning  'getAllExerciseDirectory' is assigned a value but never used                    no-unused-vars
+   95:5   warning  'completedWorkouts' is assigned a value but never used                          no-unused-vars
+   99:5   warning  'today' is assigned a value but never used                                      no-unused-vars
+  103:5   warning  'todoListDate' is assigned a value but never used                               no-unused-vars
+  107:5   warning  'setTodoListDate' is assigned a value but never used                            no-unused-vars
+  108:5   warning  'resetToToday' is assigned a value but never used                               no-unused-vars
+  169:55  warning  Expected '===' and instead saw '=='                                             eqeqeq
+  174:59  warning  Expected '===' and instead saw '=='                                             eqeqeq
+  238:13  warning  'completedWorkouts' is already declared in the upper scope on line 95 column 5  no-shadow
+  403:58  warning  Expected '===' and instead saw '=='                                             eqeqeq
+  603:13  warning  'completedDate' is assigned a value but never used                              no-unused-vars
+  604:13  warning  'week' is already declared in the upper scope on line 143 column 10             no-shadow
+  604:13  warning  'week' is assigned a value but never used                                       no-unused-vars
+  604:20  warning  Missing radix parameter                                                         radix
+  605:13  warning  'day' is already declared in the upper scope on line 144 column 10              no-shadow
+  605:13  warning  'day' is assigned a value but never used                                        no-unused-vars
+  605:19  warning  Missing radix parameter                                                         radix
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/recreation/pages/RoutineManager/RoutineManager.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/Abbrevations/Abbrevations.js
+   1:19  warning  'no-unused-expressions' rule is disabled but never reported  eslint-comments/no-unused-disable
+  19:22  warning  Inline style: { paddingVertical: 10, marginHorizontal: 20 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/Export To CSV/ExportToCSV.js
+   1:19  warning  'no-unused-expressions' rule is disabled but never reported            eslint-comments/no-unused-disable
+  41:22  warning  Inline style: { paddingVertical: 10, marginHorizontal: 20 }            react-native/no-inline-styles
+  60:30  warning  Inline style: { marginRight: 10 }                                      react-native/no-inline-styles
+  67:28  warning  Inline style: { flex: 1, flexDirection: 'row', alignItems: 'center' }  react-native/no-inline-styles
+  78:24  warning  Inline style: { padding: 20, paddingTop: 30 }                          react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/My Profile/DeleteAccount.js
+    1:19  warning  'no-unused-expressions' rule is disabled but never reported                                                                       eslint-comments/no-unused-disable
+   47:26  warning  Inline style: { flex: 1, paddingVertical: 15 }                                                                                    react-native/no-inline-styles
+   60:26  warning  Inline style: { flex: 1, paddingVertical: 5 }                                                                                     react-native/no-inline-styles
+   73:22  warning  Inline style: {
+  flex: 1,
+  paddingTop: 30,
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center'
+}  react-native/no-inline-styles
+   86:21  warning  Inline style: { borderColor: "!isEnabled ? '#56ccf2' : 'grey'", borderRadius: null }                                              react-native/no-inline-styles
+   95:23  warning  Inline style: {
+  backgroundColor: "!isEnabled ? '#56ccf2' : null",
+  borderRadius: null
+}                                        react-native/no-inline-styles
+  103:28  warning  Inline style: { flex: 1, marginLeft: 10 }                                                                                         react-native/no-inline-styles
+  111:22  warning  Inline style: { margin: 30 }                                                                                                      react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/My Profile/MyAccount.js
+   1:19  warning  'no-unused-expressions' rule is disabled but never reported            eslint-comments/no-unused-disable
+   4:3   warning  'SafeAreaView' is defined but never used                               no-unused-vars
+  26:22  warning  Inline style: { paddingVertical: 10 }                                  react-native/no-inline-styles
+  39:28  warning  Inline style: { flex: 1, flexDirection: 'row', alignItems: 'center' }  react-native/no-inline-styles
+  50:25  warning  Inline style: { display: "option.screen !== '' ? 'flex' : 'none'" }    react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/My Profile/MyEmail.js
+   1:19  warning  'no-unused-expressions' rule is disabled but never reported  eslint-comments/no-unused-disable
+  42:26  warning  Inline style: { flex: 1, paddingVertical: 5 }                react-native/no-inline-styles
+  54:26  warning  Inline style: { flex: 1, paddingVertical: 5 }                react-native/no-inline-styles
+  68:22  warning  Inline style: { margin: 30 }                                 react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/My Profile/MyPassword.js
+   1:21  warning  'no-unused-expressions' rule is disabled but never reported  eslint-comments/no-unused-disable
+  49:26  warning  Inline style: { flex: 1, paddingVertical: 5 }                react-native/no-inline-styles
+  62:26  warning  Inline style: { flex: 1, paddingVertical: 5 }                react-native/no-inline-styles
+  74:26  warning  Inline style: { flex: 1, paddingVertical: 5 }                react-native/no-inline-styles
+  89:22  warning  Inline style: { margin: 30 }                                 react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/My Profile/MyProfile.js
+    1:19  warning  'consistent-return' rule is disabled but never reported                eslint-comments/no-unused-disable
+    2:19  warning  'default-case' rule is disabled but never reported                     eslint-comments/no-unused-disable
+    3:19  warning  'no-nested-ternary' rule is disabled but never reported                eslint-comments/no-unused-disable
+    4:19  warning  'no-unused-expressions' rule is disabled but never reported            eslint-comments/no-unused-disable
+    7:3   warning  'SafeAreaView' is defined but never used                               no-unused-vars
+   29:22  warning  Inline style: { paddingVertical: 10 }                                  react-native/no-inline-styles
+   45:32  warning  Inline style: { flex: 1 }                                              react-native/no-inline-styles
+   56:30  warning  Inline style: { flex: 1, flexDirection: 'row', alignItems: 'center' }  react-native/no-inline-styles
+  115:27  warning  Inline style: { display: "option.screen !== '' ? 'flex' : 'none'" }    react-native/no-inline-styles
+  121:30  warning  Inline style: { flex: 1, flexDirection: 'row', alignItems: 'center' }  react-native/no-inline-styles
+  140:27  warning  Inline style: { display: "option.screen !== '' ? 'flex' : 'none'" }    react-native/no-inline-styles
+  146:30  warning  Inline style: { flex: 1, flexDirection: 'row', alignItems: 'center' }  react-native/no-inline-styles
+  161:27  warning  Inline style: { display: "option.screen !== '' ? 'flex' : 'none'" }    react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/My Profile/MyVitals.js
+    1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+    2:19  warning  'no-unused-expressions' rule is disabled but never reported         eslint-comments/no-unused-disable
+   63:28  warning  Inline style: { flex: 1 }                                           react-native/no-inline-styles
+  103:23  warning  Inline style: { borderColor: "!isEnabled ? '#56ccf2' : 'grey'" }    react-native/no-inline-styles
+  108:25  warning  Inline style: { backgroundColor: "!isEnabled ? '#56ccf2' : null" }  react-native/no-inline-styles
+  112:32  warning  Inline style: { marginHorizontal: 15 }                              react-native/no-inline-styles
+  113:34  warning  Inline style: { color: 'white' }                                    react-native/no-inline-styles
+  119:56  warning  Inline style: { marginLeft: 20 }                                    react-native/no-inline-styles
+  124:23  warning  Inline style: { borderColor: "isEnabled ? '#56ccf2' : 'grey'" }     react-native/no-inline-styles
+  129:25  warning  Inline style: { backgroundColor: "isEnabled ? '#56ccf2' : null" }   react-native/no-inline-styles
+  133:32  warning  Inline style: { marginHorizontal: 15 }                              react-native/no-inline-styles
+  134:34  warning  Inline style: { color: 'white' }                                    react-native/no-inline-styles
+  163:22  warning  Inline style: { margin: 40 }                                        react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/Privacy Policy/PrivacyPolicy.js
+   1:19  warning  'no-unused-expressions' rule is disabled but never reported  eslint-comments/no-unused-disable
+  15:22  warning  Inline style: { paddingVertical: 10, marginHorizontal: 20 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/Setting.js
+  46:22  warning  Inline style: { paddingVertical: 10, marginHorizontal: 20 }            react-native/no-inline-styles
+  78:32  warning  Inline style: { marginRight: 10 }                                      react-native/no-inline-styles
+  85:30  warning  Inline style: { flex: 1, flexDirection: 'row', alignItems: 'center' }  react-native/no-inline-styles
+  97:27  warning  Inline style: { display: "option.screen !== '' ? 'flex' : 'none'" }    react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/TermsOfUse/TermsOfUse.js
+   1:19  warning  'no-unused-expressions' rule is disabled but never reported  eslint-comments/no-unused-disable
+  15:22  warning  Inline style: { paddingVertical: 10, marginHorizontal: 20 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/components/Tutorials/Tutorials.js
+   1:19  warning  'no-nested-ternary' rule is disabled but never reported      eslint-comments/no-unused-disable
+   2:19  warning  'no-unused-expressions' rule is disabled but never reported  eslint-comments/no-unused-disable
+  13:42  warning  Inline style: { flexGrow: 1, paddingBottom: 40 }             react-native/no-inline-styles
+  15:22  warning  Inline style: { flex: 1 }                                    react-native/no-inline-styles
+  23:22  warning  Inline style: { marginHorizontal: 80 }                       react-native/no-inline-styles
+  34:25  warning  Inline style: { color: 'white' }                             react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/Abbrevations/Abbrevations.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/MyProfile/DeleteAccount.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/MyProfile/MyAccount.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/MyProfile/MyEmail.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/MyProfile/MyPassword.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/MyProfile/MyProfile.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/MyProfile/MyVitals.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/PrivacyPolicy/PrivacyPolicy.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/Setting/Setting.js
+    1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+  162:10  warning  'alarmHeading' is assigned a value but never used                   no-unused-vars
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/TermsOfUse/TermsOfUse.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/setting/pages/Tutorials/Tutorials.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/AddIcon.js
+  11:11  warning  Do not define components during render. React will see a new component type on every render and destroy the entire subtree’s DOM nodes and state (https://reactjs.org/docs/reconciliation.html#elements-of-different-types). Instead, move this component definition out of the parent component “AddIcon” and pass data as props. If you want to allow component creation in props, set allowAsProps option to true  react/no-unstable-nested-components
+  19:12  warning  Inline style: { marginTop: -10, marginRight: -12 }                                                                                                                                                                                                                                                                                                                                                                    react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/EditEvent.js
+   50:30  warning  Inline style: { flexGrow: 1, paddingVertical: 10 }                       react-native/no-inline-styles
+   52:20  warning  Inline style: { flexDirection: 'row', justifyContent: 'space-between' }  react-native/no-inline-styles
+   68:20  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+   72:20  warning  Inline style: { width: 40, height: 40, marginLeft: 10, borderWidth: 2 }  react-native/no-inline-styles
+   86:20  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+   92:24  warning  Inline style: { fontSize: 16, margin: 5 }                                react-native/no-inline-styles
+   97:20  warning  Inline style: { flexDirection: 'row' }                                   react-native/no-inline-styles
+  103:24  warning  Inline style: { fontSize: 16, margin: 5 }                                react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/EditWriting.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/Itinerary.js
+   1:19  warning  'react/no-array-index-key' rule is disabled but never reported                                     eslint-comments/no-unused-disable
+   2:19  warning  'no-nested-ternary' rule is disabled but never reported                                            eslint-comments/no-unused-disable
+  30:18  warning  Inline style: { marginVertical: 10 }                                                               react-native/no-inline-styles
+  31:20  warning  Inline style: { flexDirection: 'row', justifyContent: 'center' }                                   react-native/no-inline-styles
+  33:18  warning  Inline style: {
+  fontSize: 26,
+  textAlign: 'center',
+  marginBottom: 10,
+  fontWeight: 'bold'
+}  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/NewDay.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/TimeBlock.js
+   1:19  warning  'react/no-array-index-key' rule is disabled but never reported                                                                                                                             eslint-comments/no-unused-disable
+   2:19  warning  'no-nested-ternary' rule is disabled but never reported                                                                                                                                    eslint-comments/no-unused-disable
+  27:17  warning  Inline style: {
+  backgroundColor: "type !== 'edit' && taskTimeInMin <= currentTimeInMin\n" +
+    '                      ? a.taskColor\n' +
+    "                      : 'transparent'"
+}  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/Writing.js
+  1:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/components/WritingButton.js
+  8:12  warning  Inline style: { width: 100, borderRadius: 20, margin: 3 }  react-native/no-inline-styles
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/pages/editWriting/EditWriting.js
+  1:19  warning  'no-use-before-define' rule is disabled but never reported          eslint-comments/no-unused-disable
+  2:19  warning  'array-callback-return' rule is disabled but never reported         eslint-comments/no-unused-disable
+  3:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/pages/newDay/NewDay.js
+  1:19  warning  'array-callback-return' rule is disabled but never reported         eslint-comments/no-unused-disable
+  2:19  warning  'no-use-before-define' rule is disabled but never reported          eslint-comments/no-unused-disable
+  3:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+/Users/jladmin/Documents/GitHub/Brunchbody-Fit-Legacy-Code-/src/screens/writing/pages/writing/Writing.js
+  1:19  warning  'no-use-before-define' rule is disabled but never reported          eslint-comments/no-unused-disable
+  2:19  warning  'array-callback-return' rule is disabled but never reported         eslint-comments/no-unused-disable
+  3:19  warning  'react/jsx-props-no-spreading' rule is disabled but never reported  eslint-comments/no-unused-disable
+
+✖ 349 problems (0 errors, 349 warnings)
+  0 errors and 118 warnings potentially fixable with the `--fix` option.
+
+Done in 4.95s.

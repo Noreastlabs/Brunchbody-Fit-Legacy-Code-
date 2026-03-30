@@ -1,0 +1,30 @@
+android/app/build.gradle
+76:def releaseStoreFilePath = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_FILE").orElse(providers.environmentVariable("BB_RELEASE_STORE_FILE")).getOrNull()
+77:def releaseStorePassword = providers.gradleProperty("BRUNCHBODY_RELEASE_STORE_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_STORE_PASSWORD")).getOrNull()
+78:def releaseKeyAlias = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_ALIAS").orElse(providers.environmentVariable("BB_RELEASE_KEY_ALIAS")).getOrNull()
+79:def releaseKeyPassword = providers.gradleProperty("BRUNCHBODY_RELEASE_KEY_PASSWORD").orElse(providers.environmentVariable("BB_RELEASE_KEY_PASSWORD")).getOrNull()
+82:def usesDebugKeystoreForRelease = releaseStoreFilePath?.toLowerCase()?.contains("debug.keystore") || releaseKeyAlias == "androiddebugkey"
+94:        versionCode 7
+95:        versionName "1.0.3-rc.2"
+126:            storeFile file("${System.properties['user.home']}/.android/debug.keystore")
+128:            keyAlias 'androiddebugkey'
+208:        if (!releaseStoreFilePath) missing << "BRUNCHBODY_RELEASE_STORE_FILE / BB_RELEASE_STORE_FILE"
+209:        if (!releaseStorePassword) missing << "BRUNCHBODY_RELEASE_STORE_PASSWORD / BB_RELEASE_STORE_PASSWORD"
+210:        if (!releaseKeyAlias) missing << "BRUNCHBODY_RELEASE_KEY_ALIAS / BB_RELEASE_KEY_ALIAS"
+211:        if (!releaseKeyPassword) missing << "BRUNCHBODY_RELEASE_KEY_PASSWORD / BB_RELEASE_KEY_PASSWORD"
+222:            throw new GradleException("Release signing cannot use debug keystore or androiddebugkey alias.")
+
+android/app/src/main/AndroidManifest.xml and debug manifest
+android/app/src/debug/AndroidManifest.xml:7:        android:usesCleartextTraffic="true"
+android/app/src/debug/AndroidManifest.xml:8:        android:networkSecurityConfig="@xml/network_security_config"
+android/app/src/main/AndroidManifest.xml:15:      android:usesCleartextTraffic="false"
+android/app/src/main/AndroidManifest.xml:16:      android:networkSecurityConfig="@xml/network_security_config"
+
+network security config
+android/app/src/main/res/xml/network_security_config.xml:3:    <base-config cleartextTrafficPermitted="false" />
+android/app/src/debug/res/xml/network_security_config.xml:3:    <base-config cleartextTrafficPermitted="false" />
+android/app/src/debug/res/xml/network_security_config.xml:6:    <domain-config cleartextTrafficPermitted="true">
+android/app/src/debug/res/xml/network_security_config.xml:7:        <domain includeSubdomains="true">localhost</domain>
+android/app/src/debug/res/xml/network_security_config.xml:8:        <domain>10.0.2.2</domain>
+android/app/src/debug/res/xml/network_security_config.xml:9:        <domain>10.0.3.2</domain>
+android/app/src/debug/res/xml/network_security_config.xml:10:    </domain-config>
