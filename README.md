@@ -1,4 +1,4 @@
-# brunch-body-clone
+# Brunch-Body-Fitness-Legacy-Codebase
 
 Brunch Body is a React Native fitness and journaling app in active development. This repository is intended to be public as an active-development beta: the codebase is usable and maintained, local-first by default, and expected to receive additional fixes and updates in the coming weeks.
 
