@@ -1,6 +1,12 @@
 # Contributing
 
-Thank you for considering a contribution to this project! The goal of this clone is to provide a simplified codebase that does not rely on authentication or local onboarding.
+Thank you for considering a contribution to this project. This repository is public as an active-development beta for a local-first React Native app, and additional fixes and feature updates are expected over the coming weeks.
+
+## Project Status
+
+- Repository visibility is public for collaboration and transparency.
+- Public mobile app release readiness is tracked separately and still follows the RC release-gating docs under `docs/release/`.
+- Current default behavior is local-first and device-local: fresh installs route to `CompleteProfile`, returning users route to `Home`, and account/profile actions remain local-only in the current build.
 
 ## Security First
 
@@ -68,7 +74,9 @@ Before requesting review or merging, verify:
 ## Guidelines
 
 - Follow the existing code style and project structure.
-- Features should respect the current scope: authentication and local onboarding were removed to keep the codebase light.
+- Features should preserve the current local-first behavior unless a change explicitly updates the runtime mode and release docs.
+- Keep first-launch and account-management flows aligned with current behavior: fresh installs route to `CompleteProfile`, saved local profiles route to `Home`, and settings/account actions are device-local in the current build.
+- Treat public repository visibility and public mobile release readiness as separate decisions. Do not assume that a public repo means release-tagging gates have been cleared.
 - Submit pull requests with clear descriptions and reference any relevant issues.
 - Confirm your PR complies with [SECURITY.md](SECURITY.md) disclosure and secret-handling requirements.
 - Before pushing, run `./scripts/check-secrets.sh` to verify the repository does not include committed key artifacts (`*.keystore`, `*.jks`, `*.p12`, `*.pem`), cloud keys, bearer tokens, DB URLs with embedded credentials, or private key blocks.

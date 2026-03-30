@@ -1,10 +1,23 @@
 # brunch-body-clone
 
-A React Native application for tracking and visualizing brunch-related fitness data. This clone is streamlined: authentication and local onboarding have been removed for a smoother developer experience.
+Brunch Body is a React Native fitness and journaling app in active development. This repository is intended to be public as an active-development beta: the codebase is usable and maintained, local-first by default, and expected to receive additional fixes and updates in the coming weeks.
 
 ## Project Overview
 
-The project demonstrates a mobile interface with charts, scheduling tools, and state management using Redux. Without authentication or onboarding flows, developers can jump directly into exploring features and adding new ones.
+The project includes charting, scheduling tools, journaling, nutrition, recreation planning, and local profile/account management built on Redux.
+
+Current behavior in RC2:
+- Fresh installs route to `CompleteProfile` to create a device-local profile.
+- Returning users with a saved local profile route to `Home`.
+- Settings exposes device-local account actions for logout, local email update, local password change/reset, delete-account reset behavior, and Export to CSV.
+- User data remains on-device only unless a future backend mode is explicitly reintroduced.
+
+## Public Status
+
+- Repository visibility: intended for public collaboration and ongoing active maintenance.
+- Current posture: active-development beta, not a frozen or final product snapshot.
+- Mobile app release readiness is tracked separately from repository visibility.
+- The signed public app release remains blocked until RC2 signed Android/iOS artifacts and explicit owner approvals are recorded.
 
 ## App Mode
 
@@ -157,18 +170,18 @@ To preserve compatibility with existing local users when backend sync returns:
    yarn android # or yarn ios
    ```
 
-No authentication or local onboarding steps are required; the application launches directly to the main interface.
+On a fresh install, the app routes to `CompleteProfile` to capture local profile data. If local profile data already exists, the app routes to `Home`. Account/profile actions in Settings remain device-local in the current build.
 
 
 For secure onboarding/setup, read [SECURITY.md](SECURITY.md), [docs/secrets-and-debug-keys.md](docs/secrets-and-debug-keys.md), and [docs/security/KEY_MATERIAL_STORAGE.md](docs/security/KEY_MATERIAL_STORAGE.md) before configuring local environment/signing values.
 
 ## Contributing
 
-Contributions are welcome! **Before opening a PR, read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md)** so security disclosure, secret handling, and release expectations are followed from the start. Complete the pre-merge checklist in [CONTRIBUTING.md](CONTRIBUTING.md#pre-merge-checklist), including required secret-scan pass and signing-configuration review. Note that the project intentionally omits authentication and local onboarding features, so new contributions should respect this simplified setup.
+Contributions are welcome! **Before opening a PR, read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md)** so security disclosure, secret handling, and release expectations are followed from the start. Complete the pre-merge checklist in [CONTRIBUTING.md](CONTRIBUTING.md#pre-merge-checklist), including required secret-scan pass and signing-configuration review. The repository is public for active development, so expect ongoing iteration while preserving the current local-first/device-local behavior.
 
 ## Release Checklist
 
-Before creating a public release tag, complete `docs/release/RELEASE_CHECKLIST.md`, including required secret-scan, signing-configuration, and network-security checks, plus explicit release-owner sign-off before tagging.
+Repository visibility and public mobile release tagging are tracked separately. Before creating a public release tag, complete `docs/release/RELEASE_CHECKLIST.md`, including required secret-scan, signing-configuration, and network-security checks, plus explicit release-owner sign-off before tagging. For the current split decision, see `docs/release/public-repository-visibility-2026-03-29.md` and `docs/release/public-repo-release-go-no-go-2026-03-29-rc2.md`.
 
 ## License
 
