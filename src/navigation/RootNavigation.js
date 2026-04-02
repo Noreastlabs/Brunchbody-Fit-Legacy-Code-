@@ -1,9 +1,6 @@
 import React from 'react';
-import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-// import ReactNativeAN from 'react-native-alarm-notification';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { CompleteProfileWrapper } from '../screens/completeProfile/pages/completeProfile/CompleteProfile';
 import { MyAccountWrapper } from '../screens/setting/pages/MyProfile/MyAccount';
@@ -53,46 +50,8 @@ const screenOptions = {
   headerShown: false,
 };
 
-export default function RootNavigation() {
-  const { RNAlarmNotification } = NativeModules;
-
-  React.useEffect(() => {
-    let subscription;
-
-    if (Platform.OS === 'android' && RNAlarmNotification) {
-      const RNAlarmEmitter = new NativeEventEmitter(RNAlarmNotification);
-      subscription = RNAlarmEmitter.addListener(
-        'OnNotificationDismissed',
-        data => console.log(data),
-      );
-    }
-
-    return () => {
-      if (subscription) {
-        subscription.remove();
-      }
-    };
-  }, [RNAlarmNotification]);
-
-  // const openedSubscription = RNAlarmEmitter.addListener(
-  //   'OnNotificationOpened',
-  //   data => {
-  //     console.log('notification data --> ', data);
-  //     ReactNativeAN.stopAlarmSound();
-  //   },
-  // );
-
-  const [initialRoute, setInitialRoute] = React.useState(null);
-
-  React.useEffect(() => {
-    const determineRoute = async () => {
-      const profileData = await AsyncStorage.getItem('user_profile');
-      setInitialRoute(profileData ? 'Home' : 'CompleteProfile');
-    };
-    determineRoute();
-  }, []);
-
-  if (!initialRoute) {
+export default function RootNavigation({ initialRouteName }) {
+  if (!initialRouteName) {
     return null;
   }
 
@@ -101,7 +60,7 @@ export default function RootNavigation() {
       <NavigationContainer>
         <Stack.Navigator
           screenOptions={screenOptions}
-          initialRouteName={initialRoute}
+          initialRouteName={initialRouteName}
         >
           <Stack.Screen
             name="CompleteProfile"

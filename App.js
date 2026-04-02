@@ -1,12 +1,6 @@
-import { useEffect } from 'react';
-import { RootContainer } from './src/root-container/RootContainer';
-import { hydrateWorkoutPlans } from './src/storage/mmkv/hydration';
+import AppBootstrap from './src/bootstrap/AppBootstrap';
 
 function App() {
-  useEffect(() => {
-    hydrateWorkoutPlans();
-  }, []);
-
-  return <RootContainer />;
+  return <AppBootstrap />;
 }
 export default App;

@@ -9,6 +9,8 @@ import { colors } from '../resources';
 
 export class RootContainer extends Component {
   render() {
+    const { initialRouteName } = this.props;
+
     return (
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
@@ -16,7 +18,7 @@ export class RootContainer extends Component {
             style={{ flex: 1, backgroundColor: colors.background }}
           >
             <PaperProvider>
-              <RootNavigation />
+              <RootNavigation initialRouteName={initialRouteName} />
             </PaperProvider>
           </GestureHandlerRootView>
         </PersistGate>
