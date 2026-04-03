@@ -86,6 +86,8 @@ After this cleanup, `RootNavigation` should own only:
 - the main authenticated shell route
 - truly cross-domain routes that cannot yet be cleanly owned by one domain stack
 
+For this lane, "cross-domain" means a route that cannot reasonably be assigned to one existing domain navigator without reopening behavior or architecture decisions.
+
 `RootNavigation` should not continue hosting large clusters of single-domain detail routes when those routes logically belong to journal, nutrition, recreation, or settings/account.
 
 ## Proposed Implementation Shape
@@ -97,6 +99,7 @@ This lane is bounded cleanup guidance, not a full navigator redesign.
 - move only the minimum necessary routing ownership downward
 - prefer bounded nested stacks over continued root-detail sprawl
 - use the existing nested `CalendarNavigation` pattern as the safest local example
+- where route ownership is borderline or mixed, prefer leaving the route in root for this lane and record the ambiguity for a later extraction lane rather than widening scope here
 - do not rename routes in this lane
 - do not alter bootstrap semantics, provider order, or tab-shell behavior
 
@@ -112,8 +115,10 @@ The current contracts in `src/bootstrap/AppBootstrap.js`, `src/root-container/Ro
 
 ## Dependencies
 
+- `Brunch Body Project Template.md` and `Brunch Body Project Scope.md` remain the governing inputs for this lane even when they are supplied outside the current repo snapshot
 - bootstrap semantics must remain unchanged
 - `docs/architecture/navigation-tree-and-route-ownership.md` should be treated as the baseline evidence map for current route ownership
+- repo-local architecture docs may inform phrasing and companion context, but they do not replace the governing Brunch Body project template and scope for this lane
 - active code is the source of truth if repo docs differ
 - later domain extraction lanes may still be needed after this cleanup
 
@@ -121,7 +126,7 @@ The current contracts in `src/bootstrap/AppBootstrap.js`, `src/root-container/Ro
 
 - `AppBootstrap` still resolves `Home` for saved `user_profile` and `CompleteProfile` otherwise
 - `RootContainer` still passes `initialRouteName` into `RootNavigation`
-- `RootNavigation` is materially narrower after cleanup and no longer defaults to owning obvious domain-detail clusters
+- `RootNavigation` owns fewer direct single-domain detail-route registrations than before, while preserving bootstrap semantics, `Home` shell ownership, and working navigation for any moved screens
 - `Home` still mounts the bottom-tab shell
 - top-level tab destinations still render from `BottomTabNavigation`
 - navigation into and back out of any moved screens still works
@@ -163,7 +168,7 @@ The current contracts in `src/bootstrap/AppBootstrap.js`, `src/root-container/Ro
 
 ## Assumptions
 
-- `Brunch Body Project Template.md` and `Brunch Body Project Scope.md` are not present in the current repo snapshot, so this artifact follows the section conventions already established in existing Brunch Body architecture lanes plus the task-provided required sections
+- `Brunch Body Project Template.md` and `Brunch Body Project Scope.md` are authoritative for this lane even when they are provided outside the current repo snapshot
 - active code is the source of truth when repo docs differ
 - this lane should summarize current ownership by domain cluster, not invent a target architecture or full extraction sequence
 
