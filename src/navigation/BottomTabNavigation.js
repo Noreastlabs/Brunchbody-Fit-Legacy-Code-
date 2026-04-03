@@ -6,11 +6,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../resources';
 import { DashboardWrapper } from '../screens/dashboard';
-import { JournalWrapper } from '../screens/journal';
-import { NutritionWrapper } from '../screens/nutrition';
-import { RecreationWrapper } from '../screens/recreation';
 import { SettingWrapper } from '../screens/setting';
 import CalendarNavigation from './CalendarNavigation';
+import JournalNavigation from './JournalNavigation';
+import NutritionNavigation from './NutritionNavigation';
+import RecreationNavigation from './RecreationNavigation';
 
 const Tab = createBottomTabNavigator();
 
@@ -49,7 +49,7 @@ export default function BottomTabNavigation() {
       />
       <Tab.Screen
         name="Journal"
-        component={JournalWrapper}
+        component={JournalNavigation}
         options={{
           tabBarLabel: 'Journal',
           tabBarIcon: ({ color }) => (
@@ -77,7 +77,7 @@ export default function BottomTabNavigation() {
       />
       <Tab.Screen
         name="Nutrition"
-        component={NutritionWrapper}
+        component={NutritionNavigation}
         options={{
           tabBarLabel: 'Nutrition',
           tabBarIcon: ({ color }) => (
@@ -87,7 +87,7 @@ export default function BottomTabNavigation() {
       />
       <Tab.Screen
         name="Recreation"
-        component={RecreationWrapper}
+        component={RecreationNavigation}
         options={{
           tabBarLabel: 'Recreation',
           tabBarIcon: ({ color }) => (

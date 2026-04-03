@@ -6,30 +6,6 @@ import { CompleteProfileWrapper } from '../screens/completeProfile/pages/complet
 import { MyAccountWrapper } from '../screens/setting/pages/MyProfile/MyAccount';
 import { DashboardWrapper } from '../screens/dashboard';
 import {
-  CaloriesWrapper,
-  DailyEntryWrapper,
-  QuarterlyEntryWrapper,
-  SupplementLogWrapper,
-  TraitDirectoryWrapper,
-  WeeklyEntryWrapper,
-  WeightLogWrapper,
-} from '../screens/journal';
-import {
-  NutritionWrapper,
-  SupplementWrapper,
-  MealWrapper,
-  MealsListWrapper,
-  MealDirectoryWrapper,
-  MealDetailWrapper,
-} from '../screens/nutrition';
-import {
-  EditProgramWrapper,
-  EditRoutineWrapper,
-  MyExercisesWrapper,
-  ProgramManagerWrapper,
-  RoutineManagerWrapper,
-} from '../screens/recreation';
-import {
   ExportToCSVWrapper,
   MyProfileWrapper,
   TermsOfUseWrapper,
@@ -67,29 +43,6 @@ export default function RootNavigation({ initialRouteName }) {
             component={CompleteProfileWrapper}
           />
           <Stack.Screen name="Home" component={BottomTabNavigation} />
-          <Stack.Screen name="WeightLog" component={WeightLogWrapper} />
-          <Stack.Screen
-            name="QuarterlyEntry"
-            component={QuarterlyEntryWrapper}
-          />
-          <Stack.Screen name="DailyEntry" component={DailyEntryWrapper} />
-          <Stack.Screen name="WeeklyEntry" component={WeeklyEntryWrapper} />
-          <Stack.Screen name="SupplementLog" component={SupplementLogWrapper} />
-          <Stack.Screen name="Calories" component={CaloriesWrapper} />
-          <Stack.Screen name="Nutrition" component={NutritionWrapper} />
-          <Stack.Screen name="Supplement" component={SupplementWrapper} />
-          <Stack.Screen name="Meal" component={MealWrapper} />
-          <Stack.Screen name="MealsList" component={MealsListWrapper} />
-          <Stack.Screen
-            name="RoutineManager"
-            component={RoutineManagerWrapper}
-          />
-          <Stack.Screen
-            name="ProgramManager"
-            component={ProgramManagerWrapper}
-          />
-          <Stack.Screen name="EditProgram" component={EditProgramWrapper} />
-          <Stack.Screen name="EditRoutine" component={EditRoutineWrapper} />
           <Stack.Screen name="MyProfile" component={MyProfileWrapper} />
           <Stack.Screen name="MyVitals" component={MyVitalsWrapper} />
           <Stack.Screen name="MyAccount" component={MyAccountWrapper} />
@@ -102,13 +55,6 @@ export default function RootNavigation({ initialRouteName }) {
           <Stack.Screen name="Abbrevations" component={AbbrevationsWrapper} />
           <Stack.Screen name="Tutorials" component={TutorialsWrapper} />
           <Stack.Screen name="Dashboard" component={DashboardWrapper} />
-          <Stack.Screen
-            name="TraitDirectory"
-            component={TraitDirectoryWrapper}
-          />
-          <Stack.Screen name="MealDirectory" component={MealDirectoryWrapper} />
-          <Stack.Screen name="MealDetail" component={MealDetailWrapper} />
-          <Stack.Screen name="MyExercises" component={MyExercisesWrapper} />
         </Stack.Navigator>
       </NavigationContainer>
     </DateProvider>
