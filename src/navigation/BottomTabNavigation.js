@@ -1,7 +1,5 @@
-/* eslint-disable react/prop-types */
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RFValue } from 'react-native-responsive-fontsize';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../resources';
@@ -13,102 +11,96 @@ import RecreationNavigation from './RecreationNavigation';
 import SettingsNavigation from './SettingsNavigation';
 
 const Tab = createBottomTabNavigator();
+const TAB_LABEL_SIZE = RFValue(8);
+const TAB_ICON_SIZE = RFValue(25);
+
+const tabBarScreenOptions = {
+  headerShown: false,
+  tabBarActiveTintColor: colors.lightGreen,
+  tabBarStyle: {
+    borderTopWidth: 1,
+    backgroundColor: colors.background,
+  },
+  tabBarLabelStyle: {
+    fontSize: TAB_LABEL_SIZE,
+    marginTop: 3,
+  },
+};
+
+const renderMaterialTabIcon = name => ({ color }) => (
+  <MaterialCommunityIcons name={name} color={color} size={TAB_ICON_SIZE} />
+);
+
+const renderIoniconTabIcon = name => ({ color }) => (
+  <Icon name={name} color={color} size={TAB_ICON_SIZE} />
+);
+
+const tabScreens = [
+  {
+    name: 'Dashboard',
+    component: DashboardWrapper,
+    options: {
+      tabBarLabel: 'Home',
+      tabBarIcon: renderMaterialTabIcon('home'),
+    },
+  },
+  {
+    name: 'Journal',
+    component: JournalNavigation,
+    options: {
+      tabBarLabel: 'Journal',
+      tabBarIcon: renderMaterialTabIcon('notebook'),
+    },
+  },
+  {
+    name: 'Calendar',
+    component: CalendarNavigation,
+    options: {
+      tabBarLabel: 'Calendar',
+      tabBarIcon: renderMaterialTabIcon('calendar'),
+    },
+  },
+  {
+    name: 'Nutrition',
+    component: NutritionNavigation,
+    options: {
+      tabBarLabel: 'Nutrition',
+      tabBarIcon: renderIoniconTabIcon('restaurant'),
+    },
+  },
+  {
+    name: 'Recreation',
+    component: RecreationNavigation,
+    options: {
+      tabBarLabel: 'Recreation',
+      tabBarIcon: renderMaterialTabIcon('human-handsup'),
+    },
+  },
+  {
+    name: 'Settings',
+    component: SettingsNavigation,
+    options: {
+      tabBarLabel: 'Settings',
+      tabBarIcon: renderIoniconTabIcon('settings'),
+    },
+  },
+];
 
 export default function BottomTabNavigation() {
-  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       lazy={false}
       initialRouteName="Calendar"
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: colors.lightGreen,
-        tabBarStyle: {
-          borderTopWidth: 1,
-          backgroundColor: colors.background,
-        },
-        tabBarLabelStyle: {
-          fontSize: RFValue(8),
-          marginTop: 3,
-        },
-      }}
+      screenOptions={tabBarScreenOptions}
     >
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardWrapper}
-        options={{
-          tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="home"
-              color={color}
-              size={RFValue(25)}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Journal"
-        component={JournalNavigation}
-        options={{
-          tabBarLabel: 'Journal',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="notebook"
-              color={color}
-              size={RFValue(25)}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Calendar"
-        component={CalendarNavigation}
-        options={{
-          tabBarLabel: 'Calendar',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="calendar"
-              color={color}
-              size={RFValue(25)}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Nutrition"
-        component={NutritionNavigation}
-        options={{
-          tabBarLabel: 'Nutrition',
-          tabBarIcon: ({ color }) => (
-            <Icon name="restaurant" color={color} size={RFValue(25)} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Recreation"
-        component={RecreationNavigation}
-        options={{
-          tabBarLabel: 'Recreation',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="human-handsup"
-              color={color}
-              size={RFValue(25)}
-            />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsNavigation}
-        options={{
-          tabBarLabel: 'Settings',
-          tabBarIcon: ({ color }) => (
-            <Icon name="settings" color={color} size={RFValue(25)} />
-          ),
-        }}
-      />
+      {tabScreens.map(({ name, component, options }) => (
+        <Tab.Screen
+          key={name}
+          name={name}
+          component={component}
+          options={options}
+        />
+      ))}
     </Tab.Navigator>
   );
 }

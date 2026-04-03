@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { useState } from 'react';
 import {connect} from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -14,7 +13,7 @@ export default function TutorialsPage() {
       setCurrentImage(currentImage+1)
     }
     else{
-      navigation.navigate('Dashboard')
+      navigation.navigate('Home', {screen: 'Dashboard'})
 
     }
   }

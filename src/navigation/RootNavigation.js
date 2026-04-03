@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { CompleteProfileWrapper } from '../screens/completeProfile/pages/completeProfile/CompleteProfile';
-import { DashboardWrapper } from '../screens/dashboard';
 import { TutorialsWrapper } from '../screens/setting';
 import { DateProvider } from '../context/DateProvider';
 import BottomTabNavigation from './BottomTabNavigation';
@@ -32,7 +31,6 @@ export default function RootNavigation({ initialRouteName }) {
           />
           <Stack.Screen name="Home" component={BottomTabNavigation} />
           <Stack.Screen name="Tutorials" component={TutorialsWrapper} />
-          <Stack.Screen name="Dashboard" component={DashboardWrapper} />
         </Stack.Navigator>
       </NavigationContainer>
     </DateProvider>

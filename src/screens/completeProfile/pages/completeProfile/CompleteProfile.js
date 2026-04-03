@@ -1,4 +1,3 @@
-/* eslint-disable consistent-return */
 import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
@@ -49,7 +48,7 @@ export const CompleteProfilePage = () => {
     const gender = await AsyncStorage.getItem('gender');
 
     if (screen === 'Home') {
-      navigation.navigate('Dashboard');
+      navigation.navigate('Home', {screen: 'Dashboard'});
     } else if (screen === 'Name') {
       setCurrentScreen(screen);
     } else if (screen === 'DateOfBirth' && name) {
