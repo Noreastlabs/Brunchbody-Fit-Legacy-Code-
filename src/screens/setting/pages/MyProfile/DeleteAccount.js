@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import {DeleteAccount} from '../../components';
 import {deleteAccount} from '../../../../redux/actions';
+import {getRootNavigation} from '../../../../navigation/getRootNavigation';
 
 export default function DeleteAccountPage(props) {
   const {navigation, deleteUserAccount} = props;
@@ -58,7 +59,7 @@ export default function DeleteAccountPage(props) {
 
   const onDonePermissionModal = () => {
     if (check) {
-      const rootNavigation = navigation.getParent?.() || navigation;
+      const rootNavigation = getRootNavigation(navigation);
       rootNavigation.reset({
         index: 0,
         routes: [{ name: 'CompleteProfile' }],

@@ -161,9 +161,20 @@ describe('Settings/account navigation', () => {
   });
 
   test('logout resets the root navigator to CompleteProfile', async () => {
-    const rootNavigation = { reset: jest.fn() };
-    const navigation = {
+    const rootNavigation = {
+      getParent: jest.fn(() => undefined),
+      reset: jest.fn(),
+    };
+    const tabNavigation = {
       getParent: jest.fn(() => rootNavigation),
+      reset: jest.fn(),
+    };
+    const settingsNavigation = {
+      getParent: jest.fn(() => tabNavigation),
+      reset: jest.fn(),
+    };
+    const navigation = {
+      getParent: jest.fn(() => settingsNavigation),
       reset: jest.fn(),
     };
     const logoutUser = jest.fn().mockResolvedValue(true);
@@ -183,6 +194,8 @@ describe('Settings/account navigation', () => {
       index: 0,
       routes: [{ name: 'CompleteProfile' }],
     });
+    expect(settingsNavigation.reset).not.toHaveBeenCalled();
+    expect(tabNavigation.reset).not.toHaveBeenCalled();
   });
 
   test('settings still expose the Export to CSV entry in the RC2 build', async () => {
@@ -211,9 +224,20 @@ describe('Settings/account navigation', () => {
   });
 
   test('delete account returns the user to CompleteProfile after success confirmation', async () => {
-    const rootNavigation = { reset: jest.fn() };
-    const navigation = {
+    const rootNavigation = {
+      getParent: jest.fn(() => undefined),
+      reset: jest.fn(),
+    };
+    const tabNavigation = {
       getParent: jest.fn(() => rootNavigation),
+      reset: jest.fn(),
+    };
+    const settingsNavigation = {
+      getParent: jest.fn(() => tabNavigation),
+      reset: jest.fn(),
+    };
+    const navigation = {
+      getParent: jest.fn(() => settingsNavigation),
       reset: jest.fn(),
     };
     const deleteUserAccount = jest.fn().mockResolvedValue(true);
@@ -250,5 +274,7 @@ describe('Settings/account navigation', () => {
       index: 0,
       routes: [{ name: 'CompleteProfile' }],
     });
+    expect(settingsNavigation.reset).not.toHaveBeenCalled();
+    expect(tabNavigation.reset).not.toHaveBeenCalled();
   });
 });

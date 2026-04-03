@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/core';
 import moment from 'moment';
 import { Setting } from '../../components';
 import { logout } from '../../../../redux/actions';
+import { getRootNavigation } from '../../../../navigation/getRootNavigation';
 
 const initialState = {
   clockToggle: true,
@@ -204,7 +205,7 @@ export default function SettingPage(props) {
   const onLogoutHandler = async () => {
     const response = await logoutUser();
     if (response) {
-      const rootNavigation = navigation.getParent?.() || navigation;
+      const rootNavigation = getRootNavigation(navigation);
       rootNavigation.reset({
         index: 0,
         routes: [{ name: 'CompleteProfile' }],

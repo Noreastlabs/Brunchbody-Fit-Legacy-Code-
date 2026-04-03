@@ -6,11 +6,11 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../resources';
 import { DashboardWrapper } from '../screens/dashboard';
-import { SettingWrapper } from '../screens/setting';
 import CalendarNavigation from './CalendarNavigation';
 import JournalNavigation from './JournalNavigation';
 import NutritionNavigation from './NutritionNavigation';
 import RecreationNavigation from './RecreationNavigation';
+import SettingsNavigation from './SettingsNavigation';
 
 const Tab = createBottomTabNavigator();
 
@@ -101,7 +101,7 @@ export default function BottomTabNavigation() {
       />
       <Tab.Screen
         name="Settings"
-        component={SettingWrapper}
+        component={SettingsNavigation}
         options={{
           tabBarLabel: 'Settings',
           tabBarIcon: ({ color }) => (
