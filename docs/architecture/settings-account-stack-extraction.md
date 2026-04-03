@@ -114,7 +114,7 @@ Live settings flow evidence also supports keeping these routes together for this
 
 The current settings landing uses a mix of in-stack routes and external links. In current code, the landing points `Terms of Use` and `Privacy Policy` to external URLs even though `TermsOfUse` and `PrivacyPolicy` remain registered in `SettingsNavigation`. This is present-state evidence only and is not a redesign target in this lane.
 
-Active code also shows an intentional boundary exception: `Tutorials` is exported from the settings module, is linked from the settings landing, and is linked from complete-profile onboarding, but it remains root-owned because `RootNavigation` still registers `Tutorials` directly. The tutorial flow currently exits by navigating through `Home` into `Dashboard`.
+Active code also shows an intentional boundary exception: `Tutorials` lives under the settings module, is linked from the settings landing, and is linked from complete-profile onboarding, but it remains root-owned because `RootNavigation` still registers `Tutorials` directly. The tutorial flow currently exits by navigating through `Home` into `Dashboard`.
 
 This is current-state evidence only. It supports preserving the current settings-stack ownership and the current root-owned `Tutorials` exception for this lane, but does not by itself settle broader long-term settings-domain architecture.
 
@@ -154,7 +154,7 @@ This lane is bounded cleanup guidance, not a navigator redesign.
 - preserve the current settings-stack routing behavior unless a smaller extraction cleanup requires a narrowly scoped ownership adjustment
 - narrow `SettingsNavigation` to settings-stack concerns only: settings-domain entry, nested flow ownership, and stack-level defaults
 - preserve the current eleven settings/account/legal/export route names and current nested-flow behavior unless a minimal wiring fix is strictly required
-- preserve the current root-owned `Tutorials` exception for this lane even though the settings landing links to it and the settings module exports its wrapper
+- preserve the current root-owned `Tutorials` exception for this lane even though the settings landing links to it and the tutorial screen still lives under the settings module
 - record the current mix of in-stack routes and external links on the settings landing without treating that split as a redesign target
 - avoid moving unrelated detail routes into `SettingsNavigation`
 - avoid renaming routes in this lane unless strictly required to keep the nested stack functioning
