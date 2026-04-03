@@ -1,0 +1,718 @@
+import React from 'react';
+import ReactTestRenderer from 'react-test-renderer';
+
+import {
+  AUTH_TAB_ROUTES,
+  NUTRITION_ROUTES,
+  RECREATION_ROUTES,
+  ROOT_ROUTES,
+  SETTINGS_ROUTES,
+} from '../src/navigation/routeNames';
+
+const mockDispatch = jest.fn();
+const mockUseNavigation = jest.fn();
+const mockTodayKey = {
+  today: '2024/01/01',
+  date: 1,
+  month: 1,
+  year: 2024,
+  todoListDate: '2024/01/01',
+  setDate: jest.fn(),
+  setMonth: jest.fn(),
+  setYear: jest.fn(),
+  setTodoListDate: jest.fn(),
+  resetToToday: jest.fn(),
+};
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => mockUseNavigation(),
+}));
+
+jest.mock('react-redux', () => ({
+  connect: () => Component => Component,
+  useDispatch: () => mockDispatch,
+}));
+
+jest.mock('react-native-vector-icons/AntDesign', () => 'AntDesign');
+jest.mock('react-native-vector-icons/Feather', () => 'Feather');
+
+jest.mock('../src/context/DateProvider', () => ({
+  useTodayKey: () => mockTodayKey,
+}));
+
+jest.mock('../src/redux/actions', () => ({
+  addRepeatedTheme: jest.fn(() => ({ type: 'ADD_REPEATED_THEME' })),
+  addTheme: jest.fn(() => ({ type: 'ADD_THEME' })),
+  addTodo: jest.fn(() => ({ type: 'ADD_TODO' })),
+  addJournalEntry: jest.fn(() => ({ type: 'ADD_JOURNAL_ENTRY' })),
+  addMealItems: jest.fn(() => ({ type: 'ADD_MEAL_ITEMS' })),
+  changeRepeatedTheme: jest.fn(() => ({ type: 'CHANGE_REPEATED_THEME' })),
+  clearCurrentTheme: jest.fn(() => ({ type: 'CLEAR_CURRENT_THEME' })),
+  clearThemeDays: jest.fn(() => ({ type: 'CLEAR_THEME_DAYS' })),
+  deleteTheme: jest.fn(() => ({ type: 'DELETE_THEME' })),
+  deleteTodo: jest.fn(() => ({ type: 'DELETE_TODO' })),
+  deleteMealItem: jest.fn(() => ({ type: 'DELETE_MEAL_ITEM' })),
+  editRepeatedTheme: jest.fn(() => ({ type: 'EDIT_REPEATED_THEME' })),
+  editTodo: jest.fn(() => ({ type: 'EDIT_TODO' })),
+  editJournalEntry: jest.fn(() => ({ type: 'EDIT_JOURNAL_ENTRY' })),
+  editMealItem: jest.fn(() => ({ type: 'EDIT_MEAL_ITEM' })),
+  getRepeatedThemes: jest.fn(() => ({ type: 'GET_REPEATED_THEMES' })),
+  getThemes: jest.fn(() => ({ type: 'GET_THEMES' })),
+  getTodo: jest.fn(() => ({ type: 'GET_TODO' })),
+  getJournalEntries: jest.fn(() => ({ type: 'GET_JOURNAL_ENTRIES' })),
+  getRoutineTasks: jest.fn(() => ({ type: 'GET_ROUTINE_TASKS' })),
+  profile: jest.fn(() => ({ type: 'PROFILE' })),
+  setTheme: jest.fn(data => ({ type: 'SET_THEME', payload: data })),
+  updateThemesWithFrequency: jest.fn(() => ({
+    type: 'UPDATE_THEMES_WITH_FREQUENCY',
+  })),
+}));
+
+jest.mock('../src/resources', () => ({
+  __esModule: true,
+  colors: {
+    white: 'white',
+    grey: 'grey',
+    background: 'background',
+    nonEditableOverlays: 'nonEditableOverlays',
+    secondary: 'secondary',
+    tertiary: 'tertiary',
+    darkBlue2: 'darkBlue2',
+    red: 'red',
+    blue: 'blue',
+    yellow: 'yellow',
+    greenish: 'greenish',
+    black: 'black',
+  },
+  images: {
+    arrow: 'arrow-image',
+    tutorialImages: ['tutorial-1', 'tutorial-2'],
+  },
+  strings: {
+    calendar: {
+      defaultColor: '#004672',
+      theme: 'Theme',
+      create: 'Create',
+      manage: 'Manage',
+      addRemove: 'Add / Remove',
+      someday: 'Someday',
+      pickday: 'Pick Day',
+      todo: 'To Do',
+    },
+    dailyEntry: {
+      content1: 'Feeling rate',
+      content2: 'Task',
+      content3: 'Traits',
+      content4: 'Thoughts',
+    },
+    todo: {
+      today: 'Today',
+      someday: 'Someday',
+    },
+    writingText: {
+      today: 'Today',
+      day: 'Day',
+    },
+  },
+  timeBlock: {
+    data: [],
+  },
+  wheelPickerItems: {
+    frequency: [],
+    calendarDays: [],
+  },
+}));
+jest.mock('../src/resources/index', () => ({
+  __esModule: true,
+  colors: {
+    white: 'white',
+    grey: 'grey',
+    background: 'background',
+    nonEditableOverlays: 'nonEditableOverlays',
+    secondary: 'secondary',
+    tertiary: 'tertiary',
+    darkBlue2: 'darkBlue2',
+    red: 'red',
+    blue: 'blue',
+    yellow: 'yellow',
+    greenish: 'greenish',
+    black: 'black',
+  },
+  images: {
+    arrow: 'arrow-image',
+    tutorialImages: ['tutorial-1', 'tutorial-2'],
+  },
+  strings: {
+    calendar: {
+      defaultColor: '#004672',
+      theme: 'Theme',
+      create: 'Create',
+      manage: 'Manage',
+      addRemove: 'Add / Remove',
+      someday: 'Someday',
+      pickday: 'Pick Day',
+      todo: 'To Do',
+    },
+    dailyEntry: {
+      content1: 'Feeling rate',
+      content2: 'Task',
+      content3: 'Traits',
+      content4: 'Thoughts',
+    },
+    todo: {
+      today: 'Today',
+      someday: 'Someday',
+    },
+    writingText: {
+      today: 'Today',
+      day: 'Day',
+    },
+  },
+  timeBlock: {
+    data: [],
+  },
+  wheelPickerItems: {
+    frequency: [],
+    calendarDays: [],
+  },
+}));
+jest.mock('../src/resources/colors', () => ({
+  __esModule: true,
+  colors: {
+    white: 'white',
+    grey: 'grey',
+    background: 'background',
+    nonEditableOverlays: 'nonEditableOverlays',
+    secondary: 'secondary',
+    tertiary: 'tertiary',
+    darkBlue2: 'darkBlue2',
+    red: 'red',
+    blue: 'blue',
+    yellow: 'yellow',
+    greenish: 'greenish',
+    black: 'black',
+  },
+}));
+jest.mock('../src/resources/images', () => ({
+  __esModule: true,
+  images: {
+    arrow: 'arrow-image',
+    tutorialImages: ['tutorial-1', 'tutorial-2'],
+  },
+}));
+jest.mock('../src/resources/strings', () => ({
+  __esModule: true,
+  strings: {
+    calendar: {
+      defaultColor: '#004672',
+      theme: 'Theme',
+      create: 'Create',
+      manage: 'Manage',
+      addRemove: 'Add / Remove',
+      someday: 'Someday',
+      pickday: 'Pick Day',
+      todo: 'To Do',
+    },
+    dailyEntry: {
+      content1: 'Feeling rate',
+      content2: 'Task',
+      content3: 'Traits',
+      content4: 'Thoughts',
+    },
+    todo: {
+      today: 'Today',
+      someday: 'Someday',
+    },
+    writingText: {
+      today: 'Today',
+      day: 'Day',
+    },
+  },
+}));
+jest.mock('../src/resources/TimeBlockData', () => ({
+  __esModule: true,
+  timeBlock: {
+    data: [],
+  },
+}));
+jest.mock('../src/resources/WheelPickerItems', () => ({
+  __esModule: true,
+  wheelPickerItems: {
+    frequency: [],
+    calendarDays: [],
+  },
+}));
+
+jest.mock('../src/components', () => {
+  const ReactLocal = require('react');
+
+  return {
+    AddButton: props => ReactLocal.createElement('mock-add-button', props),
+    AddRemoveTheme: props =>
+      ReactLocal.createElement('mock-add-remove-theme', props),
+    Button: props => ReactLocal.createElement('mock-button', props),
+    ColorPickerContent: props =>
+      ReactLocal.createElement('mock-color-picker-content', props),
+    CreateItemContent: props =>
+      ReactLocal.createElement('mock-create-item-content', props),
+    CreateTraitModal: props =>
+      ReactLocal.createElement('mock-create-trait-modal', props),
+    CustomHeader: props =>
+      ReactLocal.createElement('mock-custom-header', props),
+    CustomModal: props =>
+      ReactLocal.createElement('mock-custom-modal', props, props.content),
+    CustomOptions: props =>
+      ReactLocal.createElement('mock-custom-options', props),
+    CustomTextArea: props =>
+      ReactLocal.createElement('mock-custom-text-area', props),
+    Dashed: props => ReactLocal.createElement('mock-dashed', props),
+    DatePickerModal: props =>
+      ReactLocal.createElement('mock-date-picker-modal', props),
+    ModalContent: props => ReactLocal.createElement('mock-modal-content', props),
+    PermissionModal: props =>
+      ReactLocal.createElement('mock-permission-modal', props),
+    SafeAreaWrapper: props =>
+      ReactLocal.createElement('mock-safe-area-wrapper', props, props.children),
+    SearchBar: props => ReactLocal.createElement('mock-search-bar', props),
+    SelectModalContent: props =>
+      ReactLocal.createElement('mock-select-modal-content', props),
+    TextButton: props => ReactLocal.createElement('mock-text-button', props),
+    TimePickerModal: props =>
+      ReactLocal.createElement('mock-time-picker-modal', props),
+    WheelPickerContent: props =>
+      ReactLocal.createElement('mock-wheel-picker-content', props),
+  };
+});
+
+jest.mock('../src/screens/calendar/components', () => {
+  const ReactLocal = require('react');
+
+  return {
+    __esModule: true,
+    default: props => ReactLocal.createElement('mock-calendar-ui', props),
+  };
+});
+
+jest.mock('../src/screens/calendar/components/CalendarMenu', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-calendar-menu', props);
+});
+
+jest.mock('../src/screens/calendar/components/ColorPicker', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-calendar-color-picker', props);
+});
+
+jest.mock('../src/screens/calendar/components/CreateTheme', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-create-theme', props);
+});
+
+jest.mock('../src/screens/calendar/components/EditTask', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-edit-task', props);
+});
+
+jest.mock('../src/screens/calendar/components/EditTodo', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-edit-todo', props);
+});
+
+jest.mock('../src/screens/calendar/components/ManageTheme', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-manage-theme', props);
+});
+
+jest.mock('../src/screens/calendar/components/MyThemes', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-my-themes', props);
+});
+
+jest.mock('../src/screens/calendar/components/Todo', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-calendar-todo', props);
+});
+
+jest.mock('../src/screens/calendar/components/Writing', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-calendar-writing', props);
+});
+
+jest.mock('../src/screens/setting/components', () => {
+  const ReactLocal = require('react');
+
+  return {
+    MyProfile: props =>
+      ReactLocal.createElement('mock-setting-my-profile', props),
+    Tutorials: props => ReactLocal.createElement('mock-setting-tutorials', props),
+  };
+});
+
+jest.mock('../src/screens/nutrition/components', () => {
+  const ReactLocal = require('react');
+
+  return {
+    Meal: props => ReactLocal.createElement('mock-nutrition-meal', props),
+  };
+});
+
+jest.mock('../src/screens/journal/components', () => {
+  const ReactLocal = require('react');
+
+  return {
+    DailyEntry: props =>
+      ReactLocal.createElement('mock-journal-daily-entry', props),
+  };
+});
+
+jest.mock('../src/screens/writing/components/EditEvent', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-edit-event', props);
+});
+
+jest.mock('../src/screens/writing/components/Itinerary', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-itinerary', props);
+});
+
+jest.mock('../src/screens/writing/components/TimeBlock', () => {
+  const ReactLocal = require('react');
+
+  return props => ReactLocal.createElement('mock-time-block', props);
+});
+
+jest.mock('../src/screens/calendar/components/style', () => ({}));
+jest.mock('../src/screens/writing/components/style', () => ({}));
+jest.mock('../src/screens/nutrition/components/style', () => ({}));
+jest.mock('../src/screens/recreation/components/style', () => ({}));
+jest.mock('../src/screens/setting/components/My Profile/style', () => ({}));
+
+import TutorialsPage from '../src/screens/setting/pages/Tutorials/Tutorials';
+import DailyEntryPage from '../src/screens/journal/pages/DailyEntry/DailyEntry';
+import MealPage from '../src/screens/nutrition/pages/Meal/Meal';
+import MyProfilePage from '../src/screens/setting/pages/MyProfile/MyProfile';
+import MealsList from '../src/screens/nutrition/components/MealsList';
+import RoutineManager from '../src/screens/recreation/components/RoutineManager';
+import EditRoutine from '../src/screens/recreation/components/EditRoutine';
+import MyAccount from '../src/screens/setting/components/My Profile/MyAccount';
+import NewDay from '../src/screens/writing/components/NewDay';
+
+const renderTree = element => {
+  let renderer;
+
+  ReactTestRenderer.act(() => {
+    renderer = ReactTestRenderer.create(element);
+  });
+
+  return renderer;
+};
+
+describe('Navigation smoke representative flows', () => {
+  let mockNavigation;
+  let consoleLogSpy;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockNavigation = {
+      navigate: jest.fn(),
+      goBack: jest.fn(),
+    };
+    mockUseNavigation.mockReturnValue(mockNavigation);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
+    consoleLogSpy.mockRestore();
+  });
+
+  beforeAll(() => {
+    if (typeof window !== 'undefined' && !window.dispatchEvent) {
+      window.dispatchEvent = jest.fn();
+    }
+  });
+
+  test('Tutorials exits back into Home and Dashboard when the last image is advanced', async () => {
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<TutorialsPage />);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-setting-tutorials').props.onNextPress();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-setting-tutorials').props.onNextPress();
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(ROOT_ROUTES.HOME, {
+      screen: AUTH_TAB_ROUTES.DASHBOARD,
+    });
+  });
+
+  test('Tutorials backs out of the root-owned exception when already on the first image', async () => {
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<TutorialsPage />);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-setting-tutorials').props.onBackPress();
+    });
+
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  test('NewDay still relies on the default header back behavior', () => {
+    const renderer = renderTree(
+      <NewDay
+        timeData={[]}
+        newColor="#004672"
+        setnewColor={jest.fn()}
+        modalHeading=""
+        btnTitle=""
+        visibilityEditEvent={false}
+        setvisibilityEditEvent={jest.fn()}
+        visibleColorPicker={false}
+        setvisibleColorPicker={jest.fn()}
+        setIsTimePickerModal={jest.fn()}
+        theme={{ name: 'Theme A', itinerary: [] }}
+        onAddThemeItinerary={jest.fn()}
+        onEditThemeItinerary={jest.fn()}
+        onDonePermissionModal={jest.fn()}
+        fromTimePickerModal={false}
+        setFromTimePickerModal={jest.fn()}
+        toTimePickerModal={false}
+        setToTimePickerModal={jest.fn()}
+        permissionModal={false}
+        setPermissionModal={jest.fn()}
+        alertText=""
+        alertHeading=""
+        btnLoader={false}
+        deleteLoader={false}
+        isDeleteBtn={false}
+        toHours="1"
+        toMinutes="00"
+        setToHours={jest.fn()}
+        setToMinutes={jest.fn()}
+        toTimeFormat="AM"
+        setToTimeFormat={jest.fn()}
+        fromHours="1"
+        fromMinutes="00"
+        setFromHours={jest.fn()}
+        setFromMinutes={jest.fn()}
+        fromTimeFormat="AM"
+        setFromTimeFormat={jest.fn()}
+        note=""
+        setNote={jest.fn()}
+        task=""
+        setTask={jest.fn()}
+        setCheck={jest.fn()}
+        setEditTask={jest.fn()}
+        onCancelPermissionModal={jest.fn()}
+      />,
+    );
+
+    expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
+      undefined,
+    );
+  });
+
+  test('DailyEntry still goes back after a successful save completes', async () => {
+    const props = {
+      navigation: mockNavigation,
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            traits: [{ id: 1, title: 'Alert' }],
+            feelingRate: 1,
+            task: '',
+            thought: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<DailyEntryPage {...props} />);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-journal-daily-entry').props.onSaveHandler();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-journal-daily-entry')
+        .props.onDonePermissionModal();
+    });
+
+    ReactTestRenderer.act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    expect(props.onCreateEntry).toHaveBeenCalled();
+    expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  test('MealPage still forwards from Meal into MealsList when choosing the directory path', async () => {
+    const props = {
+      navigation: mockNavigation,
+      route: {
+        params: {
+          meal: { id: 7, name: 'Lunch' },
+        },
+      },
+      onAddMealItems: jest.fn().mockResolvedValue(undefined),
+      onDeleteMealItem: jest.fn().mockResolvedValue(undefined),
+      onEditMealItem: jest.fn().mockResolvedValue(undefined),
+    };
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<MealPage {...props} />);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-nutrition-meal').props.onChooseOption();
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      NUTRITION_ROUTES.MEALS_LIST,
+    );
+  });
+
+  test('MealsList still relies on the default header back behavior', () => {
+    const renderer = renderTree(
+      <MealsList
+        search=""
+        setSearch={jest.fn()}
+        mealCategories={[{ id: 1, category: 'Protein' }]}
+      />,
+    );
+
+    expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
+      undefined,
+    );
+  });
+
+  test('RoutineManager still forwards from RoutineManager into EditRoutine through the edit action', () => {
+    const renderer = renderTree(
+      <RoutineManager
+        route={{ params: { selectedItem: { id: 11, name: 'Morning Routine' } } }}
+        myRoutineTasks={[]}
+        loader={false}
+      />,
+    );
+
+    renderer.root.findByType('mock-custom-header').props.onEditPress();
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      RECREATION_ROUTES.EDIT_ROUTINE,
+      {
+        selectedItem: { id: 11, name: 'Morning Routine' },
+      },
+    );
+  });
+
+  test('EditRoutine still relies on the default header back behavior', () => {
+    const renderer = renderTree(
+      <EditRoutine
+        route={{ params: { selectedItem: { id: 11, name: 'Morning Routine' } } }}
+        myRoutineTasks={[]}
+        isVisible={false}
+        setIsVisible={jest.fn()}
+        heading=""
+        createItemModal={false}
+        setCreateItemModal={jest.fn()}
+        createTaskFields={[{ id: 1, value: '' }]}
+        editTaskModal={false}
+        setEditTaskModal={jest.fn()}
+        permissionModal={false}
+        setPermissionModal={jest.fn()}
+        onRoutineTaskHandler={jest.fn()}
+        itemName=""
+        setItemName={jest.fn()}
+        onCreateItem={jest.fn()}
+        onDonePermissionModal={jest.fn()}
+        alertHeading=""
+        alertText=""
+        setCheck={jest.fn()}
+        onEditItem={jest.fn()}
+      />,
+    );
+
+    expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
+      undefined,
+    );
+  });
+
+  test('MyProfilePage still exposes MyAccount as the representative settings entry route', async () => {
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <MyProfilePage
+          navigation={mockNavigation}
+          user={{ bmi: 20, bmr: 1800, targetCalories: [] }}
+        />,
+      );
+    });
+
+    const myAccountItem = renderer.root
+      .findByType('mock-setting-my-profile')
+      .props.listData.find(item => item.title === 'My Account');
+
+    expect(myAccountItem.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ screen: SETTINGS_ROUTES.MY_ACCOUNT }),
+      ]),
+    );
+  });
+
+  test('MyAccount still relies on the default header back behavior', () => {
+    const renderer = renderTree(
+      <MyAccount
+        navigation={mockNavigation}
+        listData={[
+          {
+            id: 1,
+            title: 'Email',
+            options: [
+              {
+                id: 1,
+                name: 'My Email',
+                screen: SETTINGS_ROUTES.MY_EMAIL,
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+
+    expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
+      undefined,
+    );
+  });
+});

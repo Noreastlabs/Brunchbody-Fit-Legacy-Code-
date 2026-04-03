@@ -1,4 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+jest.mock('../src/root-container/RootContainer', () => ({
+  RootContainer: () => null,
+}));
+
+jest.mock('../src/storage/mmkv/hydration', () => ({
+  hydrateWorkoutPlans: jest.fn(),
+}));
+
 import { resolveInitialRouteName } from '../src/bootstrap/AppBootstrap';
 
 describe('App bootstrap route resolution', () => {
