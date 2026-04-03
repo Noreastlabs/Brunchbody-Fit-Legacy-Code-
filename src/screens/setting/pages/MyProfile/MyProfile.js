@@ -2,18 +2,33 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { SETTINGS_ROUTES } from '../../../../navigation/routeNames';
 import { MyProfile } from '../../components';
 
 const listData = [
   {
     id: 1,
     title: 'My Vitals',
-    options: [{ id: 1, name: 'My Vitals', type: '', screen: 'MyVitals' }],
+    options: [
+      {
+        id: 1,
+        name: 'My Vitals',
+        type: '',
+        screen: SETTINGS_ROUTES.MY_VITALS,
+      },
+    ],
   },
   {
     id: 2,
     title: 'My Account',
-    options: [{ id: 1, name: 'My Accounts', type: '', screen: 'MyAccount' }],
+    options: [
+      {
+        id: 1,
+        name: 'My Accounts',
+        type: '',
+        screen: SETTINGS_ROUTES.MY_ACCOUNT,
+      },
+    ],
     screen: '',
   },
   {

@@ -26,6 +26,7 @@ import {
 } from '../../../../redux/actions';
 import { useTodayKey } from '../../../../context/DateProvider';
 import { SET_USER } from '../../../../redux/constants';
+import { RECREATION_ROUTES } from '../../../../navigation/routeNames';
 
 const workoutOptionsData = [
   { id: 1, name: 'BRUNCH BODY' },
@@ -532,7 +533,7 @@ export default function RecreationPage(props) {
   const onProgramMenuSelect = () => {
     if (selectedProgramMenuOption === 'MY EXERCISES') {
       setProgramMenuModal(false);
-      navigation.navigate('MyExercises');
+      navigation.navigate(RECREATION_ROUTES.MY_EXERCISES);
     } else {
       setProgramMenuModal(false);
       setCreateItemModal(true);
@@ -711,7 +712,7 @@ export default function RecreationPage(props) {
     } else if (screen) {
       setLoader(true);
 
-      const response = await (screen === 'RoutineManager'
+      const response = await (screen === RECREATION_ROUTES.ROUTINE_MANAGER
         ? onDeleteRoutine
         : onDeleteCustomPlan)(selectedItem.id);
 

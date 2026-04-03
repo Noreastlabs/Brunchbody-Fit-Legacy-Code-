@@ -9,6 +9,7 @@ import {
 import PropTypes from 'prop-types';
 import style from './style';
 import {LogoHeader} from '../../../components';
+import { ROOT_ROUTES } from '../../../navigation/routeNames';
 import {strings} from '../../../resources';
 import Label from './Label';
 import NextButton from './NextButton';
@@ -25,7 +26,9 @@ const Welcome = ({currentScreen, navigation}) => (
           <Text style={style.tutorial}>
             {strings.completeProfile.labels.tutorial}
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Tutorials')}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate(ROOT_ROUTES.TUTORIALS)}
+          >
             <Text style={style.click}>
               {strings.completeProfile.buttons.click}
             </Text>
@@ -35,7 +38,7 @@ const Welcome = ({currentScreen, navigation}) => (
       <NextButton
         label="Get Started"
         currentScreen={currentScreen}
-        nextScreen="Home"
+        nextScreen={ROOT_ROUTES.HOME}
       />
     </ScrollView>
   </SafeAreaView>

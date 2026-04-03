@@ -7,6 +7,7 @@ import {
   getJournalEntries,
   getTraits,
 } from '../../../../redux/actions';
+import { JOURNAL_ROUTES } from '../../../../navigation/routeNames';
 import { Journal } from '../../components';
 import { useTodayKey } from '../../../../context/DateProvider';
 
@@ -15,42 +16,42 @@ const listData = [
     id: 1,
     title: 'DailyEntry',
     heading: 'Daily Entry',
-    screen: 'DailyEntry',
+    screen: JOURNAL_ROUTES.DAILY_ENTRY,
     isEmpty: true,
   },
   {
     id: 2,
     title: 'WeightLog',
     heading: 'Weight Log',
-    screen: 'WeightLog',
+    screen: JOURNAL_ROUTES.WEIGHT_LOG,
     isEmpty: true,
   },
   {
     id: 3,
     title: 'CaloriesEntry',
     heading: 'Calories In/Out',
-    screen: 'Calories',
+    screen: JOURNAL_ROUTES.CALORIES,
     isEmpty: true,
   },
   {
     id: 4,
     title: 'SupplementLog',
     heading: 'Supplement Log',
-    screen: 'SupplementLog',
+    screen: JOURNAL_ROUTES.SUPPLEMENT_LOG,
     isEmpty: true,
   },
   {
     id: 5,
     title: 'WeeklyEntry',
     heading: 'Weekly Review',
-    screen: 'WeeklyEntry',
+    screen: JOURNAL_ROUTES.WEEKLY_ENTRY,
     isEmpty: true,
   },
   {
     id: 6,
     title: 'QuarterlyEntry',
     heading: 'Quarterly Review',
-    screen: 'QuarterlyEntry',
+    screen: JOURNAL_ROUTES.QUARTERLY_ENTRY,
     isEmpty: true,
   },
 ];

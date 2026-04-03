@@ -22,6 +22,7 @@ import {
   setMealItems,
   setSupplementItems,
 } from '../../../../redux/actions';
+import { NUTRITION_ROUTES } from '../../../../navigation/routeNames';
 
 const createMealFields = [
   {
@@ -99,7 +100,7 @@ export default class NutritionPage extends Component {
 
   onNavigate = val => {
     const { navigation } = this.props;
-    navigation.navigate('Supplement', { title: val });
+    navigation.navigate(NUTRITION_ROUTES.SUPPLEMENT, { title: val });
   };
 
   onChangeHandler = data => {

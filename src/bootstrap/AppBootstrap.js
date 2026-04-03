@@ -2,11 +2,12 @@ import React, { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import { RootContainer } from '../root-container/RootContainer';
+import { ROOT_ROUTES } from '../navigation/routeNames';
 import { hydrateWorkoutPlans } from '../storage/mmkv/hydration';
 
 export const resolveInitialRouteName = async () => {
   const profileData = await AsyncStorage.getItem('user_profile');
-  return profileData ? 'Home' : 'CompleteProfile';
+  return profileData ? ROOT_ROUTES.HOME : ROOT_ROUTES.COMPLETE_PROFILE;
 };
 
 export default function AppBootstrap() {

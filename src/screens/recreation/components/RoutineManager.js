@@ -8,6 +8,7 @@ import {
 import PropTypes from 'prop-types';
 import {useNavigation} from '@react-navigation/native';
 import {CustomHeader, SafeAreaWrapper} from '../../../components';
+import { RECREATION_ROUTES } from '../../../navigation/routeNames';
 import {colors} from '../../../resources';
 import styles from './style';
 
@@ -21,7 +22,9 @@ export default function RoutineManager(props) {
       <ScrollView contentContainerStyle={styles.container}>
         <CustomHeader
           isEdit
-          onEditPress={() => navigation.navigate('EditRoutine', {selectedItem})}
+          onEditPress={() =>
+            navigation.navigate(RECREATION_ROUTES.EDIT_ROUTINE, {selectedItem})
+          }
         />
 
         <View style={styles.headingView}>

@@ -11,6 +11,7 @@ import {
   Dashed,
   ItineraryDetail,
 } from '../../../components';
+import { CALENDAR_ROUTES } from '../../../navigation/routeNames';
 import { colors } from '../../../resources';
 import Itinerary from './Itinerary';
 import TimeBlock from './TimeBlock';
@@ -32,7 +33,7 @@ const Writing = props => {
         <CustomHeader
           isEdit
           onEditPress={() =>
-            navigation.navigate('Edit Writing', {type: 'edit'})
+            navigation.navigate(CALENDAR_ROUTES.EDIT_WRITING, {type: 'edit'})
           }
         />
         <View style={styles.headingView}>

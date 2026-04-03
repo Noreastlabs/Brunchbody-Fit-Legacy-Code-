@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {RFValue} from 'react-native-responsive-fontsize';
 import Feather from 'react-native-vector-icons/Feather';
 import {CustomHeader, SearchBar, SafeAreaWrapper  } from '../../../components';
+import { NUTRITION_ROUTES } from '../../../navigation/routeNames';
 import {colors} from '../../../resources';
 import styles from './style';
 
@@ -41,7 +42,9 @@ export default function MealsList(props) {
                   {justifyContent: 'space-between'},
                 ]}
                 onPress={() =>
-                  navigation.navigate('MealDirectory', {type: item.category})
+                  navigation.navigate(NUTRITION_ROUTES.MEAL_DIRECTORY, {
+                    type: item.category,
+                  })
                 }>
                 <Text style={[styles.directoryItemText, {marginLeft: 0}]}>
                   {item.category}

@@ -8,6 +8,7 @@ import {
   deleteMealItem,
   editMealItem,
 } from '../../../../redux/actions';
+import { NUTRITION_ROUTES } from '../../../../navigation/routeNames';
 
 const selectOptions = [
   { id: 1, option: 'FROM DIRECTORY' },
@@ -97,7 +98,7 @@ export default function MealPage(props) {
   const onChooseOption = () => {
     setIsVisible(false);
     if (selectedOption === 'FROM DIRECTORY') {
-      navigation.navigate('MealsList');
+      navigation.navigate(NUTRITION_ROUTES.MEALS_LIST);
     } else {
       setBtnTitle('Add');
       setHeading('Add Item');

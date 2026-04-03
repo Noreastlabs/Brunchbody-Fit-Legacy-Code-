@@ -6,24 +6,25 @@ import {
   EditWritingWrapper,
   NewDayWrapper,
 } from '../screens/writing';
+import { CALENDAR_ROUTES } from './routeNames';
 
 const CalendarStack = createStackNavigator();
-const CALENDAR_STACK_INITIAL_ROUTE = 'CalendarMain';
+const CALENDAR_STACK_INITIAL_ROUTE = CALENDAR_ROUTES.MAIN;
 const CALENDAR_STACK_SCREENS = [
   {
     name: CALENDAR_STACK_INITIAL_ROUTE,
     component: CalendarWrapper,
   },
   {
-    name: 'Writing',
+    name: CALENDAR_ROUTES.WRITING,
     component: WritingWrapper,
   },
   {
-    name: 'Edit Writing',
+    name: CALENDAR_ROUTES.EDIT_WRITING,
     component: EditWritingWrapper,
   },
   {
-    name: 'NewDay',
+    name: CALENDAR_ROUTES.NEW_DAY,
     component: NewDayWrapper,
   },
 ];

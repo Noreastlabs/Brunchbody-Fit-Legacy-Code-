@@ -17,6 +17,7 @@ import {
   TextButton,
   SafeAreaWrapper,
 } from '../../../components';
+import { JOURNAL_ROUTES } from '../../../navigation/routeNames';
 import { colors, strings } from '../../../resources';
 import styles from './style';
 
@@ -173,7 +174,9 @@ export default function DailyEntry(props) {
             favorite={addToFavorite}
             value={newTrait}
             onChangeText={text => setNewTrait(text)}
-            openDirectory={() => navigation.navigate('TraitDirectory')}
+            openDirectory={() =>
+              navigation.navigate(JOURNAL_ROUTES.TRAIT_DIRECTORY)
+            }
             setFavorite={() => setAddToFavorite(!addToFavorite)}
             openColorPicker={() => setColorPickerModal(true)}
             hideModal={() => setCreateItemModal(false)}

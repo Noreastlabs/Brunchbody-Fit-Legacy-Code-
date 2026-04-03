@@ -9,6 +9,7 @@ import {
   RecreationWrapper,
   RoutineManagerWrapper,
 } from '../screens/recreation';
+import { RECREATION_ROUTES } from './routeNames';
 
 const Stack = createStackNavigator();
 
@@ -16,18 +17,42 @@ const screenOptions = {
   headerShown: false,
 };
 
+const RECREATION_STACK_SCREENS = [
+  {
+    name: RECREATION_ROUTES.RECREATION,
+    component: RecreationWrapper,
+  },
+  {
+    name: RECREATION_ROUTES.ROUTINE_MANAGER,
+    component: RoutineManagerWrapper,
+  },
+  {
+    name: RECREATION_ROUTES.PROGRAM_MANAGER,
+    component: ProgramManagerWrapper,
+  },
+  {
+    name: RECREATION_ROUTES.EDIT_PROGRAM,
+    component: EditProgramWrapper,
+  },
+  {
+    name: RECREATION_ROUTES.EDIT_ROUTINE,
+    component: EditRoutineWrapper,
+  },
+  {
+    name: RECREATION_ROUTES.MY_EXERCISES,
+    component: MyExercisesWrapper,
+  },
+];
+
 export default function RecreationNavigation() {
   return (
     <Stack.Navigator
       screenOptions={screenOptions}
-      initialRouteName="Recreation"
+      initialRouteName={RECREATION_ROUTES.RECREATION}
     >
-      <Stack.Screen name="Recreation" component={RecreationWrapper} />
-      <Stack.Screen name="RoutineManager" component={RoutineManagerWrapper} />
-      <Stack.Screen name="ProgramManager" component={ProgramManagerWrapper} />
-      <Stack.Screen name="EditProgram" component={EditProgramWrapper} />
-      <Stack.Screen name="EditRoutine" component={EditRoutineWrapper} />
-      <Stack.Screen name="MyExercises" component={MyExercisesWrapper} />
+      {RECREATION_STACK_SCREENS.map(({ name, component }) => (
+        <Stack.Screen key={name} name={name} component={component} />
+      ))}
     </Stack.Navigator>
   );
 }

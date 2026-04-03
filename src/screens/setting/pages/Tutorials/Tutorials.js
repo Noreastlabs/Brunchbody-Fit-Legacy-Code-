@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {connect} from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {images} from '../../../../resources';
+import { AUTH_TAB_ROUTES, ROOT_ROUTES } from '../../../../navigation/routeNames';
 import {Tutorials} from '../../components';
 
 export default function TutorialsPage() {
@@ -13,7 +14,9 @@ export default function TutorialsPage() {
       setCurrentImage(currentImage+1)
     }
     else{
-      navigation.navigate('Home', {screen: 'Dashboard'})
+      navigation.navigate(ROOT_ROUTES.HOME, {
+        screen: AUTH_TAB_ROUTES.DASHBOARD,
+      })
 
     }
   }

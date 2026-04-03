@@ -34,6 +34,7 @@ import MyThemes from '../../components/MyThemes';
 import styles from '../../components/style';
 import Todo from '../../components/Todo';
 import Writing from '../../components/Writing';
+import { CALENDAR_ROUTES } from '../../../../navigation/routeNames';
 
 let yearsList = [];
 let totalDays = 0;
@@ -400,7 +401,7 @@ export default function CalendarPage(props) {
           setName('');
           setBtnLoader(false);
           setvisibleCreateTheme(false);
-          navigation.navigate('NewDay');
+          navigation.navigate(CALENDAR_ROUTES.NEW_DAY);
         } else {
           setBtnLoader(false);
           showMessage('Error!', response);
@@ -514,7 +515,7 @@ export default function CalendarPage(props) {
     setDisabled(true);
     setvisibleManageTheme(false);
     await dispatch(setTheme(selectedTheme));
-    navigation.navigate('NewDay');
+    navigation.navigate(CALENDAR_ROUTES.NEW_DAY);
     setSelectedTheme(null);
   };
 

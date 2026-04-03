@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import {DeleteAccount} from '../../components';
 import {deleteAccount} from '../../../../redux/actions';
 import {getRootNavigation} from '../../../../navigation/getRootNavigation';
+import { ROOT_ROUTES } from '../../../../navigation/routeNames';
 
 export default function DeleteAccountPage(props) {
   const {navigation, deleteUserAccount} = props;
@@ -62,7 +63,7 @@ export default function DeleteAccountPage(props) {
       const rootNavigation = getRootNavigation(navigation);
       rootNavigation.reset({
         index: 0,
-        routes: [{ name: 'CompleteProfile' }],
+        routes: [{ name: ROOT_ROUTES.COMPLETE_PROFILE }],
       });
     } else {
       setIsPermissionModal(false);

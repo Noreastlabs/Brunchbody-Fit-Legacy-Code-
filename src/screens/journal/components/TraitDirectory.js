@@ -12,6 +12,7 @@ import {useNavigation} from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {RFValue} from 'react-native-responsive-fontsize';
 import {CustomHeader, SearchBar} from '../../../components';
+import { JOURNAL_ROUTES } from '../../../navigation/routeNames';
 import {colors} from '../../../resources';
 import styles from './style';
 
@@ -63,7 +64,7 @@ export default function TraitDirectory(props) {
                     key={item.id}
                     style={styles.directoryItemView}
                     onPress={() =>
-                      navigation.navigate('DailyEntry', {
+                      navigation.navigate(JOURNAL_ROUTES.DAILY_ENTRY, {
                         trait: item.name,
                       })
                     }>

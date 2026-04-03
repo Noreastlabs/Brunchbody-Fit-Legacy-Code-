@@ -4,6 +4,7 @@ import { Headline, IconButton } from 'react-native-paper';
 import PropTypes from 'prop-types';
 import { strings } from '../../../resources';
 import { colors } from '../../../resources/colors';
+import { CALENDAR_ROUTES } from '../../../navigation/routeNames';
 import styles from './style';
 
 const Writing = ({ showCalendarMenu, navigation, currentTheme }) => (
@@ -27,7 +28,7 @@ const Writing = ({ showCalendarMenu, navigation, currentTheme }) => (
             { backgroundColor: currentTheme.color || colors.tertiary },
           ]}
           onPress={() =>
-            currentTheme?.name ? navigation.navigate('Writing') : {}
+            currentTheme?.name ? navigation.navigate(CALENDAR_ROUTES.WRITING) : {}
           }
         >
           <Text style={styles.writingButton}>{currentTheme.name}</Text>

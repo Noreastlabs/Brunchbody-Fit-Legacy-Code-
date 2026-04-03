@@ -19,6 +19,7 @@ import {
   TopTabs,
   SafeAreaWrapper,
 } from '../../../components';
+import { NUTRITION_ROUTES } from '../../../navigation/routeNames';
 import { colors } from '../../../resources';
 import CalorieCalculation from './CalorieCalculation';
 import styles from './style';
@@ -174,7 +175,7 @@ export default function Nutrition(props) {
             showButton={true}
             onBtnPress={() => {
               closeMealModal();
-              navigation.navigate('Meal', { meal });
+              navigation.navigate(NUTRITION_ROUTES.MEAL, { meal });
             }}
             onDeleteBtnPress={() =>
               onChangeHandler({ name: 'permissionModal', value: true })
@@ -196,7 +197,7 @@ export default function Nutrition(props) {
             onClose={closeSupplementModal}
             onBtnPress={() => {
               closeSupplementModal();
-              navigation.navigate('Supplement', { supplement });
+              navigation.navigate(NUTRITION_ROUTES.SUPPLEMENT, { supplement });
             }}
             onDeleteBtnPress={() =>
               onChangeHandler({ name: 'permissionModal', value: true })

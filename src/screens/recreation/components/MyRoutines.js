@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
 import {AddButton, CustomText} from '../../../components';
+import { RECREATION_ROUTES } from '../../../navigation/routeNames';
 import styles from './style';
 
 const createRoutineFields = [
@@ -40,7 +41,7 @@ export default function MyRoutines(props) {
             setSelectedItem(item);
             setHeading(`My ${item.name}`);
             setBtnTitle('View');
-            setScreen('RoutineManager');
+            setScreen(RECREATION_ROUTES.ROUTINE_MANAGER);
             setShowDeleteBtn(true);
           }}>
           <CustomText text={item.name} />

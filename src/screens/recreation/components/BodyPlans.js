@@ -4,6 +4,7 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { CustomText } from '../../../components';
+import { RECREATION_ROUTES } from '../../../navigation/routeNames';
 import { colors } from '../../../resources';
 import styles from './style';
 
@@ -49,7 +50,7 @@ export default function BodyPlans(props) {
             setHeading(item.name);
             setSubText('');
             setBtnTitle('Edit');
-            setScreen('ProgramManager');
+            setScreen(RECREATION_ROUTES.PROGRAM_MANAGER);
             setShowDeleteBtn(true);
             setProgram('Custom Program');
           }}>
@@ -74,7 +75,7 @@ export default function BodyPlans(props) {
               setHeading(item.name);
               setSubText('');
               setBtnTitle('View');
-              setScreen('ProgramManager');
+              setScreen(RECREATION_ROUTES.PROGRAM_MANAGER);
               setShowDeleteBtn(false);
               setProgram('Brunch Program');
             }}>

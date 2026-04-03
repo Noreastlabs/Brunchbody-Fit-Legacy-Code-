@@ -8,6 +8,7 @@ import moment from 'moment';
 import { Setting } from '../../components';
 import { logout } from '../../../../redux/actions';
 import { getRootNavigation } from '../../../../navigation/getRootNavigation';
+import { ROOT_ROUTES, SETTINGS_ROUTES } from '../../../../navigation/routeNames';
 
 const initialState = {
   clockToggle: true,
@@ -29,7 +30,14 @@ const listData = [
   {
     id: 1,
     title: 'My Profile',
-    options: [{ id: 1, name: 'Manage Profile', type: '', screen: 'MyProfile' }],
+    options: [
+      {
+        id: 1,
+        name: 'Manage Profile',
+        type: '',
+        screen: SETTINGS_ROUTES.MY_PROFILE,
+      },
+    ],
   },
   {
     id: 2,
@@ -103,7 +111,7 @@ const listData = [
         id: 1,
         name: 'Export Journal to Files',
         value: false,
-        screen: 'ExportToCSV',
+        screen: SETTINGS_ROUTES.EXPORT_TO_CSV,
       },
     ],
     screen: '',
@@ -125,8 +133,13 @@ const listData = [
         type: '',
         link: ABOUT_LINKS.privacyPolicy,
       },
-      { id: 4, name: 'Tutorial', type: '', screen: 'Tutorials' },
-      { id: 5, name: 'Abbrevations', type: '', screen: 'Abbrevations' },
+      { id: 4, name: 'Tutorial', type: '', screen: ROOT_ROUTES.TUTORIALS },
+      {
+        id: 5,
+        name: 'Abbrevations',
+        type: '',
+        screen: SETTINGS_ROUTES.ABBREVIATIONS,
+      },
       { id: 6, name: 'Rate us', type: '', screen: '' },
       {
         id: 7,
@@ -208,7 +221,7 @@ export default function SettingPage(props) {
       const rootNavigation = getRootNavigation(navigation);
       rootNavigation.reset({
         index: 0,
-        routes: [{ name: 'CompleteProfile' }],
+        routes: [{ name: ROOT_ROUTES.COMPLETE_PROFILE }],
       });
       setIsPermissionModal(false);
     } else {

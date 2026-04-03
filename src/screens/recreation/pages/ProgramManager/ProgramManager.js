@@ -10,6 +10,7 @@ import {
   getBrunchBodyWeekPlan,
   getWeekPlans,
 } from '../../../../redux/actions';
+import { RECREATION_ROUTES } from '../../../../navigation/routeNames';
 
 let tempWeek = '1';
 
@@ -103,9 +104,9 @@ export default function ProgramManagerPage(props) {
     setIsVisible(false);
     if (program === 'Custom Program') {
       if (btnTitle === 'Create') {
-        onNavigate('EditProgram', selectedItem);
+        onNavigate(RECREATION_ROUTES.EDIT_PROGRAM, selectedItem);
       } else {
-        onNavigate('EditProgram', selectedItem);
+        onNavigate(RECREATION_ROUTES.EDIT_PROGRAM, selectedItem);
       }
     } else if (btnTitle !== 'Create') {
       setIsProgramDetailModal(true);

@@ -5,6 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {RFValue} from 'react-native-responsive-fontsize';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import {CustomHeader, SearchBar, SafeAreaWrapper} from '../../../components';
+import { NUTRITION_ROUTES } from '../../../navigation/routeNames';
 import {colors} from '../../../resources';
 import styles from './style';
 
@@ -64,7 +65,9 @@ export default function MealDirectory(props) {
                     key={item.id}
                     style={styles.directoryItemView}
                     onPress={() =>
-                      navigation.navigate('MealDetail', {meal: item})
+                      navigation.navigate(NUTRITION_ROUTES.MEAL_DETAIL, {
+                        meal: item,
+                      })
                     }>
                     <AntDesign
                       name="pluscircleo"

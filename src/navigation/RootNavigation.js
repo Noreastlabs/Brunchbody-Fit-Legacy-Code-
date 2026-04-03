@@ -6,12 +6,28 @@ import { CompleteProfileWrapper } from '../screens/completeProfile/pages/complet
 import { DateProvider } from '../context/DateProvider';
 import { TutorialsWrapper } from '../screens/setting/pages/Tutorials';
 import BottomTabNavigation from './BottomTabNavigation';
+import { ROOT_ROUTES } from './routeNames';
 
 const Stack = createStackNavigator();
 
 const screenOptions = {
   headerShown: false,
 };
+
+const ROOT_STACK_SCREENS = [
+  {
+    name: ROOT_ROUTES.COMPLETE_PROFILE,
+    component: CompleteProfileWrapper,
+  },
+  {
+    name: ROOT_ROUTES.HOME,
+    component: BottomTabNavigation,
+  },
+  {
+    name: ROOT_ROUTES.TUTORIALS,
+    component: TutorialsWrapper,
+  },
+];
 
 export default function RootNavigation({ initialRouteName }) {
   if (!initialRouteName) {
@@ -25,12 +41,9 @@ export default function RootNavigation({ initialRouteName }) {
           screenOptions={screenOptions}
           initialRouteName={initialRouteName}
         >
-          <Stack.Screen
-            name="CompleteProfile"
-            component={CompleteProfileWrapper}
-          />
-          <Stack.Screen name="Home" component={BottomTabNavigation} />
-          <Stack.Screen name="Tutorials" component={TutorialsWrapper} />
+          {ROOT_STACK_SCREENS.map(({ name, component }) => (
+            <Stack.Screen key={name} name={name} component={component} />
+          ))}
         </Stack.Navigator>
       </NavigationContainer>
     </DateProvider>

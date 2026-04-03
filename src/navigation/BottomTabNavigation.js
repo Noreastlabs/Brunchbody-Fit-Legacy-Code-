@@ -8,6 +8,7 @@ import CalendarNavigation from './CalendarNavigation';
 import JournalNavigation from './JournalNavigation';
 import NutritionNavigation from './NutritionNavigation';
 import RecreationNavigation from './RecreationNavigation';
+import { AUTH_TAB_ROUTES, ROOT_ROUTES } from './routeNames';
 import SettingsNavigation from './SettingsNavigation';
 
 const Tab = createBottomTabNavigator();
@@ -37,50 +38,50 @@ const renderIoniconTabIcon = name => ({ color }) => (
 
 const tabScreens = [
   {
-    name: 'Dashboard',
+    name: AUTH_TAB_ROUTES.DASHBOARD,
     component: DashboardWrapper,
     options: {
-      tabBarLabel: 'Home',
+      tabBarLabel: ROOT_ROUTES.HOME,
       tabBarIcon: renderMaterialTabIcon('home'),
     },
   },
   {
-    name: 'Journal',
+    name: AUTH_TAB_ROUTES.JOURNAL,
     component: JournalNavigation,
     options: {
-      tabBarLabel: 'Journal',
+      tabBarLabel: AUTH_TAB_ROUTES.JOURNAL,
       tabBarIcon: renderMaterialTabIcon('notebook'),
     },
   },
   {
-    name: 'Calendar',
+    name: AUTH_TAB_ROUTES.CALENDAR,
     component: CalendarNavigation,
     options: {
-      tabBarLabel: 'Calendar',
+      tabBarLabel: AUTH_TAB_ROUTES.CALENDAR,
       tabBarIcon: renderMaterialTabIcon('calendar'),
     },
   },
   {
-    name: 'Nutrition',
+    name: AUTH_TAB_ROUTES.NUTRITION,
     component: NutritionNavigation,
     options: {
-      tabBarLabel: 'Nutrition',
+      tabBarLabel: AUTH_TAB_ROUTES.NUTRITION,
       tabBarIcon: renderIoniconTabIcon('restaurant'),
     },
   },
   {
-    name: 'Recreation',
+    name: AUTH_TAB_ROUTES.RECREATION,
     component: RecreationNavigation,
     options: {
-      tabBarLabel: 'Recreation',
+      tabBarLabel: AUTH_TAB_ROUTES.RECREATION,
       tabBarIcon: renderMaterialTabIcon('human-handsup'),
     },
   },
   {
-    name: 'Settings',
+    name: AUTH_TAB_ROUTES.SETTINGS,
     component: SettingsNavigation,
     options: {
-      tabBarLabel: 'Settings',
+      tabBarLabel: AUTH_TAB_ROUTES.SETTINGS,
       tabBarIcon: renderIoniconTabIcon('settings'),
     },
   },
@@ -90,7 +91,7 @@ export default function BottomTabNavigation() {
   return (
     <Tab.Navigator
       lazy={false}
-      initialRouteName="Calendar"
+      initialRouteName={AUTH_TAB_ROUTES.CALENDAR}
       screenOptions={tabBarScreenOptions}
     >
       {tabScreens.map(({ name, component, options }) => (

@@ -3,6 +3,7 @@ import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import SplashScreen from '../../components';
 import {loggedIn} from '../../../../redux/actions';
+import { ROOT_ROUTES } from '../../../../navigation/routeNames';
 
 export default function SplashScreenPage(props) {
   const {navigation, onLoggedIn} = props;
@@ -10,11 +11,11 @@ export default function SplashScreenPage(props) {
   const checkToken = async () => {
     const response = await onLoggedIn();
     if (response === 'goToCompleteProfile') {
-      navigation.navigate('CompleteProfile');
+      navigation.navigate(ROOT_ROUTES.COMPLETE_PROFILE);
     } else if (response) {
-      navigation.replace('Home');
+      navigation.replace(ROOT_ROUTES.HOME);
     } else {
-      navigation.replace('CompleteProfile');
+      navigation.replace(ROOT_ROUTES.COMPLETE_PROFILE);
     }
   };
 

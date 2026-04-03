@@ -3,6 +3,7 @@ import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SET_USER} from '../../../../redux/constants';
+import { AUTH_TAB_ROUTES, ROOT_ROUTES } from '../../../../navigation/routeNames';
 import {Name, Gender, Welcome, Weight} from '../../components';
 import {DateOfBirthWrapper} from './DateOfBirth';
 import {HeightWrapper} from './Height';
@@ -47,8 +48,10 @@ export const CompleteProfilePage = () => {
     const height = await AsyncStorage.getItem('height');
     const gender = await AsyncStorage.getItem('gender');
 
-    if (screen === 'Home') {
-      navigation.navigate('Home', {screen: 'Dashboard'});
+    if (screen === ROOT_ROUTES.HOME) {
+      navigation.navigate(ROOT_ROUTES.HOME, {
+        screen: AUTH_TAB_ROUTES.DASHBOARD,
+      });
     } else if (screen === 'Name') {
       setCurrentScreen(screen);
     } else if (screen === 'DateOfBirth' && name) {
