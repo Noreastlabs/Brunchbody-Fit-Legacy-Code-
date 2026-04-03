@@ -1,50 +1,48 @@
 # App Structure Inventory
 
-This document inventories the current Brunch Body app structure as inspected on March 31, 2026. It is a present-state, evidence-based map of the mobile-first, local-first codebase for later cleanup and refactor lanes. It does not propose or apply behavior changes.
+This document inventories the current Brunch Body app structure as inspected on April 3, 2026. It is a present-state, evidence-based map of the mobile-first, local-first codebase for later cleanup and refactor lanes. It does not propose or apply behavior changes.
 
-Scope note: this inventory is based on `App.js`, `src/root-container/`, `src/navigation/`, `src/screens/`, `src/redux/`, `src/config/`, `src/context/`, `src/storage/`, `src/resources/`, and `README.md`. When structure is unclear, this document records the ambiguity instead of normalizing it.
+Scope note: this inventory is based on `App.js`, `src/bootstrap/`, `src/root-container/`, `src/navigation/`, `src/screens/`, `src/redux/`, `src/config/`, `src/context/`, `src/storage/`, `src/resources/`, and `README.md`. When structure is unclear, this document records the ambiguity instead of normalizing it.
 
 ## App entrypoint and root wiring
 
 Current bootstrap chain:
 
-1. `App.js` runs `hydrateWorkoutPlans()` inside `useEffect(...)` on app mount.
-2. `App.js` then renders `RootContainer`.
-3. `src/storage/mmkv/hydration.js` seeds MMKV with bundled Brunch Body plans if the `is_initialized` flag is not yet set.
-4. `src/root-container/RootContainer.js` wraps the app with:
+1. `App.js` renders `AppBootstrap`.
+2. `src/bootstrap/AppBootstrap.js` runs `hydrateWorkoutPlans()` inside `useEffect(...)` on app mount.
+3. `src/bootstrap/AppBootstrap.js` reads `AsyncStorage.getItem('user_profile')` inside `resolveInitialRouteName()`, resolves `Home` when a local profile exists and `CompleteProfile` otherwise, returns `null` until that route resolves, and then renders `RootContainer` with `initialRouteName`.
+4. `src/storage/mmkv/hydration.js` seeds MMKV with bundled Brunch Body plans if the `is_initialized` flag is not yet set.
+5. `src/root-container/RootContainer.js` wraps the app with:
    - Redux `Provider`
    - `PersistGate`
    - `GestureHandlerRootView`
    - `PaperProvider`
-   - `RootNavigation`
-5. `src/navigation/RootNavigation.js` wraps the navigation tree in `DateProvider` and then renders `NavigationContainer` plus the root stack navigator.
+   - `RootNavigation(initialRouteName)`
+6. `src/navigation/RootNavigation.js` wraps the navigation tree in `DateProvider` and then renders `NavigationContainer` plus the root stack navigator.
 
-The current root wiring is therefore split across bootstrap, root container, navigation, and storage helpers rather than being centralized in one file.
+The current root wiring is therefore split across the thin app entrypoint, bootstrap, root container, navigation, and storage helpers rather than being centralized in one file.
 
 ## Navigation structure
 
 ### Initial route decision
 
-`RootNavigation` determines the initial stack route by reading `AsyncStorage.getItem('user_profile')`.
+`AppBootstrap` determines the initial stack route by reading `AsyncStorage.getItem('user_profile')`.
 
 - If a local profile exists, the stack starts at `Home`.
 - If no local profile exists, the stack starts at `CompleteProfile`.
-- Until that read completes, `RootNavigation` returns `null`.
+- Until that read completes, `AppBootstrap` returns `null`.
+- `RootNavigation` receives the already-resolved `initialRouteName` and guards against mounting without it.
 
 ### Root stack route surface
 
-The root stack in `src/navigation/RootNavigation.js` currently groups together onboarding, the tab root, and many feature-detail routes:
+The root stack in `src/navigation/RootNavigation.js` is now a narrow top-level boundary:
 
 | Route grouping | Current routes |
 | --- | --- |
 | Onboarding / app shell | `CompleteProfile`, `Home` |
-| Journal-related | `WeightLog`, `QuarterlyEntry`, `DailyEntry`, `WeeklyEntry`, `SupplementLog`, `Calories`, `TraitDirectory` |
-| Nutrition-related | `Nutrition`, `Supplement`, `Meal`, `MealsList`, `MealDirectory`, `MealDetail` |
-| Recreation-related | `RoutineManager`, `ProgramManager`, `EditProgram`, `EditRoutine`, `MyExercises` |
-| Settings / account-related | `MyProfile`, `MyVitals`, `MyAccount`, `MyEmail`, `MyPassword`, `DeleteAccount`, `ExportToCSV`, `TermsOfUse`, `PrivacyPolicy`, `Abbrevations`, `Tutorials` |
-| Other standalone route | `Dashboard` |
+| Root-owned exception | `Tutorials` |
 
-This means the root stack is not only a shell navigator. It also serves as the main surface for many deep feature screens.
+This means the root stack is no longer the main host for feature-detail routes. It primarily owns app entry, the authenticated shell entry, and one preserved root-owned exception.
 
 ### Bottom-tab structure
 
@@ -53,11 +51,11 @@ This means the root stack is not only a shell navigator. It also serves as the m
 | Tab route name | Label shown in tab bar | Mounted component |
 | --- | --- | --- |
 | `Dashboard` | `Home` | `DashboardWrapper` |
-| `Journal` | `Journal` | `JournalWrapper` |
+| `Journal` | `Journal` | `JournalNavigation` |
 | `Calendar` | `Calendar` | `CalendarNavigation` |
-| `Nutrition` | `Nutrition` | `NutritionWrapper` |
-| `Recreation` | `Recreation` | `RecreationWrapper` |
-| `Settings` | `Settings` | `SettingWrapper` |
+| `Nutrition` | `Nutrition` | `NutritionNavigation` |
+| `Recreation` | `Recreation` | `RecreationNavigation` |
+| `Settings` | `Settings` | `SettingsNavigation` |
 
 Important current behavior:
 
@@ -65,25 +63,28 @@ Important current behavior:
 - The first tab route is named `Dashboard`, but its visible label is `Home`.
 - The settings domain folder is `src/screens/setting/`, while the tab route is `Settings` and the wrapper is `SettingWrapper`.
 
-### Nested calendar stack
+### Mounted nested feature stacks
 
-The calendar tab mounts its own stack navigator:
+Five of the six authenticated tabs now mount nested navigators:
 
-| Calendar stack route | Mounted component |
-| --- | --- |
-| `CalendarMain` | `CalendarWrapper` |
-| `Writing` | `WritingWrapper` |
-| `Edit Writing` | `EditWritingWrapper` |
-| `NewDay` | `NewDayWrapper` |
+| Navigator | Current route set | Current notes |
+| --- | --- | --- |
+| `CalendarNavigation` | `CalendarMain`, `Writing`, `Edit Writing`, `NewDay` | `Calendar` tab entry points into `CalendarMain`. |
+| `JournalNavigation` | `Journal`, `WeightLog`, `QuarterlyEntry`, `DailyEntry`, `WeeklyEntry`, `SupplementLog`, `Calories`, `TraitDirectory` | Tab route name and nested initial route both use `Journal`. |
+| `NutritionNavigation` | `Nutrition`, `Supplement`, `Meal`, `MealsList`, `MealDirectory`, `MealDetail` | Tab route name and nested initial route both use `Nutrition`. |
+| `RecreationNavigation` | `Recreation`, `RoutineManager`, `ProgramManager`, `EditProgram`, `EditRoutine`, `MyExercises` | Tab route name and nested initial route both use `Recreation`. |
+| `SettingsNavigation` | `Settings`, `MyProfile`, `MyVitals`, `MyAccount`, `MyEmail`, `MyPassword`, `DeleteAccount`, `ExportToCSV`, `TermsOfUse`, `PrivacyPolicy`, `Abbrevations` | Tab route name and nested initial route both use `Settings`. |
 
-This makes `writing` a separate screen domain in the filesystem, but a child flow of the calendar tab in the live navigation tree.
+This means `writing` remains a separate filesystem domain mounted under the calendar stack, while journal, nutrition, recreation, and settings now each have explicit nested-stack ownership under the authenticated shell.
 
 ### Evidence-backed inconsistencies in navigation
 
 - `BottomTabNavigation` starts on `Calendar` even though the `Dashboard` tab is labeled `Home`.
+- The tab route names `Journal`, `Nutrition`, `Recreation`, and `Settings` are each reused as the initial route names of their corresponding nested stacks.
+- `Tutorials` remains root-owned even though the screen lives under the settings module and is linked from onboarding and settings flows.
 - `src/navigation/DashboardNavigation.js` exists, but it is not referenced by the inspected root or tab wiring.
 - `src/screens/splashScreen/` and `src/screens/welcome/` both contain screen trees, but neither tree is referenced by the inspected root or tab wiring.
-- Naming is inconsistent across routes and files. Examples include `Edit Writing` with a space, `Settings` route vs `setting` folder, and `Abbrevations` as the route and folder name.
+- Naming is inconsistent across routes and files. Examples include `Edit Writing` with a space, `CalendarMain` as a nested entry-route alias under `Calendar`, `Settings` route vs `setting` folder, and `Abbrevations` as the route and folder name.
 
 ## Top-level `src/` layout
 
@@ -221,7 +222,7 @@ Several screens or navigation surfaces access storage directly:
 
 - `CompleteProfilePage` writes temporary onboarding values directly to AsyncStorage and assembles `user_profile` directly before dispatching `SET_USER`.
 - `DateOfBirthPage` and `HeightPage` each initialize their local step state by reading and writing AsyncStorage directly.
-- `RootNavigation` reads `user_profile` directly to decide whether the app opens at `CompleteProfile` or `Home`.
+- `AppBootstrap` reads `user_profile` directly to decide whether the app opens at `CompleteProfile` or `Home`.
 - `NutritionPage` stores `meal_id` directly in AsyncStorage when opening a meal flow.
 - `MealDetailPage` reads `meal_id` directly from AsyncStorage to add an item back to the selected meal.
 
@@ -233,7 +234,7 @@ The inspected MMKV structure is small but important:
 - initialization flag: `is_initialized`
 - bundled plan key: `plans_brunch_body`
 
-`App.js` triggers `hydrateWorkoutPlans()` on startup. That helper writes bundled Brunch Body plan data into MMKV only if initialization has not already happened.
+`AppBootstrap` triggers `hydrateWorkoutPlans()` on startup. That helper writes bundled Brunch Body plan data into MMKV only if initialization has not already happened.
 
 Recreation actions then read `plans_brunch_body` through MMKV helper functions to populate Brunch Body plan state.
 
@@ -257,8 +258,8 @@ The current local account lifecycle includes storage-clearing behavior:
 - Naming conventions drift across the codebase: camelCase, PascalCase, lowercase folders, route names with spaces, and singular/plural mismatches are all present.
 - `Abbrevations` appears as the persisted spelling in routes, folders, and exports.
 - The settings area has especially heavy mirror structure between `pages/` and `components/`, including nested folders with spaces such as `My Profile` and `Export To CSV`.
-- The root stack mixes shell-level navigation with many feature-detail routes rather than separating app shell and feature stacks cleanly.
-- Some surfaces appear to overlap. For example, `Dashboard` exists as both a bottom-tab screen and a standalone stack route, and nutrition surfaces exist both as a tab and as direct stack routes.
-- Direct storage usage appears in UI pages, navigation, Redux actions, and MMKV/bootstrap helpers rather than in one persistence layer.
-- Persistence logic is spread across `App.js`, `RootContainer`, `RootNavigation`, screen pages, Redux actions, Redux reducers, and storage helpers.
+- Navigation ownership is cleaner than the earlier root-heavy structure, but route-entry meaning is still split across the root shell, the tab shell, nested initial routes, visible tab labels, and the root-owned `Tutorials` exception.
+- Some surfaces still overlap semantically. For example, `Dashboard` is the registered tab route while the visible label is `Home`, and `Journal`, `Nutrition`, `Recreation`, and `Settings` are reused as both tab entry names and nested initial route names.
+- Direct storage usage appears in UI pages, `AppBootstrap`, Redux actions, and MMKV/bootstrap helpers rather than in one persistence layer.
+- Persistence logic is spread across `AppBootstrap`, `RootContainer`, screen pages, Redux actions, Redux reducers, and storage helpers.
 - Some navigation or screen surfaces are not referenced by the inspected root wiring. They should be reviewed later, but this inventory does not classify them as unused.

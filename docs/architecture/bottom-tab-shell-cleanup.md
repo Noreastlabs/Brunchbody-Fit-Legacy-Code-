@@ -6,6 +6,8 @@ This lane defines a bounded cleanup of `BottomTabNavigation` so it serves only a
 
 Startup behavior, top-level tab purpose, and screen-internal behavior must be preserved exactly. The intent is to narrow bottom-tab shell ownership without changing bootstrap semantics, root-shell entry, route names, tab purpose, or nested calendar behavior.
 
+Present-state reconciliation note: live code now mounts `JournalNavigation`, `CalendarNavigation`, `NutritionNavigation`, `RecreationNavigation`, and `SettingsNavigation` under the authenticated tab shell, with `Dashboard` remaining the only direct wrapper-backed tab route. Statements below that describe non-calendar tabs mounting wrappers directly or root still overlapping `Dashboard` and `Nutrition` should be read as historical lane context rather than current ownership truth. For current live ownership, see `docs/architecture/navigation-tree-and-route-ownership.md`, `docs/architecture/dead-route-and-duplicate-route-audit.md`, and the extracted domain-stack docs.
+
 ## Classification
 
 Ready for codex
@@ -75,9 +77,9 @@ The live bottom-tab shell currently owns six top-level authenticated destination
 
 `BottomTabNavigation` currently initializes to `Calendar`. That default-tab behavior is current-state evidence only and is not a change target in this lane unless a later lane explicitly reopens it.
 
-`Calendar` currently mounts `CalendarNavigation` as a nested stack entry point. The other tab destinations currently mount wrapper components directly.
+At lane approval time, `Calendar` mounted `CalendarNavigation` as the only nested stack entry point. Current live code is now narrower and mounts `JournalNavigation`, `CalendarNavigation`, `NutritionNavigation`, `RecreationNavigation`, and `SettingsNavigation` under the shell, with `Dashboard` remaining the only direct wrapper-backed tab route.
 
-Current shell-boundary drift exists as evidence only. For example, `RootNavigation` still directly registers routes that conceptually overlap with top-level tab-owned destinations, including `Dashboard` and `Nutrition`, even while `BottomTabNavigation` also owns those top-level entries.
+At lane approval time, shell-boundary drift also existed because `RootNavigation` still directly registered routes that conceptually overlapped with top-level tab-owned destinations. That overlap no longer matches current live root ownership and is preserved here only as historical context for why this lane existed.
 
 ## Objective
 

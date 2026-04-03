@@ -34,7 +34,7 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 
 ## Audit method
 
-- Reviewed the requested primary evidence surfaces first: `App.js`, `src/root-container/RootContainer.js`, `src/navigation/`, `src/redux/store/store.js`, `src/redux/actions/auth.js`, onboarding/settings/nutrition screens, and current public/local-first repo docs.
+- Reviewed the requested primary evidence surfaces first: `App.js`, `src/bootstrap/AppBootstrap.js`, `src/root-container/RootContainer.js`, `src/navigation/`, `src/redux/store/store.js`, `src/redux/actions/auth.js`, onboarding/settings/nutrition screens, and current public/local-first repo docs.
 - Used `docs/architecture/app-structure-inventory.md` as the main companion map for startup, navigation, Redux, and persistence structure.
 - Used `docs/architecture/legacy-residue-audit.md` as companion context for local-only/runtime residue and docs-truth drift risk.
 - Checked trust-sensitive documentation surfaces only where they directly affected current posture or account/settings behavior, including `docs/privacy/PLATFORM_PRIVACY_DISCLOSURES.md`, `docs/release/public-repository-visibility-2026-03-29.md`, `docs/release/public-repo-release-go-no-go-2026-03-29-rc2.md`, `docs/security/security-review-2026-03-28-followup.md`, and `docs/qa/local-data-validation-report.md`.
@@ -53,8 +53,8 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 
 | ID | Class | Risk | Severity | Primary surfaces | Recommended bounded follow-on lane |
 | --- | --- | --- | --- | --- | --- |
-| RC-01 | Architecture coupling | Boot-path coupling | High | `App.js`, `src/root-container/RootContainer.js`, `src/navigation/RootNavigation.js`, onboarding/storage helpers | Boot-path ownership note |
-| RC-02 | Architecture coupling | Root navigation fan-in | Medium-High | `src/navigation/RootNavigation.js`, `src/navigation/BottomTabNavigation.js` | Root navigation boundary cleanup audit |
+| RC-01 | Architecture coupling | Boot-path coupling | High | `src/bootstrap/AppBootstrap.js`, `src/root-container/RootContainer.js`, onboarding/storage helpers | Boot-path ownership note |
+| RC-02 | Architecture coupling | Navigation entry and ownership coupling | Medium-High | `src/navigation/RootNavigation.js`, `src/navigation/BottomTabNavigation.js`, mounted nested navigators | Navigation ownership clarification note |
 | RC-03 | Architecture coupling | Mixed persistence / storage truth | High | Redux Persist store, AsyncStorage callsites, MMKV hydration, nutrition/onboarding flows | Local persistence boundary map |
 | RC-04 | Trust/disclosure coupling | Local-first truth vs remote-mode residue | Medium | `src/config/runtimeMode.js`, `src/config/appMode.js`, `README.md` | Local-first truth alignment pass |
 | RC-05 | Trust/disclosure coupling | Settings/account trust coupling | High | settings/account screens, `src/redux/actions/auth.js`, local export/delete flows | Settings/account trust-surface behavior matrix |
@@ -67,9 +67,10 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 - Class: Architecture coupling
 - Severity: High
 - Evidence / affected surfaces:
-  - `App.js` calls `hydrateWorkoutPlans()` on mount before rendering the root container.
+  - `App.js` is now a thin entrypoint that renders `AppBootstrap`.
+  - `src/bootstrap/AppBootstrap.js` calls `hydrateWorkoutPlans()` on mount before rendering the root container.
+  - `src/bootstrap/AppBootstrap.js` reads `AsyncStorage.getItem('user_profile')` to choose `Home` versus `CompleteProfile`, returns `null` until that read finishes, and then renders `RootContainer`.
   - `src/root-container/RootContainer.js` adds Redux `Provider`, `PersistGate`, gesture shell, `PaperProvider`, and `RootNavigation`.
-  - `src/navigation/RootNavigation.js` reads `AsyncStorage.getItem('user_profile')` to choose `Home` versus `CompleteProfile`, and returns `null` until that read finishes.
   - `src/screens/completeProfile/pages/completeProfile/CompleteProfile.js` writes transient onboarding keys and later writes `user_profile` directly to AsyncStorage before dispatching `SET_USER`.
   - `docs/architecture/app-structure-inventory.md` documents that startup ownership is already split across bootstrap, root container, navigation, and storage helpers.
 - Coupling pattern:
@@ -81,22 +82,23 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 - Recommended bounded follow-on lane:
   - Boot-path ownership note.
 
-### RC-02 - Root navigation fan-in
+### RC-02 - Navigation entry and ownership coupling
 
 - Class: Architecture coupling
 - Severity: Medium-High
 - Evidence / affected surfaces:
-  - `src/navigation/RootNavigation.js` combines onboarding, tab shell, journal detail screens, nutrition routes, recreation routes, settings/account routes, and standalone screens in one root stack.
-  - `src/navigation/BottomTabNavigation.js` sets `initialRouteName="Calendar"` even though the first tab route is `Dashboard` with the label `Home`.
-  - `docs/architecture/app-structure-inventory.md` notes that the root stack mixes shell-level navigation with many feature-detail routes, and that some navigation surfaces exist outside the inspected live wiring.
+  - `src/navigation/RootNavigation.js` now keeps root ownership narrow with `CompleteProfile`, `Home`, and the preserved `Tutorials` exception.
+  - `src/navigation/BottomTabNavigation.js` sets `initialRouteName="Calendar"` even though the first tab route is `Dashboard` with the visible label `Home`.
+  - `src/navigation/JournalNavigation.js`, `src/navigation/NutritionNavigation.js`, `src/navigation/RecreationNavigation.js`, and `src/navigation/SettingsNavigation.js` each reuse the tab route string as their own nested initial route.
+  - `docs/architecture/app-structure-inventory.md` and `docs/architecture/dead-route-and-duplicate-route-audit.md` both note that `Tutorials` remains root-owned while the screen still lives under the settings module.
 - Coupling pattern:
-  - One root navigator acts as both app shell and cross-domain feature router, while the tab layer also carries naming and entrypoint ambiguity.
+  - Navigation ownership is cleaner than the earlier root-heavy structure, but entry meaning is still split across the root shell, the tab shell, nested initial routes, visible tab labels, and the preserved `Tutorials` exception.
 - Why it matters:
-  - Small route or shell changes can affect unrelated feature flows, and navigation review becomes harder because ownership is not cleanly separated.
+  - Small route, shell, or exception-surface changes can still affect onboarding exit, tutorial entry and exit, tab defaults, and later cleanup reviews because navigation meaning is distributed across layers.
 - Likely blast radius:
-  - Onboarding-to-home transition, tab resets, cross-feature route access, and later navigator cleanup lanes.
+  - Onboarding-to-home transition, tutorial entry and exit, tab resets, nested-stack entry assumptions, and later navigation cleanup lanes.
 - Recommended bounded follow-on lane:
-  - Root navigation boundary cleanup audit.
+  - Navigation ownership clarification note.
 
 ### RC-03 - Mixed persistence / storage truth
 
@@ -105,7 +107,7 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 - Evidence / affected surfaces:
   - `src/redux/store/store.js` persists seven Redux slices to the `root` AsyncStorage key.
   - `src/redux/actions/auth.js` separately reads and writes `user_profile`, local password keys, and onboarding keys outside the persisted `root` blob.
-  - `src/navigation/RootNavigation.js` reads `user_profile` directly from AsyncStorage for initial route selection.
+  - `src/bootstrap/AppBootstrap.js` reads `user_profile` directly from AsyncStorage for initial route selection.
   - `src/screens/completeProfile/pages/completeProfile/CompleteProfile.js` stores onboarding values and final profile data directly in AsyncStorage.
   - `src/screens/nutrition/pages/Nutrition/Nutrition.js` writes `meal_id` directly to AsyncStorage, and `src/screens/nutrition/pages/MealDetail/MealDetail.js` reads it back for item insertion flow.
   - `src/storage/mmkv/hydration.js` seeds bundled plans into MMKV under `plans_brunch_body`, independent of the persisted Redux root.
@@ -215,7 +217,7 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 
 ### Highest blast radius
 
-- `App.js`
+- `src/bootstrap/AppBootstrap.js`
 - `src/root-container/RootContainer.js`
 - `src/navigation/RootNavigation.js`
 - `src/redux/store/store.js`
@@ -233,7 +235,7 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 
 ### Highest structural review priority
 
-- Root startup boundary: `App.js`, `src/root-container/RootContainer.js`, `src/navigation/RootNavigation.js`
+- Root startup boundary: `src/bootstrap/AppBootstrap.js`, `src/root-container/RootContainer.js`, `src/navigation/RootNavigation.js`
 - Onboarding persistence boundary: `src/screens/completeProfile/pages/completeProfile/CompleteProfile.js`
 - Nutrition storage handoff boundary: `src/screens/nutrition/pages/Nutrition/Nutrition.js`, `src/screens/nutrition/pages/MealDetail/MealDetail.js`
 - Local reset and hydration boundary: `src/redux/actions/auth.js`, `src/storage/mmkv/hydration.js`
@@ -242,7 +244,7 @@ Scope note: this lane is an audit artifact only. It does not implement cleanup w
 
 1. Clean up boot-path ownership and mixed persistence truth first. Those surfaces have the highest blast radius and affect both launch behavior and later cleanup safety.
 2. Review settings/account trust-sensitive semantics next, especially delete/reset/export behavior and the local-only account contract.
-3. Tackle root navigation fan-in and Redux/domain sprawl after startup and trust-sensitive storage boundaries are better mapped.
+3. Tackle navigation entry and ownership coupling plus Redux/domain sprawl after startup and trust-sensitive storage boundaries are better mapped.
 4. Align code/docs/disclosure truth once the core behavior boundaries are clearly described, so later updates do not reintroduce trust drift.
 5. Leave tooling/runtime clarification for last unless it blocks verification evidence for the higher-priority lanes.
 
@@ -253,7 +255,7 @@ These lane seeds are sequencing inputs only. They are not implementation approva
 - Boot-path ownership note
 - Local persistence boundary map
 - Settings/account trust-surface behavior matrix
-- Root navigation boundary cleanup audit
+- Navigation ownership clarification note
 - Redux domain boundary review
 - Docs-truth alignment pass
 

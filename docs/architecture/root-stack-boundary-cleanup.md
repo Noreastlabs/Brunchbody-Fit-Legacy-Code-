@@ -6,6 +6,8 @@ This lane defines a bounded cleanup of `RootNavigation` so it stops acting as a 
 
 Startup behavior and user-visible navigation behavior must be preserved exactly. The intent is to narrow root-stack ownership without changing bootstrap semantics, route names, provider order, tab-shell behavior, or screen behavior.
 
+Present-state reconciliation note: live code has since narrowed root ownership to `CompleteProfile`, `Home`, and `Tutorials`, while journal, nutrition, recreation, and settings detail routes now live under tab-mounted nested navigators. This lane doc should be read as historical cleanup context, not as the current ownership inventory. For current live ownership, see `docs/architecture/navigation-tree-and-route-ownership.md`, `docs/architecture/dead-route-and-duplicate-route-audit.md`, and the extracted domain-stack docs.
+
 ## Classification
 
 Ready for codex
@@ -59,7 +61,7 @@ Active code shows the current startup path as:
 3. `RootContainer` receives `initialRouteName` and passes it into `RootNavigation`.
 4. `RootNavigation` mounts the root stack with that same `initialRouteName`.
 
-The live root stack currently owns both true app-entry routes and many obvious domain/detail routes directly. In current code, root ownership spans:
+At lane approval time, the live root stack still owned both true app-entry routes and many obvious domain/detail routes directly. That starting point is preserved here as historical context for this lane's intent:
 
 - bootstrap and shell entry: `CompleteProfile`, `Home`
 - journal-related detail routes
