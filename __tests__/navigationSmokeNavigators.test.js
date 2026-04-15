@@ -127,10 +127,6 @@ jest.mock('../src/screens/dashboard', () => ({
 jest.mock('../src/screens/calendar', () => ({
   __esModule: true,
   CalendarWrapper: mockCalendarWrapper,
-}));
-
-jest.mock('../src/screens/writing', () => ({
-  __esModule: true,
   WritingWrapper: mockWritingWrapper,
   EditWritingWrapper: mockEditWritingWrapper,
   NewDayWrapper: mockNewDayWrapper,
@@ -268,6 +264,10 @@ describe('Navigation smoke navigator contracts', () => {
   test('CalendarNavigation keeps CalendarMain and the NewDay route under the Calendar tab', () => {
     const renderer = renderTree(<CalendarNavigation />);
     const stackNavigator = renderer.root.findByType('mock-stack-navigator');
+    const stackScreens = renderer.root.findAllByType('mock-stack-screen');
+    const routeToComponent = Object.fromEntries(
+      stackScreens.map(screen => [screen.props.name, screen.props.component]),
+    );
 
     expect(stackNavigator.props.initialRouteName).toBe('CalendarMain');
     expect(getScreenNames(renderer, 'mock-stack-screen')).toEqual([
@@ -276,6 +276,12 @@ describe('Navigation smoke navigator contracts', () => {
       'Edit Writing',
       'NewDay',
     ]);
+    expect(routeToComponent).toMatchObject({
+      CalendarMain: mockCalendarWrapper,
+      Writing: mockWritingWrapper,
+      'Edit Writing': mockEditWritingWrapper,
+      NewDay: mockNewDayWrapper,
+    });
   });
 
   test('JournalNavigation keeps the current journal stack route set', () => {

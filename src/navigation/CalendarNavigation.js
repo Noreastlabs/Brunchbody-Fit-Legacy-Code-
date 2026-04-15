@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { CalendarWrapper } from '../screens/calendar';
 import {
+  CalendarWrapper,
   WritingWrapper,
   EditWritingWrapper,
   NewDayWrapper,
-} from '../screens/writing';
+} from '../screens/calendar';
 import { CALENDAR_ROUTES } from './routeNames';
 
 const CalendarStack = createStackNavigator();
