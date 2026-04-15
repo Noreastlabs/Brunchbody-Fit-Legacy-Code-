@@ -8,7 +8,7 @@ import nutritionReducer from '../reducer/nutrition';
 import recreationReducer from '../reducer/recreation';
 import calendarReducer from '../reducer/calendar';
 import exerciseReducer from '../reducer/exercise';
-import todoReducer from '../reducer/todo';
+import calendarTodoReducer from '../reducer/todo';
 import { RESET_APP } from '../constants';
 
 const appReducer = combineReducers({
@@ -18,7 +18,8 @@ const appReducer = combineReducers({
   nutrition: nutritionReducer,
   calendar: calendarReducer,
   exercise: exerciseReducer,
-  todo: todoReducer,
+  // Preserve the legacy persisted slice key until a dedicated migration lane.
+  todo: calendarTodoReducer,
 });
 
 const rootReducer = (state, action) => {

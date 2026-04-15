@@ -7,11 +7,21 @@ import SomedayButton from './SomedayButton';
 import TodayButton from './TodayButton';
 import styles from './style';
 
-const Todo = ({todo, showModal, todoListDate}) => (
-  <View style={{margin: 20}}>
-    <Text style={{fontSize: 30, color: colors.secondary, fontWeight: 'bold'}}>
-      {strings.editTask.title}
-    </Text>
+const containerStyle = {margin: 20};
+const titleStyle = {
+  fontSize: 30,
+  color: colors.secondary,
+  fontWeight: 'bold',
+};
+const emptyStateStyle = {
+  fontSize: 20,
+  color: colors.secondary,
+  fontWeight: 'bold',
+};
+
+const Todo = ({tasks, showModal, todoListDate}) => (
+  <View style={containerStyle}>
+    <Text style={titleStyle}>{strings.editTask.title}</Text>
     <View>
       <Text style={styles.todoSubheading}>
         {moment(todoListDate).format('YYYY-MM-DD') ===
@@ -19,21 +29,14 @@ const Todo = ({todo, showModal, todoListDate}) => (
           ? strings.todo.today
           : moment(todoListDate).format('MM/DD/YYYY')}
       </Text>
-      {todo.filter(
+      {tasks.filter(
         i =>
           moment(i.day).format('YYYY-MM-DD') ===
           moment(todoListDate).format('YYYY-MM-DD'),
       ).length === 0 ? (
-        <Text
-          style={{
-            fontSize: 20,
-            color: colors.secondary,
-            fontWeight: 'bold',
-          }}>
-          {strings.editTask.noTasks}
-        </Text>
+        <Text style={emptyStateStyle}>{strings.editTask.noTasks}</Text>
       ) : (
-        todo
+        tasks
           .filter(
             i =>
               moment(i.day).format('YYYY-MM-DD') ===
@@ -49,17 +52,10 @@ const Todo = ({todo, showModal, todoListDate}) => (
 
     <View>
       <Text style={styles.todoSubheading}>{strings.todo.someday}</Text>
-      {todo.filter(task => task.day === strings.todo.someday).length === 0 ? (
-        <Text
-          style={{
-            fontSize: 20,
-            color: colors.secondary,
-            fontWeight: 'bold',
-          }}>
-          {strings.editTask.noTasks}
-        </Text>
+      {tasks.filter(task => task.day === strings.todo.someday).length === 0 ? (
+        <Text style={emptyStateStyle}>{strings.editTask.noTasks}</Text>
       ) : (
-        todo
+        tasks
           .filter(task => task.day === strings.todo.someday)
           .map(filteredTask => (
             <View key={filteredTask.id}>
@@ -73,7 +69,7 @@ const Todo = ({todo, showModal, todoListDate}) => (
 
 Todo.propTypes = {
   showModal: PropTypes.func.isRequired,
-  todo: PropTypes.arrayOf(PropTypes.any).isRequired,
+  tasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   todoListDate: PropTypes.string.isRequired,
 };
 

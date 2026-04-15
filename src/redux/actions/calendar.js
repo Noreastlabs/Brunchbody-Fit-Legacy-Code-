@@ -1,4 +1,3 @@
-/* eslint-disable no-use-before-define */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
 import {
@@ -82,3 +81,12 @@ export const editRepeatedTheme = (id, data) => async dispatch => {
   await dispatch({type: SET_THEME_WITH_FREQUENCY, payload: null});
   return true;
 };
+
+// Keep the legacy todo storage/slice contract unchanged while the live todo
+// experience remains calendar-owned in the Phase 1 UI.
+export {
+  addTodo as addCalendarTodoTask,
+  deleteTodo as deleteCalendarTodoTask,
+  editTodo as editCalendarTodoTask,
+  getTodo as getCalendarTodoTasks,
+} from './todo';

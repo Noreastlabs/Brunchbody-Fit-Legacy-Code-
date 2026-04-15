@@ -7,18 +7,15 @@ import { AddRemoveTheme, ClearTheme, CustomModal, DatePickerModal, PermissionMod
 import {
   addRepeatedTheme,
   addTheme,
-  addTodo,
+  addCalendarTodoTask,
   changeRepeatedTheme,
   clearCurrentTheme,
   clearThemeDays,
   deleteTheme,
-  deleteTodo,
+  deleteCalendarTodoTask,
   editRepeatedTheme,
-  editTodo,
+  editCalendarTodoTask,
   getRepeatedThemes,
-  getThemes,
-  getTodo,
-  profile,
   setTheme,
   updateThemesWithFrequency,
 } from '../../../../redux/actions';
@@ -45,14 +42,12 @@ export default function CalendarPage(props) {
     user,
     navigation,
     onAddTheme,
-    onGetThemes,
     myThemes,
     onDeleteTheme,
-    onGetTodo,
-    onAddTodo,
-    onEditTodo,
-    onDeleteTodo,
-    todo,
+    onAddCalendarTodoTask,
+    onEditCalendarTodoTask,
+    onDeleteCalendarTodoTask,
+    calendarTodoTasks,
     onAddRepeatedTheme,
     currentTheme,
     themesWithFrequency,
@@ -60,7 +55,6 @@ export default function CalendarPage(props) {
     repeatedTheme,
     setRepeatedTheme,
     onClearCurrentTheme,
-    updateUserProfile,
     onUpdateThemesWithFrequency,
     onGetRepeatedTheme,
     onRemoveThemeDays,
@@ -220,8 +214,6 @@ export default function CalendarPage(props) {
   };
 
   const getAllData = async () => {
-    // await onGetThemes();
-    // await onGetTodo();
     await onGetRepeatedTheme();
   };
 
@@ -304,7 +296,7 @@ export default function CalendarPage(props) {
     if (taskName.trim() && taskDay.trim()) {
       setBtnLoader(true);
 
-      const response = await onAddTodo({
+      const response = await onAddCalendarTodoTask({
         name: taskName,
         notes: taskNotes,
         day:
@@ -339,7 +331,7 @@ export default function CalendarPage(props) {
     if (taskName.trim() && taskDay.trim()) {
       setBtnLoader(true);
 
-      const response = await onEditTodo(todoTask.id, {
+      const response = await onEditCalendarTodoTask(todoTask.id, {
         name: taskName,
         notes: taskNotes,
         day:
@@ -369,7 +361,7 @@ export default function CalendarPage(props) {
 
   const onClearTodo = async () => {
     setDeleteLoader(true);
-    const response = await onDeleteTodo(todoTask.id);
+    const response = await onDeleteCalendarTodoTask(todoTask.id);
 
     if (response === true) {
       setDeleteLoader(false);
@@ -599,13 +591,6 @@ export default function CalendarPage(props) {
       setDeleteLoader(true);
       const day = clearDays.slice(0, clearDays.length - 1);
 
-      // const response = await updateUserProfile({
-      //   clearedThemeDays: {
-      //     ...user.clearedThemeDays,
-      //     [day]: new Date().getTime(),
-      //   },
-      // });
-
       const response = await onRemoveThemeDays({
         ...clearedThemeDays,
         [day]: new Date().getTime(),
@@ -643,7 +628,11 @@ export default function CalendarPage(props) {
           showCalendarMenu={() => setvisibleCalendarMenu(true)}
         />
 
-        <Todo todo={todo} showModal={showModal} todoListDate={todoListDate} />
+        <Todo
+          tasks={calendarTodoTasks}
+          showModal={showModal}
+          todoListDate={todoListDate}
+        />
       </ScrollView>
 
       <EditTask
@@ -858,14 +847,12 @@ CalendarPage.defaultProps = {
 CalendarPage.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
   onAddTheme: PropTypes.func.isRequired,
-  onGetThemes: PropTypes.func.isRequired,
   myThemes: PropTypes.arrayOf(PropTypes.any).isRequired,
   onDeleteTheme: PropTypes.func.isRequired,
-  onGetTodo: PropTypes.func.isRequired,
-  onAddTodo: PropTypes.func.isRequired,
-  onEditTodo: PropTypes.func.isRequired,
-  onDeleteTodo: PropTypes.func.isRequired,
-  todo: PropTypes.arrayOf(PropTypes.any).isRequired,
+  onAddCalendarTodoTask: PropTypes.func.isRequired,
+  onEditCalendarTodoTask: PropTypes.func.isRequired,
+  onDeleteCalendarTodoTask: PropTypes.func.isRequired,
+  calendarTodoTasks: PropTypes.arrayOf(PropTypes.any).isRequired,
   onAddRepeatedTheme: PropTypes.func.isRequired,
   themesWithFrequency: PropTypes.objectOf(PropTypes.any).isRequired,
   currentTheme: PropTypes.objectOf(PropTypes.any),
@@ -874,7 +861,6 @@ CalendarPage.propTypes = {
   setRepeatedTheme: PropTypes.func.isRequired,
   onClearCurrentTheme: PropTypes.func.isRequired,
   user: PropTypes.objectOf(PropTypes.any).isRequired,
-  updateUserProfile: PropTypes.func.isRequired,
   onUpdateThemesWithFrequency: PropTypes.func.isRequired,
   onGetRepeatedTheme: PropTypes.func.isRequired,
   onRemoveThemeDays: PropTypes.func.isRequired,
@@ -883,7 +869,7 @@ CalendarPage.propTypes = {
 
 const mapStateToProps = state => ({
   user: state.auth?.user,
-  todo: state.todo?.todoTasks,
+  calendarTodoTasks: state.todo?.todoTasks,
   myThemes: state.calendar?.themes,
   currentTheme: state.calendar?.currentTheme,
   repeatedTheme: state.calendar?.repeatedTheme,
@@ -892,19 +878,17 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onGetThemes: () => dispatch(getThemes()),
   onAddTheme: data => dispatch(addTheme(data)),
   onDeleteTheme: id => dispatch(deleteTheme(id)),
-  onGetTodo: () => dispatch(getTodo()),
-  onAddTodo: data => dispatch(addTodo(data)),
-  onEditTodo: (id, data) => dispatch(editTodo(id, data)),
-  onDeleteTodo: id => dispatch(deleteTodo(id)),
+  onAddCalendarTodoTask: data => dispatch(addCalendarTodoTask(data)),
+  onEditCalendarTodoTask: (id, data) =>
+    dispatch(editCalendarTodoTask(id, data)),
+  onDeleteCalendarTodoTask: id => dispatch(deleteCalendarTodoTask(id)),
   onGetRepeatedTheme: () => dispatch(getRepeatedThemes()),
   onAddRepeatedTheme: data => dispatch(addRepeatedTheme(data)),
   onEditRepeatedTheme: (id, data) => dispatch(editRepeatedTheme(id, data)),
   setRepeatedTheme: data => dispatch(changeRepeatedTheme(data)),
   onClearCurrentTheme: () => dispatch(clearCurrentTheme()),
-  updateUserProfile: data => dispatch(profile(data)),
   onUpdateThemesWithFrequency: val => dispatch(updateThemesWithFrequency(val)),
   onRemoveThemeDays: data => dispatch(clearThemeDays(data)),
 });
