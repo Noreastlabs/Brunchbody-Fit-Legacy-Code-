@@ -14,7 +14,6 @@ export const getAllJournalEntries = () => async dispatch => {
 
 export const getJournalEntries = date => async dispatch => {
   await dispatch({ type: GET_JOURNAL_ENTRIES, payload: { date } });
-  await dispatch({ type: GET_ALL_JOURNAL_ENTRIES });
 };
 
 export const addJournalEntry = (date, data) => async dispatch => {

@@ -1,14 +1,13 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { ScrollView } from 'react-native';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import Details from './Details';
 import CarouselCards from './Carousel';
 import style from './style';
 
 function Week(props) {
-  const { weightData, outlookData, calDiffData } = props;
+  const { dashboardReadModel } = props;
+  const { weightData, outlookData, calDiffData } = dashboardReadModel.week;
 
   return (
     <ScrollView
@@ -28,15 +27,7 @@ function Week(props) {
 }
 
 Week.propTypes = {
-  weightData: PropTypes.arrayOf(PropTypes.any).isRequired,
-  outlookData: PropTypes.arrayOf(PropTypes.any).isRequired,
-  calDiffData: PropTypes.arrayOf(PropTypes.any).isRequired,
+  dashboardReadModel: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
-const mapStateToProps = state => ({
-  weightData: state.journal?.weeklyWeightList,
-  outlookData: state.journal?.weeklyOutlookList,
-  calDiffData: state.journal?.weeklyCaloriesDiffList,
-});
-
-export default connect(mapStateToProps)(Week);
+export default Week;

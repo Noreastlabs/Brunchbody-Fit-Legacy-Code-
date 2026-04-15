@@ -1,13 +1,10 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable no-undef */
-/* eslint-disable react/jsx-props-no-spreading */
 import { useFocusEffect } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
 import { BackHandler } from 'react-native';
 import { connect } from 'react-redux';
-import { getAllJournalEntries } from '../../../../redux/actions';
 import Dashboard from '../../components';
+import { buildDashboardReadModel } from '../../readModel';
 
 const daysName = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const monthsName = [
@@ -33,7 +30,6 @@ const tabs = [
 ];
 
 export function DashboardPage(props) {
-  const { getAllUserEntries } = props;
   const [loader, setLoader] = useState(true);
   const [days] = useState([]);
   const [months] = useState([]);
@@ -55,12 +51,6 @@ export function DashboardPage(props) {
       return () => backHandler.remove();
     }, []),
   );
-
-  const getData = async () => {
-    setLoader(true);
-    await getAllUserEntries();
-    setLoader(false);
-  };
 
   const setGraphLabels = () => {
     let currentDay = new Date().getDay();
@@ -87,7 +77,7 @@ export function DashboardPage(props) {
 
   useEffect(() => {
     setGraphLabels();
-    getData();
+    setLoader(false);
   }, []);
 
   return (
@@ -105,19 +95,15 @@ export function DashboardPage(props) {
 }
 
 DashboardPage.propTypes = {
-  getAllUserEntries: PropTypes.func.isRequired,
+  dashboardReadModel: PropTypes.objectOf(PropTypes.any).isRequired,
 };
 
 const mapStateToProps = state => ({
   user: state.auth?.user,
   currentTheme: state.calendar?.currentTheme,
+  dashboardReadModel: buildDashboardReadModel(
+    state.journal?.allJournalEntriesList || [],
+  ),
 });
 
-const mapDispatchToProps = dispatch => ({
-  getAllUserEntries: () => dispatch(getAllJournalEntries()),
-});
-
-export const DashboardWrapper = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DashboardPage);
+export const DashboardWrapper = connect(mapStateToProps)(DashboardPage);
