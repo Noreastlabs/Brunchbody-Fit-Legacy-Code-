@@ -110,10 +110,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../src/screens/setting/pages/Tutorials', () => ({
-  TutorialsWrapper: mockTutorialsWrapper,
-}));
-
 jest.mock('../src/navigation/BottomTabNavigation', () => ({
   __esModule: true,
   default: mockBottomTabNavigation,
@@ -177,6 +173,7 @@ jest.mock('../src/screens/setting', () => ({
   TermsOfUseWrapper: mockTermsOfUseWrapper,
   PrivacyPolicyWrapper: mockPrivacyPolicyWrapper,
   AbbrevationsWrapper: mockAbbrevationsWrapper,
+  TutorialsWrapper: mockTutorialsWrapper,
 }));
 
 const RootNavigation = require('../src/navigation/RootNavigation').default;
@@ -221,6 +218,9 @@ describe('Navigation smoke navigator contracts', () => {
     const stackNavigator = renderer.root.findByType('mock-stack-navigator');
     const stackScreens = renderer.root.findAllByType('mock-stack-screen');
     const homeScreen = stackScreens.find(screen => screen.props.name === 'Home');
+    const routeToComponent = Object.fromEntries(
+      stackScreens.map(screen => [screen.props.name, screen.props.component]),
+    );
 
     expect(stackNavigator.props.initialRouteName).toBe('Home');
     expect(getScreenNames(renderer, 'mock-stack-screen')).toEqual([
@@ -229,6 +229,7 @@ describe('Navigation smoke navigator contracts', () => {
       'Tutorials',
     ]);
     expect(homeScreen.props.component).toBe(mockBottomTabNavigation);
+    expect(routeToComponent.Tutorials).toBe(mockTutorialsWrapper);
   });
 
   test('BottomTabNavigation keeps the six authenticated tab destinations', () => {

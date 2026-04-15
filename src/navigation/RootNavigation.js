@@ -3,8 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 
 import { CompleteProfileWrapper } from '../screens/completeProfile/pages/completeProfile/CompleteProfile';
+import { TutorialsWrapper } from '../screens/setting';
 import { DateProvider } from '../context/DateProvider';
-import { TutorialsWrapper } from '../screens/setting/pages/Tutorials';
 import BottomTabNavigation from './BottomTabNavigation';
 import { ROOT_ROUTES } from './routeNames';
 
