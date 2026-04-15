@@ -5,9 +5,23 @@ import { ROOT_ROUTES } from '../navigation/routeNames';
 import { hydrateWorkoutPlans } from '../storage/mmkv/hydration';
 import { hasStoredProfile } from '../redux/actions/authStorage';
 
+const BOOTSTRAP_FALLBACK_ROUTE = ROOT_ROUTES.COMPLETE_PROFILE;
+const BOOTSTRAP_ERROR_MESSAGE =
+  '[AppBootstrap] Startup failed. Falling back to CompleteProfile.';
+
 export const resolveInitialRouteName = async () => {
   const profileExists = await hasStoredProfile();
   return profileExists ? ROOT_ROUTES.HOME : ROOT_ROUTES.COMPLETE_PROFILE;
+};
+
+const runBootstrap = async () => {
+  try {
+    hydrateWorkoutPlans();
+    return await resolveInitialRouteName();
+  } catch (error) {
+    console.error(BOOTSTRAP_ERROR_MESSAGE, error);
+    return BOOTSTRAP_FALLBACK_ROUTE;
+  }
 };
 
 export default function AppBootstrap() {
@@ -17,10 +31,8 @@ export default function AppBootstrap() {
   useEffect(() => {
     let isMounted = true;
 
-    hydrateWorkoutPlans();
-
     const bootstrapApp = async () => {
-      const resolvedInitialRouteName = await resolveInitialRouteName();
+      const resolvedInitialRouteName = await runBootstrap();
 
       if (isMounted) {
         setInitialRouteName(resolvedInitialRouteName);
