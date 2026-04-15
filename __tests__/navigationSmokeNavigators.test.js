@@ -252,6 +252,7 @@ describe('Navigation smoke navigator contracts', () => {
       'Recreation',
       'Settings',
     ]);
+    expect(dashboardScreen.props.component).toBe(mockDashboardWrapper);
     expect(dashboardScreen.props.options.tabBarLabel).toBe('Home');
     expect(routeToComponent).toMatchObject({
       Journal: JournalNavigation,
