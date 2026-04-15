@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
+import {getJsonItem} from '../../storage/asyncStorageJson';
 import {
   ADD_MEAL,
   ADD_MEAL_ITEMS,
@@ -25,8 +25,7 @@ assertLocalOnlyMode('nutrition actions');
 
 
 export const getMeals = () => async dispatch => {
-  const mealsString = await AsyncStorage.getItem('meals');
-  const meals = mealsString ? JSON.parse(mealsString) : [];
+  const meals = await getJsonItem('meals', []);
   dispatch({type: GET_MEALS, payload: meals});
   return true;
 };
@@ -72,8 +71,7 @@ export const setSupplementItems = data => async dispatch => {
 };
 
 export const getSupplements = () => async dispatch => {
-  const supplementsString = await AsyncStorage.getItem('supplements');
-  const supplements = supplementsString ? JSON.parse(supplementsString) : [];
+  const supplements = await getJsonItem('supplements', []);
   dispatch({type: GET_SUPPLEMENTS, payload: supplements});
   return true;
 };
@@ -109,15 +107,13 @@ export const deleteSupplementItem = data => async dispatch => {
 };
 
 export const getMealCategories = () => async dispatch => {
-  const categoriesString = await AsyncStorage.getItem('meal_categories');
-  const categories = categoriesString ? JSON.parse(categoriesString) : [];
+  const categories = await getJsonItem('meal_categories', []);
   dispatch({type: GET_MEAL_CATEGORIES, payload: categories});
   return true;
 };
 
 export const getMealsDirectory = () => async dispatch => {
-  const directoryString = await AsyncStorage.getItem('meals_directory');
-  const directory = directoryString ? JSON.parse(directoryString) : [];
+  const directory = await getJsonItem('meals_directory', []);
   dispatch({type: GET_MEALS_DIRECTORY, payload: directory});
   return true;
 };
