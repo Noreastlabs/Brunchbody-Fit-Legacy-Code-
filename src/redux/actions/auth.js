@@ -2,30 +2,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storage } from '../../storage/mmkv';
 import { hydrateWorkoutPlans } from '../../storage/mmkv/hydration';
 import { CLEAR_USER, RESET_APP, SET_USER } from '../constants';
+import {
+  loadStoredProfile,
+  ONBOARDING_DRAFT_KEYS,
+  saveStoredProfile,
+  USER_PROFILE_KEY,
+} from './authStorage';
 
-const USER_PROFILE_KEY = 'user_profile';
 const LOCAL_PASSWORD_KEY = 'local_password';
 const LOCAL_PASSWORD_RESET_REQUEST_KEY = 'local_password_reset_requested_at';
-const TRANSIENT_PROFILE_KEYS = ['name', 'dob', 'height', 'weight', 'gender'];
-
-const loadStoredProfile = async () => {
-  const profileData = await AsyncStorage.getItem(USER_PROFILE_KEY);
-  return profileData ? JSON.parse(profileData) : null;
-};
-
-const saveStoredProfile = async (profileData, dispatch) => {
-  await AsyncStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profileData));
-  dispatch({
-    type: SET_USER,
-    payload: profileData,
-  });
-};
 
 export const loggedIn = () => async dispatch => {
-  const profileData = await AsyncStorage.getItem(USER_PROFILE_KEY);
+  const user = await loadStoredProfile();
 
-  if (profileData) {
-    const user = JSON.parse(profileData);
+  if (user) {
     dispatch({
       type: SET_USER,
       payload: user,
@@ -40,7 +30,11 @@ export const profile = data => async dispatch => {
   const parsedProfile = (await loadStoredProfile()) || {};
   const updatedProfile = { ...parsedProfile, ...data };
 
-  await saveStoredProfile(updatedProfile, dispatch);
+  await saveStoredProfile(updatedProfile);
+  dispatch({
+    type: SET_USER,
+    payload: updatedProfile,
+  });
   return true;
 };
 
@@ -49,7 +43,7 @@ export const logout = () => async dispatch => {
     USER_PROFILE_KEY,
     LOCAL_PASSWORD_KEY,
     LOCAL_PASSWORD_RESET_REQUEST_KEY,
-    ...TRANSIENT_PROFILE_KEYS,
+    ...ONBOARDING_DRAFT_KEYS,
   ]);
 
   dispatch({
@@ -66,7 +60,12 @@ export const changeEmail = ({ email }) => async dispatch => {
     return 'Complete your profile before updating the local email.';
   }
 
-  await saveStoredProfile({ ...existingProfile, email }, dispatch);
+  const updatedProfile = { ...existingProfile, email };
+  await saveStoredProfile(updatedProfile);
+  dispatch({
+    type: SET_USER,
+    payload: updatedProfile,
+  });
   return true;
 };
 

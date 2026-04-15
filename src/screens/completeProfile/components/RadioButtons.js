@@ -2,9 +2,9 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import {RadioButton} from 'react-native-paper';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import style from './style';
 import {colors} from '../../../resources';
+import {setOnboardingDraftValue} from '../../../redux/actions/authStorage';
 
 const RadioButtons = ({option1, option2}) => {
   const [checked, setChecked] = React.useState('first');
@@ -16,7 +16,7 @@ const RadioButtons = ({option1, option2}) => {
         status={checked === 'first' ? 'checked' : 'unchecked'}
         onPress={() => {
           setChecked('first');
-          AsyncStorage.setItem('gender', 'male');
+          setOnboardingDraftValue('gender', 'male');
         }}
       />
       <Text style={style.genderText}>{option1}</Text>
@@ -26,7 +26,7 @@ const RadioButtons = ({option1, option2}) => {
         status={checked === 'second' ? 'checked' : 'unchecked'}
         onPress={() => {
           setChecked('second');
-          AsyncStorage.setItem('gender', 'female');
+          setOnboardingDraftValue('gender', 'female');
         }}
       />
       <Text style={style.genderText}>{option2}</Text>

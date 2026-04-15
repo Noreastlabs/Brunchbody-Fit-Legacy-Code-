@@ -1,9 +1,13 @@
 import React, {useState} from 'react';
 import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {SET_USER} from '../../../../redux/constants';
 import { AUTH_TAB_ROUTES, ROOT_ROUTES } from '../../../../navigation/routeNames';
+import {
+  clearOnboardingDraft,
+  getOnboardingDraftValue,
+  setOnboardingDraftValue,
+} from '../../../../redux/actions/authStorage';
+import {profile} from '../../../../redux/actions/auth';
 import {Name, Gender, Welcome, Weight} from '../../components';
 import {DateOfBirthWrapper} from './DateOfBirth';
 import {HeightWrapper} from './Height';
@@ -35,18 +39,18 @@ export const CompleteProfilePage = () => {
 
   const onSetName = val => {
     setName(val);
-    AsyncStorage.setItem('name', val);
+    setOnboardingDraftValue('name', val);
   };
 
   const onSetWeight = val => {
     setWeight(val);
-    AsyncStorage.setItem('weight', val);
+    setOnboardingDraftValue('weight', val);
   };
 
   const giveCurrentScreen = async screen => {
-    const dob = await AsyncStorage.getItem('dob');
-    const height = await AsyncStorage.getItem('height');
-    const gender = await AsyncStorage.getItem('gender');
+    const dob = await getOnboardingDraftValue('dob');
+    const height = await getOnboardingDraftValue('height');
+    const gender = await getOnboardingDraftValue('gender');
 
     if (screen === ROOT_ROUTES.HOME) {
       navigation.navigate(ROOT_ROUTES.HOME, {
@@ -95,17 +99,11 @@ export const CompleteProfilePage = () => {
         ],
       };
 
-      await AsyncStorage.setItem(
-        'user_profile',
-        JSON.stringify(profileData),
-      );
-      dispatch({type: SET_USER, payload: profileData});
+      await dispatch(profile(profileData));
       setCurrentScreen(screen);
       setName('');
       setWeight('');
-      AsyncStorage.removeItem('dob');
-      AsyncStorage.removeItem('height');
-      AsyncStorage.removeItem('gender');
+      await clearOnboardingDraft(['dob', 'height', 'gender']);
       setLoader(false);
     } else {
       showMessage('Error!', 'This field is required!');

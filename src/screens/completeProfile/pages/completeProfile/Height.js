@@ -1,8 +1,10 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useEffect, useState} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getOnboardingDraftValue,
+  setOnboardingDraftValue,
+} from '../../../../redux/actions/authStorage';
 import {Height} from '../../components';
 
 export const HeightPage = props => {
@@ -16,14 +18,14 @@ export const HeightPage = props => {
   }, []);
 
   const getHeight = async () => {
-    const height = await AsyncStorage.getItem('height');
+    const height = await getOnboardingDraftValue('height');
 
     if (height) {
       const temp = height.split('.');
       setFeet(parseInt(temp[0], 10));
       setInches(parseInt(temp[1], 10));
     } else {
-      AsyncStorage.setItem('height', `${feet}.${inches}`);
+      setOnboardingDraftValue('height', `${feet}.${inches}`);
     }
   };
 

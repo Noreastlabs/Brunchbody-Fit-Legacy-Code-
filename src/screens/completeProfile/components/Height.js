@@ -1,8 +1,6 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {View, SafeAreaView, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   CustomModal,
   LogoHeader,
@@ -14,6 +12,7 @@ import NextButton from './NextButton';
 import BackButton from './BackButton';
 import Label from './Label';
 import {strings} from '../../../resources';
+import {setOnboardingDraftValue} from '../../../redux/actions/authStorage';
 import style from './style';
 
 const Height = props => {
@@ -67,7 +66,7 @@ const Height = props => {
             onConfirm={() => {
               setIsHeightSelected(true);
               setModalVisible(false);
-              AsyncStorage.setItem('height', `${feet}.${inches}`);
+              setOnboardingDraftValue('height', `${feet}.${inches}`);
             }}
             onCancel={() => {
               // setIsHeightSelected(false);

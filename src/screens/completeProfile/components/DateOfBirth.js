@@ -1,8 +1,6 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {View, SafeAreaView, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   CustomModal,
   LogoHeader,
@@ -10,6 +8,7 @@ import {
   PermissionModal,
 } from '../../../components';
 import {strings} from '../../../resources';
+import {setOnboardingDraftValue} from '../../../redux/actions/authStorage';
 import NextButton from './NextButton';
 import BackButton from './BackButton';
 import Label from './Label';
@@ -72,7 +71,7 @@ const DateOfBirth = props => {
             onConfirm={() => {
               setIsDateSelected(true);
               setDatePickerVisibility(false);
-              AsyncStorage.setItem('dob', `${date}/${month}/${year}`);
+              setOnboardingDraftValue('dob', `${date}/${month}/${year}`);
             }}
             onCancel={() => {
               // setIsDateSelected(false);

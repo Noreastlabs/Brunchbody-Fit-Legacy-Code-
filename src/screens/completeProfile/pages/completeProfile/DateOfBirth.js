@@ -1,8 +1,10 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, {useState, useEffect} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  getOnboardingDraftValue,
+  setOnboardingDraftValue,
+} from '../../../../redux/actions/authStorage';
 import {DateOfBirth} from '../../components';
 
 let yearsList = [];
@@ -24,7 +26,7 @@ export const DateOfBirthPage = props => {
   }, []);
 
   const setInitialDate = async () => {
-    const dob = await AsyncStorage.getItem('dob');
+    const dob = await getOnboardingDraftValue('dob');
 
     if (dob) {
       const temp = dob.split('/');
@@ -32,7 +34,7 @@ export const DateOfBirthPage = props => {
       setMonth(parseInt(temp[1], 10));
       setYear(parseInt(temp[2], 10));
     } else {
-      AsyncStorage.setItem('dob', `${date}/${month}/${year}`);
+      setOnboardingDraftValue('dob', `${date}/${month}/${year}`);
     }
   };
 
