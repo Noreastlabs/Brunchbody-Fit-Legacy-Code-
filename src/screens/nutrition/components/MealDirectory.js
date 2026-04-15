@@ -14,7 +14,7 @@ let prevChar = '';
 export default function MealDirectory(props) {
   const navigation = useNavigation();
   const {directoryList, search, setSearch, route} = props;
-  const {type} = route.params;
+  const {type, targetMealId} = route.params;
 
   return (
     <SafeAreaWrapper>
@@ -51,7 +51,7 @@ export default function MealDirectory(props) {
                 prevChar = item.name.charAt(0);
               }
               return (
-                <>
+                <React.Fragment key={item.id}>
                   {temp ? (
                     <View style={styles.alphaTagView}>
                       <Text style={styles.alphaTagText}>
@@ -62,11 +62,11 @@ export default function MealDirectory(props) {
 
                   <TouchableOpacity
                     activeOpacity={0.5}
-                    key={item.id}
                     style={styles.directoryItemView}
                     onPress={() =>
                       navigation.navigate(NUTRITION_ROUTES.MEAL_DETAIL, {
                         meal: item,
+                        targetMealId,
                       })
                     }>
                     <AntDesign
@@ -76,7 +76,7 @@ export default function MealDirectory(props) {
                     />
                     <Text style={styles.directoryItemText}>{item.name}</Text>
                   </TouchableOpacity>
-                </>
+                </React.Fragment>
               );
             })}
         </View>

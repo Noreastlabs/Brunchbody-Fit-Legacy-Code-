@@ -5,11 +5,12 @@ import PropTypes from 'prop-types';
 import { MealsList } from '../../components';
 
 export default function MealsListPage(props) {
-  const { mealCategories } = props;
+  const { mealCategories, route } = props;
   const [search, setSearch] = useState('');
 
   return (
     <MealsList
+      route={route}
       search={search}
       setSearch={setSearch}
       mealCategories={mealCategories}
@@ -17,7 +18,14 @@ export default function MealsListPage(props) {
   );
 }
 
+MealsListPage.defaultProps = {
+  route: {
+    params: {},
+  },
+};
+
 MealsListPage.propTypes = {
+  route: PropTypes.objectOf(PropTypes.any),
   mealCategories: PropTypes.arrayOf(PropTypes.any).isRequired,
 };
 

@@ -4,7 +4,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '../../../../resources';
 import { Nutrition } from '../../components';
 import {
@@ -123,7 +122,6 @@ export default class NutritionPage extends Component {
 
   toggleMealModal = async item => {
     const { onGetMealItems, onSetMealItems, myMeals } = this.props;
-    AsyncStorage.setItem('meal_id', item.id);
 
     this.setState({
       meal: item,

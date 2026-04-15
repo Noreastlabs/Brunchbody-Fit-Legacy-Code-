@@ -4,13 +4,12 @@
 import React, {useState} from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {MealDetail} from '../../components';
 import {addMealItems} from '../../../../redux/actions';
 
 export default function MealDetailPage(props) {
   const {navigation, route, onAddMealItems} = props;
-  const {meal} = route.params;
+  const {meal, targetMealId} = route.params;
   const [loader, setLoader] = useState(false);
   const [fat, setFat] = useState(meal.fat);
   const [prt, setPrt] = useState(meal.prt);
@@ -103,7 +102,6 @@ export default function MealDetailPage(props) {
 
   const onAddMeal = async () => {
     setLoader(true);
-    const mealId = await AsyncStorage.getItem('meal_id');
 
     const data = {
       name: meal.name,
@@ -113,7 +111,7 @@ export default function MealDetailPage(props) {
       cal: (Math.round(cal * 100) / 100).toString(),
     };
 
-    const response = await onAddMealItems(mealId, data);
+    const response = await onAddMealItems(targetMealId, data);
 
     if (response === true) {
       setLoader(false);

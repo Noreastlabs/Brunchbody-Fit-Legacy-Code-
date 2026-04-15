@@ -98,7 +98,9 @@ export default function MealPage(props) {
   const onChooseOption = () => {
     setIsVisible(false);
     if (selectedOption === 'FROM DIRECTORY') {
-      navigation.navigate(NUTRITION_ROUTES.MEALS_LIST);
+      navigation.navigate(NUTRITION_ROUTES.MEALS_LIST, {
+        targetMealId: meal.id,
+      });
     } else {
       setBtnTitle('Add');
       setHeading('Add Item');

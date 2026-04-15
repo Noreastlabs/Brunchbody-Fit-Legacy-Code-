@@ -11,7 +11,8 @@ import styles from './style';
 
 export default function MealsList(props) {
   const navigation = useNavigation();
-  const {search, setSearch, mealCategories} = props;
+  const {search, setSearch, mealCategories, route} = props;
+  const {targetMealId} = route.params;
   console.log('mealCategories', mealCategories);
   return (
     <SafeAreaWrapper>
@@ -44,6 +45,7 @@ export default function MealsList(props) {
                 onPress={() =>
                   navigation.navigate(NUTRITION_ROUTES.MEAL_DIRECTORY, {
                     type: item.category,
+                    targetMealId,
                   })
                 }>
                 <Text style={[styles.directoryItemText, {marginLeft: 0}]}>
@@ -62,9 +64,14 @@ export default function MealsList(props) {
   );
 }
 
-MealsList.defaultProps = {};
+MealsList.defaultProps = {
+  route: {
+    params: {},
+  },
+};
 
 MealsList.propTypes = {
+  route: PropTypes.objectOf(PropTypes.any),
   search: PropTypes.string.isRequired,
   setSearch: PropTypes.func.isRequired,
   mealCategories: PropTypes.arrayOf(PropTypes.any).isRequired,

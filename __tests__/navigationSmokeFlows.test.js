@@ -368,6 +368,8 @@ jest.mock('../src/screens/nutrition/components', () => {
 
   return {
     Meal: props => ReactLocal.createElement('mock-nutrition-meal', props),
+    MealDetail: props =>
+      ReactLocal.createElement('mock-nutrition-meal-detail', props),
   };
 });
 
@@ -408,6 +410,8 @@ import TutorialsPage from '../src/screens/setting/pages/Tutorials/Tutorials';
 import DailyEntryPage from '../src/screens/journal/pages/DailyEntry/DailyEntry';
 import MealPage from '../src/screens/nutrition/pages/Meal/Meal';
 import MyProfilePage from '../src/screens/setting/pages/MyProfile/MyProfile';
+import MealDirectory from '../src/screens/nutrition/components/MealDirectory';
+import MealDetailPage from '../src/screens/nutrition/pages/MealDetail/MealDetail';
 import MealsList from '../src/screens/nutrition/components/MealsList';
 import RoutineManager from '../src/screens/recreation/components/RoutineManager';
 import EditRoutine from '../src/screens/recreation/components/EditRoutine';
@@ -435,6 +439,7 @@ describe('Navigation smoke representative flows', () => {
     mockNavigation = {
       navigate: jest.fn(),
       goBack: jest.fn(),
+      pop: jest.fn(),
     };
     mockUseNavigation.mockReturnValue(mockNavigation);
   });
@@ -606,12 +611,43 @@ describe('Navigation smoke representative flows', () => {
 
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       NUTRITION_ROUTES.MEALS_LIST,
+      {
+        targetMealId: 7,
+      },
+    );
+  });
+
+  test('MealsList still forwards the target meal into MealDirectory', () => {
+    const renderer = renderTree(
+      <MealsList
+        route={{ params: { targetMealId: 7 } }}
+        search=""
+        setSearch={jest.fn()}
+        mealCategories={[{ id: 1, category: 'Protein' }]}
+      />,
+    );
+
+    renderer.root
+      .findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node.props.activeOpacity === 0.5,
+      )[0]
+      .props.onPress();
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      NUTRITION_ROUTES.MEAL_DIRECTORY,
+      {
+        type: 'Protein',
+        targetMealId: 7,
+      },
     );
   });
 
   test('MealsList still relies on the default header back behavior', () => {
     const renderer = renderTree(
       <MealsList
+        route={{ params: { targetMealId: 7 } }}
         search=""
         setSearch={jest.fn()}
         mealCategories={[{ id: 1, category: 'Protein' }]}
@@ -621,6 +657,76 @@ describe('Navigation smoke representative flows', () => {
     expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
       undefined,
     );
+  });
+
+  test('MealDirectory still forwards the target meal into MealDetail', () => {
+    const directoryItem = {
+      id: 1,
+      name: 'Chicken Breast',
+      type: 'Protein',
+    };
+    const renderer = renderTree(
+      <MealDirectory
+        route={{ params: { type: 'Protein', targetMealId: 7 } }}
+        directoryList={[directoryItem]}
+        search=""
+        setSearch={jest.fn()}
+      />,
+    );
+
+    renderer.root
+      .findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node.props.activeOpacity === 0.5,
+      )[0]
+      .props.onPress();
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      NUTRITION_ROUTES.MEAL_DETAIL,
+      {
+        meal: directoryItem,
+        targetMealId: 7,
+      },
+    );
+  });
+
+  test('MealDetailPage still adds to the target meal without AsyncStorage handoff', async () => {
+    const props = {
+      navigation: mockNavigation,
+      route: {
+        params: {
+          meal: {
+            name: 'Chicken Breast',
+            fat: 1,
+            prt: 2,
+            cho: 3,
+            cal: 21,
+          },
+          targetMealId: 'meal-7',
+        },
+      },
+      onAddMealItems: jest.fn().mockResolvedValue(true),
+    };
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<MealDetailPage {...props} />);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root
+        .findByType('mock-nutrition-meal-detail')
+        .props.onAddMeal();
+    });
+
+    expect(props.onAddMealItems).toHaveBeenCalledWith('meal-7', {
+      name: 'Chicken Breast',
+      fat: '1',
+      prt: '2',
+      cho: '3',
+      cal: '21',
+    });
   });
 
   test('RoutineManager still forwards from RoutineManager into EditRoutine through the edit action', () => {
