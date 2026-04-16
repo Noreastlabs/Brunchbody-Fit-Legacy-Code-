@@ -8,13 +8,61 @@ import {
   MERGE_EXERCISES,
 } from '../constants';
 
+const isBrunchBodyExercise = exercise =>
+  exercise.type.toLowerCase() === 'brunch body';
+
+const filterDirectoryExercises = exercises =>
+  exercises.filter(exercise => !isBrunchBodyExercise(exercise));
+
+const withWheelPickerIds = exercises =>
+  exercises.map((exercise, index) => ({
+    ...exercise,
+    wheelPickerId: index + 1,
+  }));
+
+const buildAllExercises = (exercises, exerciseDirectory) =>
+  withWheelPickerIds([...exercises, ...exerciseDirectory]);
+
+const buildWholeExercises = exercises => [
+  ...exercises,
+  ...exercisesDirectory.exercises,
+];
+
+const getNextWheelPickerId = allExercises => {
+  const {wheelPickerId} = allExercises[allExercises.length - 1];
+  return wheelPickerId + 1;
+};
+
+const updateExerciseById = (exercises, id, data) => {
+  const nextExercises = Array.from(exercises);
+  const exerciseIndex = nextExercises.findIndex(exercise => exercise.id === id);
+
+  if (exerciseIndex >= 0) {
+    nextExercises[exerciseIndex] = {
+      ...nextExercises[exerciseIndex],
+      ...data,
+    };
+  }
+
+  return nextExercises;
+};
+
+const removeExerciseById = (exercises, id) => {
+  const nextExercises = Array.from(exercises);
+  const exerciseIndex = nextExercises.findIndex(exercise => exercise.id === id);
+
+  if (exerciseIndex >= 0) {
+    nextExercises.splice(exerciseIndex, 1);
+  }
+
+  return nextExercises;
+};
+
 const initialState = {
   exercises: [],
   allExercises: [],
   wholeExercises: [],
-  exerciseDirectory: exercisesDirectory.exercises.filter(
-    i => i.type.toLowerCase() !== 'brunch body',
-  ),
+  exerciseDirectory: filterDirectoryExercises(exercisesDirectory.exercises),
 };
 
 const exerciseReducer = (state = initialState, action) => {
@@ -22,9 +70,7 @@ const exerciseReducer = (state = initialState, action) => {
     case GET_EXERCISE_DIRECTORY: {
       return {
         ...state,
-        exerciseDirectory: action.payload.filter(
-          i => i.type.toLowerCase() !== 'brunch body',
-        ),
+        exerciseDirectory: filterDirectoryExercises(action.payload),
       };
     }
     case GET_EXERCISES: {
@@ -34,16 +80,10 @@ const exerciseReducer = (state = initialState, action) => {
       };
     }
     case MERGE_EXERCISES: {
-      const allExe = [];
-      const temp = [...state.exercises, ...state.exerciseDirectory];
-      temp.map((item, index) =>
-        allExe.push({...item, wheelPickerId: index + 1}),
-      );
-
       return {
         ...state,
-        allExercises: allExe,
-        wholeExercises: [...state.exercises, ...exercisesDirectory.exercises],
+        allExercises: buildAllExercises(state.exercises, state.exerciseDirectory),
+        wholeExercises: buildWholeExercises(state.exercises),
       };
     }
     case ADD_EXERCISE: {
@@ -51,7 +91,6 @@ const exerciseReducer = (state = initialState, action) => {
         ...action.payload,
         id: Math.random().toString(36).slice(2),
       };
-      const {wheelPickerId} = state.allExercises[state.allExercises.length - 1];
 
       return {
         ...state,
@@ -60,39 +99,31 @@ const exerciseReducer = (state = initialState, action) => {
           ...state.allExercises,
           {
             ...exeData,
-            wheelPickerId: wheelPickerId + 1,
+            wheelPickerId: getNextWheelPickerId(state.allExercises),
           },
         ],
       };
     }
     case EDIT_EXERCISE: {
-      const temp = Array.from(state.exercises);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp[index] = {...temp[index], ...action.payload.data};
-
-      const allExe = state.allExercises;
-      const exeIndex = allExe.findIndex(i => i.id === action.payload.id);
-      allExe[exeIndex] = {...allExe[exeIndex], ...action.payload.data};
-
       return {
         ...state,
-        exercises: temp,
-        allExercises: allExe,
+        exercises: updateExerciseById(
+          state.exercises,
+          action.payload.id,
+          action.payload.data,
+        ),
+        allExercises: updateExerciseById(
+          state.allExercises,
+          action.payload.id,
+          action.payload.data,
+        ),
       };
     }
     case DELETE_EXERCISE: {
-      const temp = Array.from(state.exercises);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp.splice(index, 1);
-
-      const allExe = Array.from(state.allExercises);
-      const exeIndex = allExe.findIndex(i => i.id === action.payload.id);
-      allExe.splice(exeIndex, 1);
-
       return {
         ...state,
-        exercises: temp,
-        allExercises: allExe,
+        exercises: removeExerciseById(state.exercises, action.payload.id),
+        allExercises: removeExerciseById(state.allExercises, action.payload.id),
       };
     }
     default:

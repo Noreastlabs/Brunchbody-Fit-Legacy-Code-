@@ -11,10 +11,13 @@ import {
 
 assertLocalOnlyMode('exercise actions');
 
+const readStoredArray = async storageKey => {
+  const storedValue = await AsyncStorage.getItem(storageKey);
+  return storedValue ? JSON.parse(storedValue) : [];
+};
 
 export const getExercises = () => async dispatch => {
-  const exercisesString = await AsyncStorage.getItem('exercises');
-  const exercises = exercisesString ? JSON.parse(exercisesString) : [];
+  const exercises = await readStoredArray('exercises');
   dispatch({type: GET_EXERCISES, payload: exercises});
   return true;
 };
@@ -36,8 +39,7 @@ export const deleteExercise = id => async dispatch => {
 };
 
 export const getExerciseDirectory = () => async dispatch => {
-  const directoryString = await AsyncStorage.getItem('exercise_directory');
-  const directory = directoryString ? JSON.parse(directoryString) : [];
+  const directory = await readStoredArray('exercise_directory');
   dispatch({type: GET_EXERCISE_DIRECTORY, payload: directory});
   return true;
 };
