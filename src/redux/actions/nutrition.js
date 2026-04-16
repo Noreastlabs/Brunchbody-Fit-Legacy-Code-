@@ -23,9 +23,10 @@ import {
 
 assertLocalOnlyMode('nutrition actions');
 
+const readMealsFromStorage = () => getJsonItem('meals', []);
 
 export const getMeals = () => async dispatch => {
-  const meals = await getJsonItem('meals', []);
+  const meals = await readMealsFromStorage();
   dispatch({type: GET_MEALS, payload: meals});
   return true;
 };

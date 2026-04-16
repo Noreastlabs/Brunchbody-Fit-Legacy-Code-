@@ -31,6 +31,19 @@ describe('Nutrition storage boundary', () => {
     });
   });
 
+  test('getMeals falls back to an empty array when meals storage is missing', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce(null);
+
+    await expect(getMeals()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('meals');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_MEALS,
+      payload: [],
+    });
+  });
+
   test('getSupplements reads supplements and dispatches the legacy Redux contract', async () => {
     const dispatch = jest.fn();
     const savedSupplements = [{id: 'supp-1', name: 'Omega 3', items: []}];
@@ -79,27 +92,21 @@ describe('Nutrition storage boundary', () => {
     AsyncStorage.getItem
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(null);
 
-    await expect(getMeals()(dispatch)).resolves.toBe(true);
     await expect(getSupplements()(dispatch)).resolves.toBe(true);
     await expect(getMealCategories()(dispatch)).resolves.toBe(true);
     await expect(getMealsDirectory()(dispatch)).resolves.toBe(true);
 
     expect(dispatch).toHaveBeenNthCalledWith(1, {
-      type: GET_MEALS,
-      payload: [],
-    });
-    expect(dispatch).toHaveBeenNthCalledWith(2, {
       type: GET_SUPPLEMENTS,
       payload: [],
     });
-    expect(dispatch).toHaveBeenNthCalledWith(3, {
+    expect(dispatch).toHaveBeenNthCalledWith(2, {
       type: GET_MEAL_CATEGORIES,
       payload: [],
     });
-    expect(dispatch).toHaveBeenNthCalledWith(4, {
+    expect(dispatch).toHaveBeenNthCalledWith(3, {
       type: GET_MEALS_DIRECTORY,
       payload: [],
     });

@@ -29,6 +29,53 @@ const initialState = {
   mealsDirectory: mealsDirectory.meals,
 };
 
+const createGeneratedId = () => Math.random().toString(36).slice(2);
+
+const createMeal = data => ({
+  ...data,
+  id: createGeneratedId(),
+  items: [],
+});
+
+const getMealItemsById = (meals, mealId) =>
+  meals.find(i => i.id === mealId).items;
+
+const addMealItem = (items, data) => {
+  const copyItems = Array.from(items);
+  copyItems.push({
+    ...data,
+    id: createGeneratedId(),
+  });
+  return copyItems;
+};
+
+const replaceMealItem = (items, itemId, data) => {
+  const copyItems = Array.from(items);
+  const itemIndex = copyItems.findIndex(i => i.id === itemId);
+  copyItems[itemIndex] = data;
+  return copyItems;
+};
+
+const removeMealItem = (items, itemId) => {
+  const copyItems = Array.from(items);
+  const itemIndex = copyItems.findIndex(i => i.id === itemId);
+  copyItems.splice(itemIndex, 1);
+  return copyItems;
+};
+
+const updateMealItemsState = (meals, mealId, updateItems) => {
+  const nextMeals = Array.from(meals);
+  const mealIndex = nextMeals.findIndex(i => i.id === mealId);
+  const nextItems = updateItems(nextMeals[mealIndex].items);
+
+  nextMeals[mealIndex].items = nextItems;
+
+  return {
+    meals: nextMeals,
+    mealItems: nextItems,
+  };
+};
+
 const nutritionReducer = (state = initialState, action) => {
   switch (action.type) {
     case GET_MEALS: {
@@ -40,14 +87,7 @@ const nutritionReducer = (state = initialState, action) => {
     case ADD_MEAL: {
       return {
         ...state,
-        meals: [
-          ...state.meals,
-          {
-            ...action.payload,
-            id: Math.random().toString(36).slice(2),
-            items: [],
-          },
-        ],
+        meals: [...state.meals, createMeal(action.payload)],
       };
     }
     case DELETE_MEAL: {
@@ -63,59 +103,33 @@ const nutritionReducer = (state = initialState, action) => {
       };
     }
     case GET_MEAL_ITEMS: {
-      const meal = state.meals.find(i => i.id === action.payload.id);
-
       return {
         ...state,
-        mealItems: meal.items,
+        mealItems: getMealItemsById(state.meals, action.payload.id),
       };
     }
     case ADD_MEAL_ITEMS: {
-      const temp = Array.from(state.meals);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      const copyItems = Array.from(temp[index].items);
-      copyItems.push({
-        ...action.payload.data,
-        id: Math.random().toString(36).slice(2),
-      });
-      temp[index].items = copyItems;
-
       return {
         ...state,
-        meals: temp,
-        mealItems: copyItems,
+        ...updateMealItemsState(state.meals, action.payload.id, items =>
+          addMealItem(items, action.payload.data),
+        ),
       };
     }
     case EDIT_MEAL_ITEMS: {
-      const temp = Array.from(state.meals);
-      const mealIndex = temp.findIndex(i => i.id === action.payload.meal_id);
-      const copyItems = Array.from(temp[mealIndex].items);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.item_id,
-      );
-      copyItems[itemIndex] = action.payload.data;
-      temp[mealIndex].items = copyItems;
-
       return {
         ...state,
-        meals: temp,
-        mealItems: copyItems,
+        ...updateMealItemsState(state.meals, action.payload.meal_id, items =>
+          replaceMealItem(items, action.payload.item_id, action.payload.data),
+        ),
       };
     }
     case DELETE_MEAL_ITEMS: {
-      const temp = Array.from(state.meals);
-      const mealIndex = temp.findIndex(i => i.id === action.payload.meal_id);
-      const copyItems = Array.from(temp[mealIndex].items);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.item_id,
-      );
-      copyItems.splice(itemIndex, 1);
-      temp[mealIndex].items = copyItems;
-
       return {
         ...state,
-        meals: temp,
-        mealItems: copyItems,
+        ...updateMealItemsState(state.meals, action.payload.meal_id, items =>
+          removeMealItem(items, action.payload.item_id),
+        ),
       };
     }
     case GET_SUPPLEMENTS: {

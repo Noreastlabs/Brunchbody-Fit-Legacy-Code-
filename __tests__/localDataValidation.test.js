@@ -38,12 +38,14 @@ import {
   EDIT_JOURNAL_ENTRY,
   GET_EXERCISES,
   GET_MEALS,
+  GET_MEAL_ITEMS,
   GET_ROUTINES,
   GET_SUPPLEMENTS,
   GET_THEMES,
   GET_TODO_TASKS,
   GET_WORKOUTS,
   MERGE_EXERCISES,
+  SET_MEAL_ITEMS,
   SET_USER,
 } from '../src/redux/constants';
 
@@ -88,19 +90,88 @@ describe('Local data validation - CRUD', () => {
     expect(state.todoTasks).toHaveLength(0);
   });
 
-  test('nutrition reducer supports meal and supplement CRUD', () => {
-    let state = nutritionReducer(undefined, { type: '@@INIT' });
+  test('nutrition reducer keeps the legacy initial shape', () => {
+    const state = nutritionReducer(undefined, {type: '@@INIT'});
+
+    expect(Object.keys(state).sort()).toEqual([
+      'mealCategories',
+      'mealItems',
+      'meals',
+      'mealsDirectory',
+      'supplementItems',
+      'supplements',
+    ]);
+    expect(state).toEqual(
+      expect.objectContaining({
+        meals: [],
+        mealItems: [],
+        supplements: [],
+        supplementItems: [],
+        mealCategories: expect.any(Array),
+        mealsDirectory: expect.any(Array),
+      }),
+    );
+  });
+
+  test('nutrition reducer preserves the legacy meal and meal-item contract', () => {
+    let state = nutritionReducer(undefined, {type: '@@INIT'});
 
     state = nutritionReducer(state, {
       type: ADD_MEAL,
-      payload: { name: 'Meal A' },
+      payload: {
+        name: 'Meal A',
+        category: 'Lunch',
+        items: [{id: 'ignored-item', name: 'Should not persist'}],
+      },
     });
-    const mealId = state.meals[0].id;
+
+    const meal = state.meals[0];
+    expect(state.meals).toHaveLength(1);
+    expect(meal).toEqual(
+      expect.objectContaining({
+        name: 'Meal A',
+        category: 'Lunch',
+        items: [],
+      }),
+    );
+    expect(meal.id).toEqual(expect.any(String));
+    expect(meal.id).not.toBe('');
+
+    const mealId = meal.id;
 
     state = nutritionReducer(state, {
       type: ADD_MEAL_ITEMS,
-      payload: { id: mealId, data: { name: 'Chicken' } },
+      payload: {
+        id: mealId,
+        data: {name: 'Chicken', calories: 200, servings: 1},
+      },
     });
+
+    const mealItem = state.mealItems[0];
+    expect(state.mealItems).toHaveLength(1);
+    expect(mealItem).toEqual(
+      expect.objectContaining({
+        name: 'Chicken',
+        calories: 200,
+        servings: 1,
+      }),
+    );
+    expect(mealItem.id).toEqual(expect.any(String));
+    expect(state.meals[0].items).toEqual(state.mealItems);
+
+    state = nutritionReducer(state, {
+      type: SET_MEAL_ITEMS,
+      payload: [{id: 'manual-item', name: 'Manual Override'}],
+    });
+    expect(state.mealItems).toEqual([{id: 'manual-item', name: 'Manual Override'}]);
+    expect(state.meals[0].items).toHaveLength(1);
+
+    state = nutritionReducer(state, {
+      type: GET_MEAL_ITEMS,
+      payload: {id: mealId},
+    });
+    expect(state.mealItems).toEqual(state.meals[0].items);
+
     const mealItemId = state.mealItems[0].id;
 
     state = nutritionReducer(state, {
@@ -108,53 +179,44 @@ describe('Local data validation - CRUD', () => {
       payload: {
         meal_id: mealId,
         item_id: mealItemId,
-        data: { id: mealItemId, name: 'Chicken Breast' },
+        data: {id: mealItemId, name: 'Chicken Breast'},
       },
     });
-    expect(state.mealItems[0].name).toBe('Chicken Breast');
+    expect(state.mealItems).toEqual([{id: mealItemId, name: 'Chicken Breast'}]);
+    expect(state.meals[0].items).toEqual(state.mealItems);
+    expect(state.mealItems[0].calories).toBeUndefined();
+    expect(state.mealItems[0].servings).toBeUndefined();
 
     state = nutritionReducer(state, {
       type: DELETE_MEAL_ITEMS,
-      payload: { meal_id: mealId, item_id: mealItemId },
+      payload: {meal_id: mealId, item_id: mealItemId},
     });
-    expect(state.mealItems).toHaveLength(0);
+    expect(state.mealItems).toEqual([]);
+    expect(state.meals[0].items).toEqual([]);
+
+    state = nutritionReducer(state, {
+      type: DELETE_MEAL,
+      payload: {id: mealId},
+    });
+    expect(state.meals).toHaveLength(0);
+  });
+
+  test('nutrition reducer keeps the supplement branch readable after meal-only cleanup', () => {
+    let state = nutritionReducer(undefined, {type: '@@INIT'});
 
     state = nutritionReducer(state, {
       type: ADD_SUPPLEMENT,
-      payload: { name: 'Supp A' },
-    });
-    const supplementId = state.supplements[0].id;
-
-    state = nutritionReducer(state, {
-      type: ADD_SUPPLEMENT_ITEMS,
-      payload: { id: supplementId, data: { name: 'Magnesium' } },
-    });
-    const supplementItemId = state.supplementItems[0].id;
-
-    state = nutritionReducer(state, {
-      type: EDIT_SUPPLEMENT_ITEMS,
-      payload: {
-        supplement_id: supplementId,
-        item_id: supplementItemId,
-        data: { id: supplementItemId, name: 'Magnesium 200mg' },
-      },
-    });
-    expect(state.supplementItems[0].name).toBe('Magnesium 200mg');
-
-    state = nutritionReducer(state, {
-      type: DELETE_SUPPLEMENT_ITEMS,
-      payload: { supplement_id: supplementId, item_id: supplementItemId },
-    });
-    expect(state.supplementItems).toHaveLength(0);
-
-    state = nutritionReducer(state, { type: DELETE_MEAL, payload: { id: mealId } });
-    state = nutritionReducer(state, {
-      type: DELETE_SUPPLEMENT,
-      payload: { id: supplementId },
+      payload: {name: 'Supp A'},
     });
 
-    expect(state.meals).toHaveLength(0);
-    expect(state.supplements).toHaveLength(0);
+    expect(state.supplements).toHaveLength(1);
+    expect(state.supplements[0]).toEqual(
+      expect.objectContaining({
+        name: 'Supp A',
+        items: [],
+      }),
+    );
+    expect(state.supplements[0].id).toEqual(expect.any(String));
   });
 
   test('recreation reducer supports workout and routine CRUD', () => {
