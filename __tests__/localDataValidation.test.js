@@ -311,9 +311,15 @@ describe('Persistence and hydration validation', () => {
       activity: 'Lightly Active',
     })(dispatch);
 
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+    expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(
       'user_profile',
-      expect.any(String),
+      JSON.stringify({
+        dob: '01/01/1995',
+        gender: 'female',
+        height: '5.06',
+        weight: '135',
+        activity: 'Lightly Active',
+      }),
     );
     expect(dispatch).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -324,6 +330,16 @@ describe('Persistence and hydration validation', () => {
 
     dispatch.mockClear();
     await profile({ weight: '140' })(dispatch);
+    expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(
+      'user_profile',
+      JSON.stringify({
+        dob: '01/01/1995',
+        gender: 'female',
+        height: '5.06',
+        weight: '140',
+        activity: 'Lightly Active',
+      }),
+    );
     expect(dispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: SET_USER,
@@ -421,6 +437,27 @@ describe('Persistence and hydration validation', () => {
 });
 
 describe('Edge-case validation', () => {
+  test('auth reducer keeps the current BMI and BMR derivation for valid profiles', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-04-16T12:00:00.000Z'));
+
+    try {
+      const state = authReducer(undefined, {
+        type: SET_USER,
+        payload: {
+          height: '5.06',
+          weight: '135',
+          dob: '01/01/1995',
+          gender: 'female',
+        },
+      });
+
+      expect(state.user.bmi).toBe('21.79');
+      expect(state.user.bmr).toBe('1406.75');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 
   test('journal reducer ignores edits for non-existent entry ids without mutation', () => {
     const initialEntry = {

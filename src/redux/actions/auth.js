@@ -12,14 +12,42 @@ import {
 const LOCAL_PASSWORD_KEY = 'local_password';
 const LOCAL_PASSWORD_RESET_REQUEST_KEY = 'local_password_reset_requested_at';
 
+const setUser = payload => ({
+  type: SET_USER,
+  payload,
+});
+
+const mergeProfileWithStoredProfile = async data => {
+  const storedProfile = (await loadStoredProfile()) || {};
+  return { ...storedProfile, ...data };
+};
+
+const persistProfileAndDispatch = async (dispatch, user) => {
+  await saveStoredProfile(user);
+  dispatch(setUser(user));
+};
+
+const getScopedLogoutKeys = () => [
+  USER_PROFILE_KEY,
+  LOCAL_PASSWORD_KEY,
+  LOCAL_PASSWORD_RESET_REQUEST_KEY,
+  ...ONBOARDING_DRAFT_KEYS,
+];
+
+const clearScopedLocalAuthData = () =>
+  AsyncStorage.multiRemove(getScopedLogoutKeys());
+
+const clearAllLocalAccountData = async () => {
+  await AsyncStorage.clear();
+  storage.clearAll();
+  hydrateWorkoutPlans();
+};
+
 export const loggedIn = () => async dispatch => {
   const user = await loadStoredProfile();
 
   if (user) {
-    dispatch({
-      type: SET_USER,
-      payload: user,
-    });
+    dispatch(setUser(user));
     return true;
   }
 
@@ -27,24 +55,13 @@ export const loggedIn = () => async dispatch => {
 };
 
 export const profile = data => async dispatch => {
-  const parsedProfile = (await loadStoredProfile()) || {};
-  const updatedProfile = { ...parsedProfile, ...data };
-
-  await saveStoredProfile(updatedProfile);
-  dispatch({
-    type: SET_USER,
-    payload: updatedProfile,
-  });
+  const updatedProfile = await mergeProfileWithStoredProfile(data);
+  await persistProfileAndDispatch(dispatch, updatedProfile);
   return true;
 };
 
 export const logout = () => async dispatch => {
-  await AsyncStorage.multiRemove([
-    USER_PROFILE_KEY,
-    LOCAL_PASSWORD_KEY,
-    LOCAL_PASSWORD_RESET_REQUEST_KEY,
-    ...ONBOARDING_DRAFT_KEYS,
-  ]);
+  await clearScopedLocalAuthData();
 
   dispatch({
     type: CLEAR_USER,
@@ -61,11 +78,7 @@ export const changeEmail = ({ email }) => async dispatch => {
   }
 
   const updatedProfile = { ...existingProfile, email };
-  await saveStoredProfile(updatedProfile);
-  dispatch({
-    type: SET_USER,
-    payload: updatedProfile,
-  });
+  await persistProfileAndDispatch(dispatch, updatedProfile);
   return true;
 };
 
@@ -138,9 +151,7 @@ export const deleteAccount =
       type: RESET_APP,
     });
 
-    await AsyncStorage.clear();
-    storage.clearAll();
-    hydrateWorkoutPlans();
+    await clearAllLocalAccountData();
 
     return true;
   };

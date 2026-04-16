@@ -10,6 +10,7 @@ import {
   resetPassword,
 } from '../src/redux/actions/auth';
 import { CLEAR_USER, RESET_APP, SET_USER } from '../src/redux/constants';
+import { ONBOARDING_DRAFT_KEYS } from '../src/redux/actions/authStorage';
 import SettingPage from '../src/screens/setting/pages/Setting/Setting';
 import DeleteAccountPage from '../src/screens/setting/pages/MyProfile/DeleteAccount';
 import { hydrateWorkoutPlans } from '../src/storage/mmkv/hydration';
@@ -37,6 +38,27 @@ jest.mock('../src/screens/setting/components', () => {
 describe('Local account actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  test('loggedIn restores the stored local profile into auth state', async () => {
+    const storedProfile = {
+      dob: '01/01/1995',
+      email: 'saved@example.com',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+    };
+    const dispatch = jest.fn();
+
+    await AsyncStorage.setItem('user_profile', JSON.stringify(storedProfile));
+
+    const result = await loggedIn()(dispatch);
+
+    expect(result).toBe(true);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SET_USER,
+      payload: storedProfile,
+    });
   });
 
   test('changeEmail persists the device-local email across relaunch', async () => {
@@ -127,8 +149,12 @@ describe('Local account actions', () => {
         'user_profile',
         'local_password',
         'local_password_reset_requested_at',
+        ...ONBOARDING_DRAFT_KEYS,
       ]),
     );
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
+    expect(storage.clearAll).not.toHaveBeenCalled();
+    expect(hydrateWorkoutPlans).not.toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith({ type: CLEAR_USER });
   });
 
@@ -149,6 +175,7 @@ describe('Local account actions', () => {
 
     expect(result).toBe(true);
     expect(dispatch).toHaveBeenCalledWith({ type: RESET_APP });
+    expect(AsyncStorage.multiRemove).not.toHaveBeenCalled();
     expect(AsyncStorage.clear).toHaveBeenCalled();
     expect(storage.clearAll).toHaveBeenCalled();
     expect(hydrateWorkoutPlans).toHaveBeenCalled();
