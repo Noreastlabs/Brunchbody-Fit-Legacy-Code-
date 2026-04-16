@@ -13,6 +13,37 @@ const initialState = {
   allTraits: traitsDirectory.traits,
 };
 
+const normalizeDateToMidnight = date => {
+  const normalizedDate = new Date(date);
+  normalizedDate.setHours(0, 0, 0, 0);
+
+  return normalizedDate.getTime();
+};
+
+const findEntryForDate = (entries, targetDate) =>
+  entries.find(
+    entry => normalizeDateToMidnight(entry.createdOn) === normalizeDateToMidnight(targetDate),
+  );
+
+const createJournalEntry = (date, data) => ({
+  ...data,
+  createdOn: date,
+  id: Math.random().toString(36).slice(2),
+});
+
+const mergeEntryById = (entries, id, data) => {
+  const nextEntries = Array.from(entries);
+  const index = nextEntries.findIndex(entry => entry.id === id);
+
+  if (index < 0) {
+    return null;
+  }
+
+  nextEntries[index] = { ...nextEntries[index], ...data };
+
+  return nextEntries;
+};
+
 const journalReducer = (state = initialState, action) => {
   switch (action.type) {
     case GET_TRAITS: {
@@ -22,16 +53,7 @@ const journalReducer = (state = initialState, action) => {
       };
     }
     case GET_JOURNAL_ENTRIES: {
-      const targetDate = action.payload.date;
-      const normalizedTargetDate = new Date(targetDate);
-      normalizedTargetDate.setHours(0, 0, 0, 0);
-
-      const foundEntry = state.allJournalEntriesList.find(entry => {
-        const entryDate = new Date(entry.createdOn);
-        entryDate.setHours(0, 0, 0, 0);
-
-        return entryDate.getTime() === normalizedTargetDate.getTime();
-      });
+      const foundEntry = findEntryForDate(state.allJournalEntriesList, action.payload.date);
 
       return {
         ...state,
@@ -39,32 +61,28 @@ const journalReducer = (state = initialState, action) => {
       };
     }
     case SET_JOURNAL_ENTRY: {
-      const entryData = action.payload.data;
-      const temp = {
-        ...entryData,
-        createdOn: action.payload.date,
-        id: Math.random().toString(36).slice(2),
-      };
-
       return {
         ...state,
-        allJournalEntriesList: [...state.allJournalEntriesList, temp],
+        allJournalEntriesList: [
+          ...state.allJournalEntriesList,
+          createJournalEntry(action.payload.date, action.payload.data),
+        ],
       };
     }
     case EDIT_JOURNAL_ENTRY: {
-      const temp = Array.from(state.allJournalEntriesList);
-      const index = temp.findIndex(i => i.id === action.payload.id);
+      const nextEntries = mergeEntryById(
+        state.allJournalEntriesList,
+        action.payload.id,
+        action.payload.data,
+      );
 
-      if (index < 0) {
+      if (!nextEntries) {
         return state;
       }
 
-      const entryData = action.payload.data;
-      temp[index] = { ...temp[index], ...entryData };
-
       return {
         ...state,
-        allJournalEntriesList: temp,
+        allJournalEntriesList: nextEntries,
       };
     }
     default:

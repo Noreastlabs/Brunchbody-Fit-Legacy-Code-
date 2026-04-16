@@ -7,6 +7,14 @@ import {
   SET_JOURNAL_ENTRY,
 } from '../constants';
 
+const TRAITS_STORAGE_KEY = 'traits';
+
+const readStoredTraits = async () => {
+  const traitsString = await AsyncStorage.getItem(TRAITS_STORAGE_KEY);
+
+  return traitsString ? JSON.parse(traitsString) : [];
+};
+
 export const getAllJournalEntries = () => async dispatch => {
   await dispatch({ type: GET_ALL_JOURNAL_ENTRIES });
   return true;
@@ -27,8 +35,8 @@ export const editJournalEntry = (id, data) => async dispatch => {
 };
 
 export const getTraits = () => async dispatch => {
-  const traitsString = await AsyncStorage.getItem('traits');
-  const traits = traitsString ? JSON.parse(traitsString) : [];
+  const traits = await readStoredTraits();
+
   dispatch({ type: GET_TRAITS, payload: traits });
   return true;
 };
