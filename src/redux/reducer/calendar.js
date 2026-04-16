@@ -1,4 +1,3 @@
-/* eslint-disable no-nested-ternary */
 import moment from 'moment';
 import {colors} from '../../resources';
 import {
@@ -15,6 +14,8 @@ import {
   SET_THEME_WITH_FREQUENCY,
 } from '../constants';
 
+const DATE_FORMAT = 'YYYY-MM-DD';
+
 const initialState = {
   theme: {},
   themes: [],
@@ -23,6 +24,131 @@ const initialState = {
   repeatedTheme: {},
   userRepeatedThemes: [],
   clearedThemeDays: {},
+};
+
+const createTheme = data => ({
+  ...data,
+  id: Math.random().toString(36).slice(2),
+});
+
+const updateItemsById = (items, id, data) => {
+  const nextItems = Array.from(items);
+  const index = nextItems.findIndex(item => item.id === id);
+
+  if (index !== -1) {
+    nextItems[index] = {...nextItems[index], ...data};
+  }
+
+  return nextItems;
+};
+
+const removeItemById = (items, id) => {
+  const nextItems = Array.from(items);
+  const index = nextItems.findIndex(item => item.id === id);
+
+  if (index !== -1) {
+    nextItems.splice(index, 1);
+  }
+
+  return nextItems;
+};
+
+const mergeCurrentThemeIfMatching = (currentTheme, id, data) =>
+  currentTheme?.id === id ? {...currentTheme, ...data} : currentTheme;
+
+const formatCalendarDate = value => moment(value).format(DATE_FORMAT);
+
+const getTodayKey = () => moment().format(DATE_FORMAT);
+
+const isToday = value => formatCalendarDate(value) === getTodayKey();
+
+const isDeletedThemeDate = (item, value) => {
+  let check = -1;
+
+  if (item.deletedThemes?.length > 0) {
+    check = item.deletedThemes.findIndex(
+      deletedTheme =>
+        formatCalendarDate(deletedTheme) === formatCalendarDate(value),
+    );
+  }
+
+  return check !== -1;
+};
+
+const isWithinThemeRange = (value, endDate) =>
+  formatCalendarDate(value) <= formatCalendarDate(endDate);
+
+const createCalendarDateEntry = (item, value) => ({
+  selected: true,
+  customStyles: {
+    container: {
+      borderWidth: 2,
+      borderColor: item.color,
+      backgroundColor: isToday(value) ? item.color : colors.transparent,
+    },
+  },
+  theme: item,
+});
+
+const applyThemeToCalendarDate = (
+  calendarDates,
+  item,
+  value,
+  endDate,
+  currentTheme,
+) => {
+  if (!isWithinThemeRange(value, endDate) || isDeletedThemeDate(item, value)) {
+    return currentTheme;
+  }
+
+  calendarDates[formatCalendarDate(value)] = createCalendarDateEntry(item, value);
+
+  return isToday(value) ? item : currentTheme;
+};
+
+const getRepeatedThemesForFrequency = (payload, userRepeatedThemes) =>
+  (
+    payload
+      ? [...payload]
+      : userRepeatedThemes.length > 0
+      ? [...userRepeatedThemes]
+      : []
+  ).sort((a, b) => a.createdOn - b.createdOn);
+
+const getThemeDaysInMonth = (themeDay, daysInCurrentMonth) => {
+  const date = new Date(themeDay);
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  let daysInMonth = new Date(year, month, 0).getDate();
+
+  if (daysInCurrentMonth) {
+    daysInMonth += daysInCurrentMonth;
+  }
+
+  return daysInMonth;
+};
+
+const getThemeEndDate = item => {
+  const date = new Date(item.themeDay);
+
+  return date.setDate(date.getDate() + (parseInt(item.daysToFollow, 10) - 1));
+};
+
+const ensureTodayFallback = calendarDates => {
+  const todayKey = getTodayKey();
+
+  if (!calendarDates[todayKey]) {
+    calendarDates[todayKey] = {
+      selected: true,
+      customStyles: {
+        container: {
+          borderWidth: 2,
+          borderColor: colors.secondary,
+          backgroundColor: colors.secondary,
+        },
+      },
+    };
+  }
 };
 
 const calendarReducer = (state = initialState, action) => {
@@ -34,10 +160,7 @@ const calendarReducer = (state = initialState, action) => {
       };
     }
     case ADD_THEME: {
-      const newTheme = {
-        ...action.payload,
-        id: Math.random().toString(36).slice(2),
-      };
+      const newTheme = createTheme(action.payload);
 
       return {
         ...state,
@@ -56,34 +179,34 @@ const calendarReducer = (state = initialState, action) => {
       };
     }
     case EDIT_THEME: {
-      const temp = Array.from(state.themes);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      if (index !== -1) temp[index] = {...temp[index], ...action.payload.data};
+      const temp = updateItemsById(
+        state.themes,
+        action.payload.id,
+        action.payload.data,
+      );
 
-      const repThemeTemp = Array.from(state.userRepeatedThemes);
-      const ind = repThemeTemp.findIndex(i => i.id === action.payload.id);
-      if (ind !== -1)
-        repThemeTemp[ind] = {...repThemeTemp[ind], ...action.payload.data};
+      const repThemeTemp = updateItemsById(
+        state.userRepeatedThemes,
+        action.payload.id,
+        action.payload.data,
+      );
 
       return {
         ...state,
         themes: temp,
         userRepeatedThemes: repThemeTemp,
         theme: {...state.theme, ...action.payload.data},
-        currentTheme:
-          state.currentTheme?.id === action.payload.id
-            ? {...state.currentTheme, ...action.payload.data}
-            : state.currentTheme,
+        currentTheme: mergeCurrentThemeIfMatching(
+          state.currentTheme,
+          action.payload.id,
+          action.payload.data,
+        ),
       };
     }
     case DELETE_THEME: {
-      const temp = Array.from(state.themes);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp.splice(index, 1);
-
       return {
         ...state,
-        themes: temp,
+        themes: removeItemById(state.themes, action.payload.id),
       };
     }
     case SET_REPEATED_THEME: {
@@ -105,13 +228,13 @@ const calendarReducer = (state = initialState, action) => {
       };
     }
     case EDIT_REPEATED_THEME: {
-      const temp = Array.from(state.userRepeatedThemes);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp[index] = {...temp[index], ...action.payload.data};
-
       return {
         ...state,
-        userRepeatedThemes: temp,
+        userRepeatedThemes: updateItemsById(
+          state.userRepeatedThemes,
+          action.payload.id,
+          action.payload.data,
+        ),
       };
     }
     case CLEAR_CURRENT_THEME: {
@@ -130,73 +253,32 @@ const calendarReducer = (state = initialState, action) => {
     case SET_THEME_WITH_FREQUENCY: {
       let curThemeTemp = {};
       const calendarDates = {};
-      const repeatedThemes = (
-        action.payload
-          ? [...action.payload]
-          : state.userRepeatedThemes.length > 0
-          ? [...state.userRepeatedThemes]
-          : []
-      ).sort((a, b) => a.createdOn - b.createdOn);
+      const repeatedThemes = getRepeatedThemesForFrequency(
+        action.payload,
+        state.userRepeatedThemes,
+      );
 
       for (let i = 0; i < repeatedThemes.length; i += 1) {
         const item = repeatedThemes[i];
         const itemDateDay = new Date(item.themeDay).getDate();
-
-        const date = new Date(item.themeDay);
-        const dtMonth = date.getMonth() + 1;
-        const dtYear = date.getFullYear();
-        let daysInMonth = new Date(dtYear, dtMonth, 0).getDate();
-        const endDate = date.setDate(
-          date.getDate() + (parseInt(item.daysToFollow, 10) - 1),
+        const daysInMonth = getThemeDaysInMonth(
+          item.themeDay,
+          action.daysInCurrentMonth,
         );
-
-        if (action.daysInCurrentMonth) {
-          daysInMonth += action.daysInCurrentMonth;
-        }
+        const endDate = getThemeEndDate(item);
 
         if (item.frequency === 'Daily') {
           for (let j = 0; j <= daysInMonth - itemDateDay; j += 1) {
             const d = new Date(item.themeDay);
             d.setDate(d.getDate() + j);
-            let check = -1;
 
-            if (
-              moment(d).format('YYYY-MM-DD') <=
-              moment(endDate).format('YYYY-MM-DD')
-            ) {
-              if (item.deletedThemes?.length > 0) {
-                check = item.deletedThemes.findIndex(
-                  a =>
-                    moment(a).format('YYYY-MM-DD') ===
-                    moment(d).format('YYYY-MM-DD'),
-                );
-              }
-
-              if (check === -1) {
-                calendarDates[moment(d).format('YYYY-MM-DD')] = {
-                  selected: true,
-                  customStyles: {
-                    container: {
-                      borderWidth: 2,
-                      borderColor: item.color,
-                      backgroundColor:
-                        moment(d).format('YYYY-MM-DD') ===
-                        moment().format('YYYY-MM-DD')
-                          ? item.color
-                          : colors.transparent,
-                    },
-                  },
-                  theme: repeatedThemes[i],
-                };
-
-                if (
-                  moment(d).format('YYYY-MM-DD') ===
-                  moment().format('YYYY-MM-DD')
-                ) {
-                  curThemeTemp = item;
-                }
-              }
-            }
+            curThemeTemp = applyThemeToCalendarDate(
+              calendarDates,
+              item,
+              d,
+              endDate,
+              curThemeTemp,
+            );
           }
         }
 
@@ -208,45 +290,14 @@ const calendarReducer = (state = initialState, action) => {
           ) {
             const d = new Date(item.themeDay);
             d.setDate(d.getDate() + j * 7);
-            let check = -1;
 
-            if (
-              moment(d).format('YYYY-MM-DD') <=
-              moment(endDate).format('YYYY-MM-DD')
-            ) {
-              if (item.deletedThemes?.length > 0) {
-                check = item.deletedThemes.findIndex(
-                  a =>
-                    moment(a).format('YYYY-MM-DD') ===
-                    moment(d).format('YYYY-MM-DD'),
-                );
-              }
-
-              if (check === -1) {
-                calendarDates[moment(d).format('YYYY-MM-DD')] = {
-                  selected: true,
-                  customStyles: {
-                    container: {
-                      borderWidth: 2,
-                      borderColor: item.color,
-                      backgroundColor:
-                        moment(d).format('YYYY-MM-DD') ===
-                        moment().format('YYYY-MM-DD')
-                          ? item.color
-                          : colors.transparent,
-                    },
-                  },
-                  theme: repeatedThemes[i],
-                };
-
-                if (
-                  moment(d).format('YYYY-MM-DD') ===
-                  moment().format('YYYY-MM-DD')
-                ) {
-                  curThemeTemp = item;
-                }
-              }
-            }
+            curThemeTemp = applyThemeToCalendarDate(
+              calendarDates,
+              item,
+              d,
+              endDate,
+              curThemeTemp,
+            );
           }
         }
 
@@ -258,146 +309,44 @@ const calendarReducer = (state = initialState, action) => {
           ) {
             const d = new Date(item.themeDay);
             d.setDate(d.getDate() + j * 14);
-            let check = -1;
 
-            if (
-              moment(d).format('YYYY-MM-DD') <=
-              moment(endDate).format('YYYY-MM-DD')
-            ) {
-              if (item.deletedThemes?.length > 0) {
-                check = item.deletedThemes.findIndex(
-                  a =>
-                    moment(a).format('YYYY-MM-DD') ===
-                    moment(d).format('YYYY-MM-DD'),
-                );
-              }
-
-              if (check === -1) {
-                calendarDates[moment(d).format('YYYY-MM-DD')] = {
-                  selected: true,
-                  customStyles: {
-                    container: {
-                      borderWidth: 2,
-                      borderColor: item.color,
-                      backgroundColor:
-                        moment(d).format('YYYY-MM-DD') ===
-                        moment().format('YYYY-MM-DD')
-                          ? item.color
-                          : colors.transparent,
-                    },
-                  },
-                  theme: repeatedThemes[i],
-                };
-
-                if (
-                  moment(d).format('YYYY-MM-DD') ===
-                  moment().format('YYYY-MM-DD')
-                ) {
-                  curThemeTemp = item;
-                }
-              }
-            }
+            curThemeTemp = applyThemeToCalendarDate(
+              calendarDates,
+              item,
+              d,
+              endDate,
+              curThemeTemp,
+            );
           }
         }
 
         if (item.frequency === 'Monthly') {
           const d = new Date(item.themeDay);
           d.setDate(d.getDate() + (action.daysInCurrentMonth || 0));
-          let check = -1;
 
-          if (
-            moment(d).format('YYYY-MM-DD') <=
-            moment(endDate).format('YYYY-MM-DD')
-          ) {
-            if (item.deletedThemes?.length > 0) {
-              check = item.deletedThemes.findIndex(
-                a =>
-                  moment(a).format('YYYY-MM-DD') ===
-                  moment(d).format('YYYY-MM-DD'),
-              );
-            }
-
-            if (check === -1) {
-              calendarDates[moment(d).format('YYYY-MM-DD')] = {
-                selected: true,
-                customStyles: {
-                  container: {
-                    borderWidth: 2,
-                    borderColor: item.color,
-                    backgroundColor:
-                      moment(d).format('YYYY-MM-DD') ===
-                      moment().format('YYYY-MM-DD')
-                        ? item.color
-                        : colors.transparent,
-                  },
-                },
-                theme: repeatedThemes[i],
-              };
-
-              if (
-                moment(d).format('YYYY-MM-DD') === moment().format('YYYY-MM-DD')
-              ) {
-                curThemeTemp = item;
-              }
-            }
-          }
+          curThemeTemp = applyThemeToCalendarDate(
+            calendarDates,
+            item,
+            d,
+            endDate,
+            curThemeTemp,
+          );
         }
 
         if (item.frequency === 'Never') {
           const d = new Date(item.themeDay);
-          let check = -1;
 
-          if (
-            moment(d).format('YYYY-MM-DD') <=
-            moment(endDate).format('YYYY-MM-DD')
-          ) {
-            if (item.deletedThemes?.length > 0) {
-              check = item.deletedThemes.findIndex(
-                a =>
-                  moment(a).format('YYYY-MM-DD') ===
-                  moment(d).format('YYYY-MM-DD'),
-              );
-            }
-
-            if (check === -1) {
-              calendarDates[moment(d).format('YYYY-MM-DD')] = {
-                selected: true,
-                customStyles: {
-                  container: {
-                    borderWidth: 2,
-                    borderColor: item.color,
-                    backgroundColor:
-                      moment(d).format('YYYY-MM-DD') ===
-                      moment().format('YYYY-MM-DD')
-                        ? item.color
-                        : colors.transparent,
-                  },
-                },
-                theme: repeatedThemes[i],
-              };
-
-              if (
-                moment(d).format('YYYY-MM-DD') === moment().format('YYYY-MM-DD')
-              ) {
-                curThemeTemp = item;
-              }
-            }
-          }
+          curThemeTemp = applyThemeToCalendarDate(
+            calendarDates,
+            item,
+            d,
+            endDate,
+            curThemeTemp,
+          );
         }
       }
 
-      if (!calendarDates[moment().format('YYYY-MM-DD')]) {
-        calendarDates[moment().format('YYYY-MM-DD')] = {
-          selected: true,
-          customStyles: {
-            container: {
-              borderWidth: 2,
-              borderColor: colors.secondary,
-              backgroundColor: colors.secondary,
-            },
-          },
-        };
-      }
+      ensureTodayFallback(calendarDates);
 
       return {
         ...state,

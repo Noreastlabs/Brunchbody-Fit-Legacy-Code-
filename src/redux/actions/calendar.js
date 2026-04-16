@@ -16,6 +16,13 @@ import {
 
 assertLocalOnlyMode('calendar actions');
 
+const loadStoredThemes = async () => {
+  const themesString = await AsyncStorage.getItem('themes');
+  return themesString ? JSON.parse(themesString) : [];
+};
+
+const recomputeRepeatedThemes = dispatch =>
+  dispatch({type: SET_THEME_WITH_FREQUENCY, payload: null});
 
 export const setTheme = data => async dispatch => {
   dispatch({type: SET_THEME, payload: data});
@@ -43,8 +50,7 @@ export const clearThemeDays = data => async dispatch => {
 };
 
 export const getThemes = () => async dispatch => {
-  const themesString = await AsyncStorage.getItem('themes');
-  const themes = themesString ? JSON.parse(themesString) : [];
+  const themes = await loadStoredThemes();
   dispatch({type: GET_THEMES, payload: themes});
   dispatch(getRepeatedThemes());
   return true;
@@ -66,19 +72,19 @@ export const deleteTheme = id => async dispatch => {
 };
 
 export const getRepeatedThemes = () => async dispatch => {
-  dispatch({type: SET_THEME_WITH_FREQUENCY, payload: null});
+  recomputeRepeatedThemes(dispatch);
   return true;
 };
 
 export const addRepeatedTheme = data => async dispatch => {
   await dispatch({type: ADD_REPEATED_THEME, payload: data});
-  await dispatch({type: SET_THEME_WITH_FREQUENCY, payload: null});
+  await recomputeRepeatedThemes(dispatch);
   return true;
 };
 
 export const editRepeatedTheme = (id, data) => async dispatch => {
   await dispatch({type: EDIT_REPEATED_THEME, payload: {id, data}});
-  await dispatch({type: SET_THEME_WITH_FREQUENCY, payload: null});
+  await recomputeRepeatedThemes(dispatch);
   return true;
 };
 
