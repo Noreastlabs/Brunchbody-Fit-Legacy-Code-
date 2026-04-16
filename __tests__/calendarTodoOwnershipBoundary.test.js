@@ -1,3 +1,5 @@
+import {readFileSync} from 'fs';
+import path from 'path';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ADD_TODO_TASK,
@@ -5,19 +7,42 @@ import {
   EDIT_TODO_TASK,
   GET_TODO_TASKS,
 } from '../src/redux/constants';
-import {
-  addCalendarTodoTask,
-  deleteCalendarTodoTask,
-  editCalendarTodoTask,
-  getCalendarTodoTasks,
-} from '../src/redux/actions/calendar';
+import * as actionsBarrel from '../src/redux/actions';
+import * as calendarActions from '../src/redux/actions/calendar';
+import * as todoActions from '../src/redux/actions/todo';
+import todoReducer from '../src/redux/reducer/todo';
+
+const readSource = relativePath =>
+  readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
 
 describe('calendar-owned todo action boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('calendar todo aliases preserve the legacy todo action contract', async () => {
+  test('calendar todo aliases are the todo implementations behind calendar-owned names', () => {
+    expect(calendarActions.addCalendarTodoTask).toBe(todoActions.addTodo);
+    expect(calendarActions.editCalendarTodoTask).toBe(todoActions.editTodo);
+    expect(calendarActions.deleteCalendarTodoTask).toBe(todoActions.deleteTodo);
+    expect(calendarActions.getCalendarTodoTasks).toBe(todoActions.getTodo);
+  });
+
+  test('redux actions barrel continues exposing the calendar-owned todo alias names', () => {
+    expect(actionsBarrel.addCalendarTodoTask).toBe(
+      calendarActions.addCalendarTodoTask,
+    );
+    expect(actionsBarrel.editCalendarTodoTask).toBe(
+      calendarActions.editCalendarTodoTask,
+    );
+    expect(actionsBarrel.deleteCalendarTodoTask).toBe(
+      calendarActions.deleteCalendarTodoTask,
+    );
+    expect(actionsBarrel.getCalendarTodoTasks).toBe(
+      calendarActions.getCalendarTodoTasks,
+    );
+  });
+
+  test('getTodo reads the legacy todos storage key and dispatches the loaded tasks', async () => {
     const dispatch = jest.fn();
     const savedTasks = [
       {id: 'task-1', name: 'Stretch', notes: '', day: 'Someday'},
@@ -25,35 +50,128 @@ describe('calendar-owned todo action boundary', () => {
 
     AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(savedTasks));
 
-    await expect(getCalendarTodoTasks()(dispatch)).resolves.toBe(true);
+    await expect(todoActions.getTodo()(dispatch)).resolves.toBe(true);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
-    expect(dispatch).toHaveBeenNthCalledWith(1, {
+    expect(dispatch).toHaveBeenCalledWith({
       type: GET_TODO_TASKS,
       payload: savedTasks,
     });
+  });
+
+  test('getTodo falls back to an empty array when storage is empty', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce(null);
+
+    await expect(todoActions.getTodo()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_TODO_TASKS,
+      payload: [],
+    });
+  });
+
+  test('todo thunks keep returning true while dispatching the legacy action types', async () => {
+    const dispatch = jest.fn();
+    const taskData = {name: 'Hydrate', notes: '', day: 'Someday'};
 
     await expect(
-      addCalendarTodoTask({name: 'Hydrate', notes: '', day: 'Someday'})(dispatch),
+      todoActions.addTodo(taskData)(dispatch),
     ).resolves.toBe(true);
-    expect(dispatch).toHaveBeenNthCalledWith(2, {
+    expect(dispatch).toHaveBeenNthCalledWith(1, {
       type: ADD_TODO_TASK,
-      payload: {name: 'Hydrate', notes: '', day: 'Someday'},
+      payload: taskData,
     });
 
     await expect(
-      editCalendarTodoTask('task-1', {notes: '8 cups'})(dispatch),
+      todoActions.editTodo('task-1', {notes: '8 cups'})(dispatch),
     ).resolves.toBe(true);
-    expect(dispatch).toHaveBeenNthCalledWith(3, {
+    expect(dispatch).toHaveBeenNthCalledWith(2, {
       type: EDIT_TODO_TASK,
       payload: {id: 'task-1', data: {notes: '8 cups'}},
     });
 
-    await expect(deleteCalendarTodoTask('task-1')(dispatch)).resolves.toBe(
-      true,
-    );
-    expect(dispatch).toHaveBeenNthCalledWith(4, {
+    await expect(todoActions.deleteTodo('task-1')(dispatch)).resolves.toBe(true);
+    expect(dispatch).toHaveBeenNthCalledWith(3, {
       type: DELETE_TODO_TASK,
       payload: {id: 'task-1'},
     });
+  });
+
+  test('todo reducer preserves the legacy top-level slice shape', () => {
+    expect(todoReducer(undefined, {type: '@@INIT'})).toEqual({todoTasks: []});
+  });
+
+  test('todo reducer GET replaces tasks and valid CRUD operations keep working', () => {
+    const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.123456789);
+
+    try {
+      const loadedTasks = [
+        {id: 'task-1', name: 'Stretch', notes: '', day: 'Someday'},
+      ];
+      const loadedState = todoReducer(undefined, {
+        type: GET_TODO_TASKS,
+        payload: loadedTasks,
+      });
+
+      expect(loadedState).toEqual({todoTasks: loadedTasks});
+
+      const addedState = todoReducer(undefined, {
+        type: ADD_TODO_TASK,
+        payload: {name: 'Hydrate', notes: '', day: 'Someday'},
+      });
+      expect(addedState.todoTasks).toHaveLength(1);
+      expect(addedState.todoTasks[0]).toEqual({
+        id: '4fzzzxjylrx',
+        name: 'Hydrate',
+        notes: '',
+        day: 'Someday',
+      });
+
+      const editedState = todoReducer(loadedState, {
+        type: EDIT_TODO_TASK,
+        payload: {id: 'task-1', data: {notes: 'Done', complete: true}},
+      });
+      expect(editedState.todoTasks).toEqual([
+        {
+          id: 'task-1',
+          name: 'Stretch',
+          notes: 'Done',
+          day: 'Someday',
+          complete: true,
+        },
+      ]);
+
+      const deletedState = todoReducer(loadedState, {
+        type: DELETE_TODO_TASK,
+        payload: {id: 'task-1'},
+      });
+      expect(deletedState.todoTasks).toEqual([]);
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  test('store and calendar screen sources keep the seam on todo state with calendar-owned UI names', () => {
+    const storeSource = readSource('src/redux/store/store.js');
+    const calendarScreenSource = readSource(
+      'src/screens/calendar/pages/calendar/Calendar.js',
+    );
+
+    expect(storeSource).toMatch(/todo:\s*calendarTodoReducer,/);
+    expect(storeSource).toMatch(/whitelist:\s*\[[\s\S]*'todo'/);
+
+    expect(calendarScreenSource).toMatch(
+      /calendarTodoTasks:\s*state\.todo\?\.todoTasks,/,
+    );
+    expect(calendarScreenSource).toMatch(
+      /onAddCalendarTodoTask:\s*data => dispatch\(addCalendarTodoTask\(data\)\)/,
+    );
+    expect(calendarScreenSource).toMatch(
+      /onEditCalendarTodoTask:\s*\(id,\s*data\)\s*=>\s*dispatch\(editCalendarTodoTask\(id,\s*data\)\)/,
+    );
+    expect(calendarScreenSource).toMatch(
+      /onDeleteCalendarTodoTask:\s*id => dispatch\(deleteCalendarTodoTask\(id\)\)/,
+    );
   });
 });

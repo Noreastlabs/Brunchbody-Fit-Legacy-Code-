@@ -9,10 +9,15 @@ import {
 
 assertLocalOnlyMode('todo actions');
 
+const TODO_STORAGE_KEY = 'todos';
+
+const readStoredTodos = async () => {
+  const todosString = await AsyncStorage.getItem(TODO_STORAGE_KEY);
+  return todosString ? JSON.parse(todosString) : [];
+};
 
 export const getTodo = () => async dispatch => {
-  const todosString = await AsyncStorage.getItem('todos');
-  const todos = todosString ? JSON.parse(todosString) : [];
+  const todos = await readStoredTodos();
   dispatch({type: GET_TODO_TASKS, payload: todos});
   return true;
 };

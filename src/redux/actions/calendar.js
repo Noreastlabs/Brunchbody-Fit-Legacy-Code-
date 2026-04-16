@@ -82,8 +82,8 @@ export const editRepeatedTheme = (id, data) => async dispatch => {
   return true;
 };
 
-// Keep the legacy todo storage/slice contract unchanged while the live todo
-// experience remains calendar-owned in the Phase 1 UI.
+// Re-export calendar-facing todo names while the legacy todo domain keeps
+// owning the thunk implementation, storage key, and persisted reducer slice.
 export {
   addTodo as addCalendarTodoTask,
   deleteTodo as deleteCalendarTodoTask,

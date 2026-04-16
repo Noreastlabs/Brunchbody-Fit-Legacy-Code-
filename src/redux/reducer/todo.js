@@ -9,6 +9,25 @@ const initialState = {
   todoTasks: [],
 };
 
+const createTodoTask = todoTask => ({
+  ...todoTask,
+  id: Math.random().toString(36).slice(2),
+});
+
+const editTodoTasks = (todoTasks, {id, data}) => {
+  const nextTodoTasks = Array.from(todoTasks);
+  const index = nextTodoTasks.findIndex(item => item.id === id);
+  nextTodoTasks[index] = {...nextTodoTasks[index], ...data};
+  return nextTodoTasks;
+};
+
+const deleteTodoTaskById = (todoTasks, id) => {
+  const nextTodoTasks = Array.from(todoTasks);
+  const index = nextTodoTasks.findIndex(item => item.id === id);
+  nextTodoTasks.splice(index, 1);
+  return nextTodoTasks;
+};
+
 const todoReducer = (state = initialState, action) => {
   switch (action.type) {
     case GET_TODO_TASKS: {
@@ -20,30 +39,19 @@ const todoReducer = (state = initialState, action) => {
     case ADD_TODO_TASK: {
       return {
         ...state,
-        todoTasks: [
-          ...state.todoTasks,
-          { ...action.payload, id: Math.random().toString(36).slice(2) },
-        ],
+        todoTasks: [...state.todoTasks, createTodoTask(action.payload)],
       };
     }
     case EDIT_TODO_TASK: {
-      const temp = Array.from(state.todoTasks);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp[index] = { ...temp[index], ...action.payload.data };
-
       return {
         ...state,
-        todoTasks: temp,
+        todoTasks: editTodoTasks(state.todoTasks, action.payload),
       };
     }
     case DELETE_TODO_TASK: {
-      const temp = Array.from(state.todoTasks);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp.splice(index, 1);
-
       return {
         ...state,
-        todoTasks: temp,
+        todoTasks: deleteTodoTaskById(state.todoTasks, action.payload.id),
       };
     }
     default:
