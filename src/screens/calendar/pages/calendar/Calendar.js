@@ -19,6 +19,15 @@ import {
   setTheme,
   updateThemesWithFrequency,
 } from '../../../../redux/actions';
+import {
+  selectCalendarClearedThemeDays,
+  selectCalendarCurrentTheme,
+  selectCalendarMyThemes,
+  selectCalendarRepeatedTheme,
+  selectCalendarThemesWithFrequency,
+  selectCalendarTodoTasks,
+  selectCalendarUser,
+} from '../../../../redux/selectors';
 import { colors, strings, wheelPickerItems } from '../../../../resources';
 import CalendarUI from '../../components';
 import CalendarMenu from '../../components/CalendarMenu';
@@ -873,13 +882,13 @@ CalendarPage.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  user: state.auth?.user,
-  calendarTodoTasks: state.todo?.todoTasks,
-  myThemes: state.calendar?.themes,
-  currentTheme: state.calendar?.currentTheme,
-  repeatedTheme: state.calendar?.repeatedTheme,
-  themesWithFrequency: state.calendar?.themesWithFrequency,
-  clearedThemeDays: state.calendar?.clearedThemeDays,
+  user: selectCalendarUser(state),
+  calendarTodoTasks: selectCalendarTodoTasks(state),
+  myThemes: selectCalendarMyThemes(state),
+  currentTheme: selectCalendarCurrentTheme(state),
+  repeatedTheme: selectCalendarRepeatedTheme(state),
+  themesWithFrequency: selectCalendarThemesWithFrequency(state),
+  clearedThemeDays: selectCalendarClearedThemeDays(state),
 });
 
 const mapDispatchToProps = dispatch => ({

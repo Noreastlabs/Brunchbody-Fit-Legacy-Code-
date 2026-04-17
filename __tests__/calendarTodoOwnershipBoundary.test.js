@@ -1,5 +1,6 @@
 import {readFileSync} from 'fs';
 import path from 'path';
+import {parse} from '@babel/parser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   ADD_TODO_TASK,
@@ -14,6 +15,36 @@ import todoReducer from '../src/redux/reducer/todo';
 
 const readSource = relativePath =>
   readFileSync(path.join(__dirname, '..', relativePath), 'utf8');
+
+const getCalendarSelectorsImport = source => {
+  const ast = parse(source, {
+    sourceType: 'module',
+    plugins: ['jsx', 'optionalChaining'],
+  });
+
+  return ast.program.body.find(
+    node =>
+      node.type === 'ImportDeclaration' &&
+      node.source.value === '../../../../redux/selectors',
+  );
+};
+
+const getMapStateToPropsProperties = source => {
+  const ast = parse(source, {
+    sourceType: 'module',
+    plugins: ['jsx', 'optionalChaining'],
+  });
+  const mapStateToProps = ast.program.body
+    .filter(node => node.type === 'VariableDeclaration')
+    .flatMap(node => node.declarations)
+    .find(
+      declaration =>
+        declaration.id.type === 'Identifier' &&
+        declaration.id.name === 'mapStateToProps',
+    );
+
+  return mapStateToProps.init.body.properties;
+};
 
 describe('calendar-owned todo action boundary', () => {
   beforeEach(() => {
@@ -157,13 +188,65 @@ describe('calendar-owned todo action boundary', () => {
     const calendarScreenSource = readSource(
       'src/screens/calendar/pages/calendar/Calendar.js',
     );
+    const selectorsImport = getCalendarSelectorsImport(calendarScreenSource);
+    const mapStateToPropsProperties = getMapStateToPropsProperties(
+      calendarScreenSource,
+    );
+    const mapStateToPropsSource = calendarScreenSource.match(
+      /const mapStateToProps = state => \(\{[\s\S]*?\}\);/,
+    )[0];
+    const propertySelectorMap = Object.fromEntries(
+      mapStateToPropsProperties.map(property => [
+        property.key.name,
+        {
+          selector: property.value.callee.name,
+          arg: property.value.arguments[0]?.name,
+        },
+      ]),
+    );
 
     expect(storeSource).toMatch(/todo:\s*calendarTodoReducer,/);
     expect(storeSource).toMatch(/whitelist:\s*\[[\s\S]*'todo'/);
 
-    expect(calendarScreenSource).toMatch(
-      /calendarTodoTasks:\s*state\.todo\?\.todoTasks,/,
+    expect(selectorsImport).toBeDefined();
+    expect(selectorsImport.specifiers.map(specifier => specifier.local.name)).toEqual(
+      expect.arrayContaining([
+        'selectCalendarUser',
+        'selectCalendarTodoTasks',
+        'selectCalendarMyThemes',
+        'selectCalendarCurrentTheme',
+        'selectCalendarRepeatedTheme',
+        'selectCalendarThemesWithFrequency',
+        'selectCalendarClearedThemeDays',
+      ]),
     );
+    expect(propertySelectorMap).toEqual({
+      user: {selector: 'selectCalendarUser', arg: 'state'},
+      calendarTodoTasks: {
+        selector: 'selectCalendarTodoTasks',
+        arg: 'state',
+      },
+      myThemes: {selector: 'selectCalendarMyThemes', arg: 'state'},
+      currentTheme: {
+        selector: 'selectCalendarCurrentTheme',
+        arg: 'state',
+      },
+      repeatedTheme: {
+        selector: 'selectCalendarRepeatedTheme',
+        arg: 'state',
+      },
+      themesWithFrequency: {
+        selector: 'selectCalendarThemesWithFrequency',
+        arg: 'state',
+      },
+      clearedThemeDays: {
+        selector: 'selectCalendarClearedThemeDays',
+        arg: 'state',
+      },
+    });
+    expect(mapStateToPropsSource).not.toMatch(/state\.auth\?\.user/);
+    expect(mapStateToPropsSource).not.toMatch(/state\.todo\?\.todoTasks/);
+    expect(mapStateToPropsSource).not.toMatch(/state\.calendar\?\./);
     expect(calendarScreenSource).toMatch(
       /onAddCalendarTodoTask:\s*data => dispatch\(addCalendarTodoTask\(data\)\)/,
     );
