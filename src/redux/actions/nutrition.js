@@ -24,6 +24,9 @@ import {
 assertLocalOnlyMode('nutrition actions');
 
 const readMealsFromStorage = () => getJsonItem('meals', []);
+const readSupplementsFromStorage = () => getJsonItem('supplements', []);
+const readMealCategoriesFromStorage = () => getJsonItem('meal_categories', []);
+const readMealsDirectoryFromStorage = () => getJsonItem('meals_directory', []);
 
 export const getMeals = () => async dispatch => {
   const meals = await readMealsFromStorage();
@@ -72,7 +75,7 @@ export const setSupplementItems = data => async dispatch => {
 };
 
 export const getSupplements = () => async dispatch => {
-  const supplements = await getJsonItem('supplements', []);
+  const supplements = await readSupplementsFromStorage();
   dispatch({type: GET_SUPPLEMENTS, payload: supplements});
   return true;
 };
@@ -108,13 +111,13 @@ export const deleteSupplementItem = data => async dispatch => {
 };
 
 export const getMealCategories = () => async dispatch => {
-  const categories = await getJsonItem('meal_categories', []);
+  const categories = await readMealCategoriesFromStorage();
   dispatch({type: GET_MEAL_CATEGORIES, payload: categories});
   return true;
 };
 
 export const getMealsDirectory = () => async dispatch => {
-  const directory = await getJsonItem('meals_directory', []);
+  const directory = await readMealsDirectoryFromStorage();
   dispatch({type: GET_MEALS_DIRECTORY, payload: directory});
   return true;
 };

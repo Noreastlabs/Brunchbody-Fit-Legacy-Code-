@@ -37,10 +37,28 @@ const createMeal = data => ({
   items: [],
 });
 
+const createSupplement = data => ({
+  ...data,
+  id: createGeneratedId(),
+  items: [],
+});
+
 const getMealItemsById = (meals, mealId) =>
   meals.find(i => i.id === mealId).items;
 
+const getSupplementItemsById = (supplements, supplementId) =>
+  supplements.find(i => i.id === supplementId).items;
+
 const addMealItem = (items, data) => {
+  const copyItems = Array.from(items);
+  copyItems.push({
+    ...data,
+    id: createGeneratedId(),
+  });
+  return copyItems;
+};
+
+const addSupplementItem = (items, data) => {
   const copyItems = Array.from(items);
   copyItems.push({
     ...data,
@@ -56,7 +74,21 @@ const replaceMealItem = (items, itemId, data) => {
   return copyItems;
 };
 
+const replaceSupplementItem = (items, itemId, data) => {
+  const copyItems = Array.from(items);
+  const itemIndex = copyItems.findIndex(i => i.id === itemId);
+  copyItems[itemIndex] = data;
+  return copyItems;
+};
+
 const removeMealItem = (items, itemId) => {
+  const copyItems = Array.from(items);
+  const itemIndex = copyItems.findIndex(i => i.id === itemId);
+  copyItems.splice(itemIndex, 1);
+  return copyItems;
+};
+
+const removeSupplementItem = (items, itemId) => {
   const copyItems = Array.from(items);
   const itemIndex = copyItems.findIndex(i => i.id === itemId);
   copyItems.splice(itemIndex, 1);
@@ -73,6 +105,19 @@ const updateMealItemsState = (meals, mealId, updateItems) => {
   return {
     meals: nextMeals,
     mealItems: nextItems,
+  };
+};
+
+const updateSupplementItemsState = (supplements, supplementId, updateItems) => {
+  const nextSupplements = Array.from(supplements);
+  const supplementIndex = nextSupplements.findIndex(i => i.id === supplementId);
+  const nextItems = updateItems(nextSupplements[supplementIndex].items);
+
+  nextSupplements[supplementIndex].items = nextItems;
+
+  return {
+    supplements: nextSupplements,
+    supplementItems: nextItems,
   };
 };
 
@@ -141,14 +186,7 @@ const nutritionReducer = (state = initialState, action) => {
     case ADD_SUPPLEMENT: {
       return {
         ...state,
-        supplements: [
-          ...state.supplements,
-          {
-            ...action.payload,
-            id: Math.random().toString(36).slice(2),
-            items: [],
-          },
-        ],
+        supplements: [...state.supplements, createSupplement(action.payload)],
       };
     }
     case DELETE_SUPPLEMENT: {
@@ -170,59 +208,42 @@ const nutritionReducer = (state = initialState, action) => {
 
       return {
         ...state,
-        supplementItems: supplement.items,
+        supplementItems: getSupplementItemsById(state.supplements, supplement.id),
       };
     }
     case ADD_SUPPLEMENT_ITEMS: {
-      const temp = Array.from(state.supplements);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      const copyItems = Array.from(temp[index].items);
-      copyItems.push({
-        ...action.payload.data,
-        id: Math.random().toString(36).slice(2),
-      });
-      temp[index].items = copyItems;
-
       return {
         ...state,
-        supplements: temp,
-        supplementItems: copyItems,
+        ...updateSupplementItemsState(
+          state.supplements,
+          action.payload.id,
+          items => addSupplementItem(items, action.payload.data),
+        ),
       };
     }
     case EDIT_SUPPLEMENT_ITEMS: {
-      const temp = Array.from(state.supplements);
-      const mealIndex = temp.findIndex(
-        i => i.id === action.payload.supplement_id,
-      );
-      const copyItems = Array.from(temp[mealIndex].items);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.item_id,
-      );
-      copyItems[itemIndex] = action.payload.data;
-      temp[mealIndex].items = copyItems;
-
       return {
         ...state,
-        supplements: temp,
-        supplementItems: copyItems,
+        ...updateSupplementItemsState(
+          state.supplements,
+          action.payload.supplement_id,
+          items =>
+            replaceSupplementItem(
+              items,
+              action.payload.item_id,
+              action.payload.data,
+            ),
+        ),
       };
     }
     case DELETE_SUPPLEMENT_ITEMS: {
-      const temp = Array.from(state.supplements);
-      const suppIndex = temp.findIndex(
-        i => i.id === action.payload.supplement_id,
-      );
-      const copyItems = Array.from(temp[suppIndex].items);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.item_id,
-      );
-      copyItems.splice(itemIndex, 1);
-      temp[suppIndex].items = copyItems;
-
       return {
         ...state,
-        supplements: temp,
-        supplementItems: copyItems,
+        ...updateSupplementItemsState(
+          state.supplements,
+          action.payload.supplement_id,
+          items => removeSupplementItem(items, action.payload.item_id),
+        ),
       };
     }
     case GET_MEAL_CATEGORIES: {
