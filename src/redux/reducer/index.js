@@ -1,3 +1,4 @@
+// Preserve the shared reducer barrel contract.
 export { default as authReducer } from './auth';
 export { default as calendarReducer } from './calendar';
 export { default as exerciseReducer } from './exercise';

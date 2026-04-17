@@ -1,3 +1,4 @@
+// Preserve the shared actions barrel contract.
 export * from './auth';
 export * from './calendar';
 export * from './exercise';

@@ -1,12 +1,16 @@
+// Auth and shared reset contract.
 export const SET_USER = 'SET_USER';
 export const CLEAR_USER = 'CLEAR_USER';
 export const RESET_APP = 'RESET_APP';
 
+// Journal contract.
 export const SET_JOURNAL_ENTRY = 'SET_JOURNAL_ENTRY';
 export const EDIT_JOURNAL_ENTRY = 'EDIT_JOURNAL_ENTRY';
 export const GET_JOURNAL_ENTRIES = 'GET_JOURNAL_ENTRIES';
 export const GET_ALL_JOURNAL_ENTRIES = 'GET_ALL_JOURNAL_ENTRIES';
+export const GET_TRAITS = 'GET_TRAITS';
 
+// Nutrition contract.
 export const GET_MEALS = 'GET_MEALS';
 export const ADD_MEAL = 'ADD_MEAL';
 export const DELETE_MEAL = 'DELETE_MEAL';
@@ -25,6 +29,11 @@ export const ADD_SUPPLEMENT_ITEMS = 'ADD_SUPPLEMENT_ITEMS';
 export const EDIT_SUPPLEMENT_ITEMS = 'EDIT_SUPPLEMENT_ITEMS';
 export const DELETE_SUPPLEMENT_ITEMS = 'DELETE_SUPPLEMENT_ITEMS';
 
+export const GET_MEAL_CATEGORIES = 'GET_MEAL_CATEGORIES';
+export const GET_MEALS_DIRECTORY = 'GET_MEALS_DIRECTORY';
+
+// Recreation contract.
+
 export const GET_ROUTINES = 'GET_ROUTINES';
 export const ADD_ROUTINE = 'ADD_ROUTINE';
 export const DELETE_ROUTINE = 'DELETE_ROUTINE';
@@ -35,6 +44,7 @@ export const GET_WORKOUTS = 'GET_WORKOUTS';
 export const ADD_WORKOUT = 'ADD_WORKOUT';
 export const EDIT_WORKOUT = 'EDIT_WORKOUT';
 export const DELETE_WORKOUT = 'DELETE_WORKOUT';
+export const ADD_COMPLETED_WORKOUT = 'ADD_COMPLETED_WORKOUT';
 
 export const GET_ROUTINE_ITEMS = 'GET_ROUTINE_ITEMS';
 export const ADD_ROUTINE_ITEMS = 'ADD_ROUTINE_ITEMS';
@@ -50,16 +60,7 @@ export const GET_BRUNCH_BODY_WEEK_PLAN = 'GET_BRUNCH_BODY_WEEK_PLAN';
 export const ADD_WEEK_PLAN = 'ADD_WEEK_PLAN';
 export const EDIT_WEEK_PLAN = 'EDIT_WEEK_PLAN';
 
-export const GET_EXERCISES = 'GET_EXERCISES';
-export const ADD_EXERCISE = 'ADD_EXERCISE';
-export const EDIT_EXERCISE = 'EDIT_EXERCISE';
-export const DELETE_EXERCISE = 'DELETE_EXERCISE';
-
-export const GET_TODO_TASKS = 'GET_TODO_TASKS';
-export const ADD_TODO_TASK = 'ADD_TODO_TASK';
-export const EDIT_TODO_TASK = 'EDIT_TODO_TASK';
-export const DELETE_TODO_TASK = 'DELETE_TODO_TASK';
-
+// Calendar contract.
 export const ADD_THEME = 'ADD_THEME';
 export const GET_THEMES = 'GET_THEMES';
 export const EDIT_THEME = 'EDIT_THEME';
@@ -73,13 +74,16 @@ export const CLEAR_THEME_DAYS = 'CLEAR_THEME_DAYS';
 export const CLEAR_CURRENT_THEME = 'CLEAR_CURRENT_THEME';
 export const SET_THEME_WITH_FREQUENCY = 'SET_THEME_WITH_FREQUENCY';
 
-export const GET_TRAITS = 'GET_TRAITS';
-
-export const GET_MEAL_CATEGORIES = 'GET_MEAL_CATEGORIES';
-export const GET_MEALS_DIRECTORY = 'GET_MEALS_DIRECTORY';
-
+// Exercise contract.
+export const GET_EXERCISES = 'GET_EXERCISES';
+export const ADD_EXERCISE = 'ADD_EXERCISE';
+export const EDIT_EXERCISE = 'EDIT_EXERCISE';
+export const DELETE_EXERCISE = 'DELETE_EXERCISE';
 export const GET_EXERCISE_DIRECTORY = 'GET_EXERCISE_DIRECTORY';
-
 export const MERGE_EXERCISES = 'MERGE_EXERCISES';
 
-export const ADD_COMPLETED_WORKOUT = 'ADD_COMPLETED_WORKOUT';
+// Todo contract.
+export const GET_TODO_TASKS = 'GET_TODO_TASKS';
+export const ADD_TODO_TASK = 'ADD_TODO_TASK';
+export const EDIT_TODO_TASK = 'EDIT_TODO_TASK';
+export const DELETE_TODO_TASK = 'DELETE_TODO_TASK';
