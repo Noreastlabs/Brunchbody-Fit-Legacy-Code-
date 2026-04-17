@@ -28,10 +28,27 @@ import {STORAGE_KEYS} from '../../storage/mmkv/keys';
 assertLocalOnlyMode('recreation actions');
 
 const ROUTINES_STORAGE_KEY = 'routines';
+const WORKOUTS_STORAGE_KEY = 'workouts';
 
 const readStoredRoutines = async () => {
   const routinesString = await AsyncStorage.getItem(ROUTINES_STORAGE_KEY);
   return routinesString ? JSON.parse(routinesString) : [];
+};
+
+const readStoredBrunchBodyPlans = () =>
+  getJSON(STORAGE_KEYS.PLANS.BRUNCH_BODY) || [];
+
+const findBrunchBodyPlan = (plans, id) =>
+  plans.find(item => item.name === id || item.id === id);
+
+// Preserve the legacy loose-equality week match for mixed string/number data.
+// eslint-disable-next-line eqeqeq
+const findBrunchBodyWeek = (plan, week) =>
+  plan.weeksData.find(w => Number(w.week) == week);
+
+const readStoredWorkouts = async () => {
+  const workoutsString = await AsyncStorage.getItem(WORKOUTS_STORAGE_KEY);
+  return workoutsString ? JSON.parse(workoutsString) : [];
 };
 
 const dispatchWeekPlanSelection = (dispatch, id, week) =>
@@ -109,30 +126,27 @@ export const editWeekPlan = (id, weekId, data) => async dispatch => {
 
 // Frozen adjacent legacy branches
 export const getBrunchBodyPlans = () => async dispatch => {
-  const brunchPlans = getJSON(STORAGE_KEYS.PLANS.BRUNCH_BODY) || [];
+  const brunchPlans = readStoredBrunchBodyPlans();
   dispatch({type: GET_BRUNCH_BODY_PLANS, payload: brunchPlans});
   return true;
 };
 
 export const getBrunchBodyWeekPlan = (id, week) => async dispatch => {
-  const brunchPlans = getJSON(STORAGE_KEYS.PLANS.BRUNCH_BODY) || [];
-  const weekPlan = brunchPlans.find(item => item.name === id || item.id === id);
+  const brunchPlans = readStoredBrunchBodyPlans();
+  const weekPlan = findBrunchBodyPlan(brunchPlans, id);
 
   if (!weekPlan) {
     console.warn(`Plan with id/name "${id}" not found`);
     return null;
   }
 
-  // Preserve the legacy loose-equality week match for mixed string/number data.
-  // eslint-disable-next-line eqeqeq
-  const filteredWeeksData = weekPlan.weeksData.find(w => Number(w.week) == week);
+  const filteredWeeksData = findBrunchBodyWeek(weekPlan, week);
   dispatch({type: GET_BRUNCH_BODY_WEEK_PLAN, payload: filteredWeeksData});
   return filteredWeeksData;
 };
 
 export const getWorkouts = () => async dispatch => {
-  const workoutsString = await AsyncStorage.getItem('workouts');
-  const workouts = workoutsString ? JSON.parse(workoutsString) : [];
+  const workouts = await readStoredWorkouts();
   dispatch({type: GET_WORKOUTS, payload: workouts});
   return true;
 };

@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as recreationActions from '../src/redux/actions/recreation';
 import {
+  ADD_COMPLETED_WORKOUT,
   ADD_CUSTOM_PLANS,
   ADD_ROUTINE,
   ADD_ROUTINE_ITEMS,
@@ -10,6 +11,7 @@ import {
   DELETE_ROUTINE,
   DELETE_ROUTINE_ITEMS,
   DELETE_WORKOUT,
+  GET_BRUNCH_BODY_WEEK_PLAN,
   EDIT_ROUTINE_ITEMS,
   EDIT_WEEK_PLAN,
   EDIT_WORKOUT,
@@ -18,6 +20,7 @@ import {
   GET_ROUTINES,
   GET_ROUTINE_ITEMS,
   GET_WEEK_PLAN,
+  GET_WORKOUTS,
 } from '../src/redux/constants';
 import recreationReducer from '../src/redux/reducer/recreation';
 import {STORAGE_KEYS} from '../src/storage/mmkv/keys';
@@ -132,6 +135,21 @@ describe('recreation slice boundary', () => {
         thunk: recreationActions.getWeekPlans('plan-1', 2),
         action: {type: GET_WEEK_PLAN, payload: {id: 'plan-1', week: 2}},
       },
+      {
+        thunk: recreationActions.addMyWorkout({name: 'Upper Body'}),
+        action: {type: ADD_WORKOUT, payload: {data: {name: 'Upper Body'}}},
+      },
+      {
+        thunk: recreationActions.editMyWorkout('workout-1', {name: 'Upper Body A'}),
+        action: {
+          type: EDIT_WORKOUT,
+          payload: {id: 'workout-1', name: 'Upper Body A'},
+        },
+      },
+      {
+        thunk: recreationActions.deleteMyWorkout('workout-1'),
+        action: {type: DELETE_WORKOUT, payload: {id: 'workout-1'}},
+      },
     ];
 
     for (const {thunk, action} of cases) {
@@ -149,6 +167,111 @@ describe('recreation slice boundary', () => {
     expect(AsyncStorage.getItem).not.toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith({
       type: GET_CUSTOM_PLANS,
+      payload: [],
+    });
+  });
+
+  test('getBrunchBodyPlans dispatches MMKV-loaded plans and returns true', async () => {
+    const brunchBodyPlans = [{id: 'bb-1', name: 'Starter'}];
+    const dispatch = jest.fn();
+
+    getJSON.mockReturnValueOnce(brunchBodyPlans);
+
+    await expect(recreationActions.getBrunchBodyPlans()(dispatch)).resolves.toBe(
+      true,
+    );
+    expect(getJSON).toHaveBeenCalledWith(STORAGE_KEYS.PLANS.BRUNCH_BODY);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_BRUNCH_BODY_PLANS,
+      payload: brunchBodyPlans,
+    });
+  });
+
+  test('getBrunchBodyPlans falls back to an empty array when MMKV returns nothing', async () => {
+    const dispatch = jest.fn();
+
+    getJSON.mockReturnValueOnce(undefined);
+
+    await expect(recreationActions.getBrunchBodyPlans()(dispatch)).resolves.toBe(
+      true,
+    );
+    expect(getJSON).toHaveBeenCalledWith(STORAGE_KEYS.PLANS.BRUNCH_BODY);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_BRUNCH_BODY_PLANS,
+      payload: [],
+    });
+  });
+
+  test('getBrunchBodyWeekPlan resolves by legacy plan name and dispatches the selected week', async () => {
+    const dispatch = jest.fn();
+    const selectedWeek = {
+      week: 2,
+      weekDays: {day1: ['Push'], day2: ['Pull']},
+    };
+    const brunchBodyPlans = [
+      {id: 'bb-other', name: 'Other Plan', weeksData: [{week: 1}]},
+      {
+        id: 'bb-1',
+        name: 'Starter',
+        weeksData: [{week: 1, weekDays: {day1: ['Warmup']}}, selectedWeek],
+      },
+    ];
+
+    getJSON.mockReturnValueOnce(brunchBodyPlans);
+
+    await expect(
+      recreationActions.getBrunchBodyWeekPlan('Starter', '2')(dispatch),
+    ).resolves.toEqual(selectedWeek);
+    expect(getJSON).toHaveBeenCalledWith(STORAGE_KEYS.PLANS.BRUNCH_BODY);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_BRUNCH_BODY_WEEK_PLAN,
+      payload: selectedWeek,
+    });
+  });
+
+  test('getBrunchBodyWeekPlan warns and returns null when the plan is missing', async () => {
+    const dispatch = jest.fn();
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    getJSON.mockReturnValueOnce([{id: 'bb-1', name: 'Starter', weeksData: []}]);
+
+    try {
+      await expect(
+        recreationActions.getBrunchBodyWeekPlan('Missing Plan', 2)(dispatch),
+      ).resolves.toBeNull();
+      expect(getJSON).toHaveBeenCalledWith(STORAGE_KEYS.PLANS.BRUNCH_BODY);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Plan with id/name "Missing Plan" not found',
+      );
+      expect(dispatch).not.toHaveBeenCalled();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test('getWorkouts dispatches parsed stored workouts and returns true', async () => {
+    const dispatch = jest.fn();
+    const storedWorkouts = [{id: 'workout-1', name: 'Upper Body'}];
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedWorkouts));
+
+    await expect(recreationActions.getWorkouts()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('workouts');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_WORKOUTS,
+      payload: storedWorkouts,
+    });
+  });
+
+  test('getWorkouts falls back to an empty array when workouts storage is empty', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce(null);
+
+    await expect(recreationActions.getWorkouts()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('workouts');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_WORKOUTS,
       payload: [],
     });
   });
@@ -366,35 +489,41 @@ describe('recreation slice boundary', () => {
     }
   });
 
-  test('frozen brunch-body and workout branches keep their current behavior', async () => {
-    const brunchBodyPlans = [{id: 'bb-1', name: 'Starter'}];
-    const dispatch = jest.fn();
+  test('GET_BRUNCH_BODY_WEEK_PLAN still writes the catalog week into the shared weekPlan field', () => {
+    const brunchBodyWeek = {week: 2, weekDays: {day1: ['Push']}};
+    const state = {
+      ...recreationReducer(undefined, {type: '@@INIT'}),
+      customPlans: [{id: 'plan-1', name: 'Strength Block', week: []}],
+    };
 
-    getJSON.mockReturnValueOnce(brunchBodyPlans);
-
-    await expect(recreationActions.getBrunchBodyPlans()(dispatch)).resolves.toBe(
-      true,
-    );
-    expect(getJSON).toHaveBeenCalledWith(STORAGE_KEYS.PLANS.BRUNCH_BODY);
-    expect(dispatch).toHaveBeenCalledWith({
-      type: GET_BRUNCH_BODY_PLANS,
-      payload: brunchBodyPlans,
+    const nextState = recreationReducer(state, {
+      type: GET_BRUNCH_BODY_WEEK_PLAN,
+      payload: brunchBodyWeek,
     });
 
+    expect(nextState.weekPlan).toEqual(brunchBodyWeek);
+    expect(nextState.customPlans).toEqual(state.customPlans);
+  });
+
+  test('workout reducer preserves generated ids, shallow edits, and splice-style deletes', () => {
     const randomSpy = jest.spyOn(Math, 'random').mockReturnValue(0.123456789);
 
     try {
       let state = recreationReducer(undefined, {
         type: ADD_WORKOUT,
-        payload: {data: {name: 'Upper Body'}},
+        payload: {data: {name: 'Upper Body', notes: 'Keep this'}},
       });
-      expect(state.workouts).toEqual([{id: GENERATED_ID, name: 'Upper Body'}]);
+      expect(state.workouts).toEqual([
+        {id: GENERATED_ID, name: 'Upper Body', notes: 'Keep this'},
+      ]);
 
       state = recreationReducer(state, {
         type: EDIT_WORKOUT,
         payload: {id: GENERATED_ID, name: 'Upper Body A'},
       });
-      expect(state.workouts).toEqual([{id: GENERATED_ID, name: 'Upper Body A'}]);
+      expect(state.workouts).toEqual([
+        {id: GENERATED_ID, name: 'Upper Body A', notes: 'Keep this'},
+      ]);
 
       state = recreationReducer(state, {
         type: DELETE_WORKOUT,
@@ -404,5 +533,16 @@ describe('recreation slice boundary', () => {
     } finally {
       randomSpy.mockRestore();
     }
+  });
+
+  test('completed workouts keep their append-only reducer behavior', () => {
+    const state = recreationReducer(undefined, {
+      type: ADD_COMPLETED_WORKOUT,
+      payload: {name: 'Upper Body', completedOn: '2026-04-16'},
+    });
+
+    expect(state.completedWorkouts).toEqual([
+      {name: 'Upper Body', completedOn: '2026-04-16'},
+    ]);
   });
 });

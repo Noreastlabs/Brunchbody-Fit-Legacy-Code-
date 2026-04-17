@@ -56,6 +56,11 @@ const createWeekPlanEntry = data => ({
   id: createGeneratedId(),
 });
 
+const createWorkout = data => ({
+  ...data,
+  id: createGeneratedId(),
+});
+
 const copyItems = items => Array.from(items);
 
 const findItemIndexById = (items, id) => items.findIndex(item => item.id === id);
@@ -282,33 +287,33 @@ const recreationReducer = (state = initialState, action) => {
     case ADD_WORKOUT: {
       return {
         ...state,
-        workouts: [
-          ...state.workouts,
-          {
-            ...action.payload.data,
-            id: Math.random().toString(36).slice(2),
-          },
-        ],
+        workouts: appendGeneratedItem(
+          state.workouts,
+          action.payload.data,
+          createWorkout,
+        ),
       };
     }
     case EDIT_WORKOUT: {
-      const temp = Array.from(state.workouts);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp[index] = {...temp[index], ...action.payload};
+      const index = findItemIndexById(state.workouts, action.payload.id);
+      const nextWorkouts = mergeItemAtIndex(
+        state.workouts,
+        index,
+        action.payload,
+      );
 
       return {
         ...state,
-        workouts: temp,
+        workouts: nextWorkouts,
       };
     }
     case DELETE_WORKOUT: {
-      const temp = Array.from(state.workouts);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp.splice(index, 1);
+      const index = findItemIndexById(state.workouts, action.payload.id);
+      const nextWorkouts = removeItemAtIndex(state.workouts, index);
 
       return {
         ...state,
-        workouts: temp,
+        workouts: nextWorkouts,
       };
     }
     case ADD_COMPLETED_WORKOUT: {
