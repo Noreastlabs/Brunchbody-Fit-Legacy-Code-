@@ -31,6 +31,7 @@ import MyThemes from '../../components/MyThemes';
 import styles from '../../components/style';
 import Todo from '../../components/Todo';
 import Writing from '../../components/Writing';
+import { buildCalendarTodoSubmission } from '../../todoSubmission';
 import { CALENDAR_ROUTES } from '../../../../navigation/routeNames';
 
 let yearsList = [];
@@ -293,17 +294,19 @@ export default function CalendarPage(props) {
   };
 
   const onSaveEditModal = async () => {
-    if (taskName.trim() && taskDay.trim()) {
+    const todoSubmission = buildCalendarTodoSubmission({
+      taskName,
+      taskNotes,
+      taskDay,
+      year,
+      month,
+      date,
+    });
+
+    if (todoSubmission) {
       setBtnLoader(true);
 
-      const response = await onAddCalendarTodoTask({
-        name: taskName,
-        notes: taskNotes,
-        day:
-          taskDay === 'Someday'
-            ? 'Someday'
-            : moment(`${year}/${month}/${date}`, 'YYYY/MM/DD').format(),
-      });
+      const response = await onAddCalendarTodoTask(todoSubmission);
 
       if (response === true) {
         settaskName('');
@@ -328,17 +331,19 @@ export default function CalendarPage(props) {
 
   const onUpdateTodo = async () => {
     setTodoModalHeading('Edit To Do');
-    if (taskName.trim() && taskDay.trim()) {
+    const todoSubmission = buildCalendarTodoSubmission({
+      taskName,
+      taskNotes,
+      taskDay,
+      year,
+      month,
+      date,
+    });
+
+    if (todoSubmission) {
       setBtnLoader(true);
 
-      const response = await onEditCalendarTodoTask(todoTask.id, {
-        name: taskName,
-        notes: taskNotes,
-        day:
-          taskDay === 'Someday'
-            ? 'Someday'
-            : moment(`${year}/${month}/${date}`, 'YYYY/MM/DD').format(),
-      });
+      const response = await onEditCalendarTodoTask(todoTask.id, todoSubmission);
 
       if (response === true) {
         settaskName('');
