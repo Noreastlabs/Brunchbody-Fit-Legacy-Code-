@@ -27,10 +27,19 @@ import {STORAGE_KEYS} from '../../storage/mmkv/keys';
 
 assertLocalOnlyMode('recreation actions');
 
+const ROUTINES_STORAGE_KEY = 'routines';
 
+const readStoredRoutines = async () => {
+  const routinesString = await AsyncStorage.getItem(ROUTINES_STORAGE_KEY);
+  return routinesString ? JSON.parse(routinesString) : [];
+};
+
+const dispatchWeekPlanSelection = (dispatch, id, week) =>
+  dispatch({type: GET_WEEK_PLAN, payload: {id, week}});
+
+// Routines and routine tasks
 export const getRoutines = () => async dispatch => {
-  const routinesString = await AsyncStorage.getItem('routines');
-  const routines = routinesString ? JSON.parse(routinesString) : [];
+  const routines = await readStoredRoutines();
   dispatch({type: GET_ROUTINES, payload: routines});
   return true;
 };
@@ -65,6 +74,7 @@ export const deleteRoutineTask = data => async dispatch => {
   return true;
 };
 
+// Custom plans and week plans
 export const getCustomPlans = () => async dispatch => {
   dispatch({type: GET_CUSTOM_PLANS, payload: []});
   return true;
@@ -81,22 +91,23 @@ export const deleteCustomPlan = id => async dispatch => {
 };
 
 export const getWeekPlans = (id, week) => async dispatch => {
-  await dispatch({type: GET_WEEK_PLAN, payload: {id, week}});
+  await dispatchWeekPlanSelection(dispatch, id, week);
   return true;
 };
 
 export const addWeekPlan = (id, data) => async dispatch => {
   await dispatch({type: ADD_WEEK_PLAN, payload: {id, data}});
-  await dispatch({type: GET_WEEK_PLAN, payload: {id, week: data.week}});
+  await dispatchWeekPlanSelection(dispatch, id, data.week);
   return true;
 };
 
 export const editWeekPlan = (id, weekId, data) => async dispatch => {
   await dispatch({type: EDIT_WEEK_PLAN, payload: {id, weekId, data}});
-  await dispatch({type: GET_WEEK_PLAN, payload: {id, week: data.week}});
+  await dispatchWeekPlanSelection(dispatch, id, data.week);
   return true;
 };
 
+// Frozen adjacent legacy branches
 export const getBrunchBodyPlans = () => async dispatch => {
   const brunchPlans = getJSON(STORAGE_KEYS.PLANS.BRUNCH_BODY) || [];
   dispatch({type: GET_BRUNCH_BODY_PLANS, payload: brunchPlans});
@@ -112,6 +123,8 @@ export const getBrunchBodyWeekPlan = (id, week) => async dispatch => {
     return null;
   }
 
+  // Preserve the legacy loose-equality week match for mixed string/number data.
+  // eslint-disable-next-line eqeqeq
   const filteredWeeksData = weekPlan.weeksData.find(w => Number(w.week) == week);
   dispatch({type: GET_BRUNCH_BODY_WEEK_PLAN, payload: filteredWeeksData});
   return filteredWeeksData;

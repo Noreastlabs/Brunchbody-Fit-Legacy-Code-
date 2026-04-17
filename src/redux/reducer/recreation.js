@@ -32,6 +32,83 @@ const initialState = {
   completedWorkouts: [],
 };
 
+const createGeneratedId = () => Math.random().toString(36).slice(2);
+
+const createRoutine = data => ({
+  ...data,
+  id: createGeneratedId(),
+  items: [],
+});
+
+const createRoutineTask = data => ({
+  ...data,
+  id: createGeneratedId(),
+});
+
+const createCustomPlan = data => ({
+  ...data,
+  id: createGeneratedId(),
+  week: [],
+});
+
+const createWeekPlanEntry = data => ({
+  ...data,
+  id: createGeneratedId(),
+});
+
+const copyItems = items => Array.from(items);
+
+const findItemIndexById = (items, id) => items.findIndex(item => item.id === id);
+
+const getRoutineById = (routines, id) => routines.find(routine => routine.id === id);
+
+const getCustomPlanById = (customPlans, id) =>
+  customPlans.find(customPlan => customPlan.id === id);
+
+const replaceItemAtIndex = (items, index, nextItem) => {
+  const nextItems = copyItems(items);
+  nextItems[index] = nextItem;
+  return nextItems;
+};
+
+const mergeItemAtIndex = (items, index, data) => {
+  const nextItems = copyItems(items);
+  nextItems[index] = {...nextItems[index], ...data};
+  return nextItems;
+};
+
+const removeItemAtIndex = (items, index) => {
+  const nextItems = copyItems(items);
+  nextItems.splice(index, 1);
+  return nextItems;
+};
+
+const appendGeneratedItem = (items, data, createItem) => {
+  const nextItems = copyItems(items);
+  nextItems.push(createItem(data));
+  return nextItems;
+};
+
+const updateRoutineItems = (routines, routineId, updateItems) => {
+  const nextRoutines = copyItems(routines);
+  const routineIndex = findItemIndexById(nextRoutines, routineId);
+  const nextRoutineItems = updateItems(nextRoutines[routineIndex].items);
+
+  nextRoutines[routineIndex].items = nextRoutineItems;
+
+  return {nextRoutines, nextRoutineItems};
+};
+
+const updateCustomPlanWeeks = (customPlans, customPlanId, updateWeeks) => {
+  const nextCustomPlans = copyItems(customPlans);
+  const customPlanIndex = findItemIndexById(nextCustomPlans, customPlanId);
+  const nextWeeks = updateWeeks(nextCustomPlans[customPlanIndex].week);
+
+  nextCustomPlans[customPlanIndex].week = nextWeeks;
+
+  return {nextCustomPlans, nextWeeks};
+};
+
 const recreationReducer = (state = initialState, action) => {
   switch (action.type) {
     case GET_ROUTINES: {
@@ -43,28 +120,20 @@ const recreationReducer = (state = initialState, action) => {
     case ADD_ROUTINE: {
       return {
         ...state,
-        routines: [
-          ...state.routines,
-          {
-            ...action.payload,
-            id: Math.random().toString(36).slice(2),
-            items: [],
-          },
-        ],
+        routines: [...state.routines, createRoutine(action.payload)],
       };
     }
     case DELETE_ROUTINE: {
-      const temp = Array.from(state.routines);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp.splice(index, 1);
+      const index = findItemIndexById(state.routines, action.payload.id);
+      const nextRoutines = removeItemAtIndex(state.routines, index);
 
       return {
         ...state,
-        routines: temp,
+        routines: nextRoutines,
       };
     }
     case GET_ROUTINE_ITEMS: {
-      const routine = state.routines.find(i => i.id === action.payload.id);
+      const routine = getRoutineById(state.routines, action.payload.id);
 
       return {
         ...state,
@@ -73,55 +142,59 @@ const recreationReducer = (state = initialState, action) => {
       };
     }
     case ADD_ROUTINE_ITEMS: {
-      const temp = Array.from(state.routines);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      const copyItems = Array.from(temp[index].items);
-      copyItems.push({
-        ...action.payload.data,
-        id: Math.random().toString(36).slice(2),
-      });
-      temp[index].items = copyItems;
+      const {nextRoutines, nextRoutineItems} = updateRoutineItems(
+        state.routines,
+        action.payload.id,
+        routineItems =>
+          appendGeneratedItem(
+            routineItems,
+            action.payload.data,
+            createRoutineTask,
+          ),
+      );
 
       return {
         ...state,
-        routines: temp,
-        routineTasks: copyItems,
+        routines: nextRoutines,
+        routineTasks: nextRoutineItems,
       };
     }
     case EDIT_ROUTINE_ITEMS: {
-      const temp = Array.from(state.routines);
-      const routineIndex = temp.findIndex(
-        i => i.id === action.payload.routine_id,
+      const {nextRoutines, nextRoutineItems} = updateRoutineItems(
+        state.routines,
+        action.payload.routine_id,
+        routineItems => {
+          const itemIndex = findItemIndexById(
+            routineItems,
+            action.payload.task_id,
+          );
+          return replaceItemAtIndex(routineItems, itemIndex, action.payload.data);
+        },
       );
-      const copyItems = Array.from(temp[routineIndex].items);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.task_id,
-      );
-      copyItems[itemIndex] = action.payload.data;
-      temp[routineIndex].items = copyItems;
 
       return {
         ...state,
-        routines: temp,
-        routineTasks: copyItems,
+        routines: nextRoutines,
+        routineTasks: nextRoutineItems,
       };
     }
     case DELETE_ROUTINE_ITEMS: {
-      const temp = Array.from(state.routines);
-      const routineIndex = temp.findIndex(
-        i => i.id === action.payload.routine_id,
+      const {nextRoutines, nextRoutineItems} = updateRoutineItems(
+        state.routines,
+        action.payload.routine_id,
+        routineItems => {
+          const itemIndex = findItemIndexById(
+            routineItems,
+            action.payload.task_id,
+          );
+          return removeItemAtIndex(routineItems, itemIndex);
+        },
       );
-      const copyItems = Array.from(temp[routineIndex].items);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.task_id,
-      );
-      copyItems.splice(itemIndex, 1);
-      temp[routineIndex].items = copyItems;
 
       return {
         ...state,
-        routines: temp,
-        routineTasks: copyItems,
+        routines: nextRoutines,
+        routineTasks: nextRoutineItems,
       };
     }
     case GET_BRUNCH_BODY_PLANS: {
@@ -139,24 +212,16 @@ const recreationReducer = (state = initialState, action) => {
     case ADD_CUSTOM_PLANS: {
       return {
         ...state,
-        customPlans: [
-          ...state.customPlans,
-          {
-            ...action.payload,
-            id: Math.random().toString(36).slice(2),
-            week: [],
-          },
-        ],
+        customPlans: [...state.customPlans, createCustomPlan(action.payload)],
       };
     }
     case DELETE_CUSTOM_PLANS: {
-      const temp = Array.from(state.customPlans);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      temp.splice(index, 1);
+      const index = findItemIndexById(state.customPlans, action.payload.id);
+      const nextCustomPlans = removeItemAtIndex(state.customPlans, index);
 
       return {
         ...state,
-        customPlans: temp,
+        customPlans: nextCustomPlans,
       };
     }
     case GET_BRUNCH_BODY_WEEK_PLAN: {
@@ -166,8 +231,8 @@ const recreationReducer = (state = initialState, action) => {
       };
     }
     case GET_WEEK_PLAN: {
-      const temp = state.customPlans.find(i => i.id === action.payload.id);
-      const plan = temp.week.find(i => i.week == action.payload.week);
+      const customPlan = getCustomPlanById(state.customPlans, action.payload.id);
+      const plan = customPlan.week.find(i => i.week == action.payload.week);
 
       return {
         ...state,
@@ -175,35 +240,37 @@ const recreationReducer = (state = initialState, action) => {
       };
     }
     case ADD_WEEK_PLAN: {
-      const temp = Array.from(state.customPlans);
-      const index = temp.findIndex(i => i.id === action.payload.id);
-      const copyItems = Array.from(temp[index].week);
-      copyItems.push({
-        ...action.payload.data,
-        id: Math.random().toString(36).slice(2),
-      });
-      temp[index].week = copyItems;
+      const {nextCustomPlans, nextWeeks} = updateCustomPlanWeeks(
+        state.customPlans,
+        action.payload.id,
+        weekPlans =>
+          appendGeneratedItem(
+            weekPlans,
+            action.payload.data,
+            createWeekPlanEntry,
+          ),
+      );
 
       return {
         ...state,
-        customPlans: temp,
-        weekPlan: copyItems,
+        customPlans: nextCustomPlans,
+        weekPlan: nextWeeks,
       };
     }
     case EDIT_WEEK_PLAN: {
-      const temp = Array.from(state.customPlans);
-      const programIndex = temp.findIndex(i => i.id === action.payload.id);
-      const copyItems = Array.from(temp[programIndex].week);
-      const itemIndex = copyItems.findIndex(
-        i => i.id === action.payload.weekId,
+      const {nextCustomPlans, nextWeeks} = updateCustomPlanWeeks(
+        state.customPlans,
+        action.payload.id,
+        weekPlans => {
+          const itemIndex = findItemIndexById(weekPlans, action.payload.weekId);
+          return mergeItemAtIndex(weekPlans, itemIndex, action.payload.data);
+        },
       );
-      copyItems[itemIndex] = {...copyItems[itemIndex], ...action.payload.data};
-      temp[programIndex].week = copyItems;
 
       return {
         ...state,
-        customPlans: temp,
-        weekPlan: copyItems,
+        customPlans: nextCustomPlans,
+        weekPlan: nextWeeks,
       };
     }
     case GET_WORKOUTS: {
