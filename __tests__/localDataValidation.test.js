@@ -346,7 +346,7 @@ describe('Persistence and hydration validation', () => {
     expect(calendarAfterLoad.themes).toEqual(persistedState.themes);
   });
 
-  test('MMKV hydration writes seed plans only once', () => {
+  test('MMKV hydration seeds when uninitialized and preserves a usable payload', () => {
     storage.getBoolean.mockReturnValueOnce(false);
     hydrateWorkoutPlans();
     expect(setJSON).toHaveBeenCalledWith(
@@ -357,6 +357,9 @@ describe('Persistence and hydration validation', () => {
 
     jest.clearAllMocks();
     storage.getBoolean.mockReturnValueOnce(true);
+    storage.getString.mockReturnValueOnce(
+      JSON.stringify([{id: 'bb-1', name: 'Starter', weeksData: []}]),
+    );
     hydrateWorkoutPlans();
     expect(setJSON).not.toHaveBeenCalled();
     expect(storage.set).not.toHaveBeenCalled();
