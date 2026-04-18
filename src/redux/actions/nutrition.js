@@ -1,5 +1,4 @@
 import { assertLocalOnlyMode } from '../../config/appMode';
-import {getJsonItem} from '../../storage/asyncStorageJson';
 import {
   ADD_MEAL,
   ADD_MEAL_ITEMS,
@@ -20,16 +19,17 @@ import {
   SET_MEAL_ITEMS,
   SET_SUPPLEMENT_ITEMS,
 } from '../constants';
+import {
+  readStoredMealCategories,
+  readStoredMeals,
+  readStoredMealsDirectory,
+  readStoredSupplements,
+} from './nutritionStorage';
 
 assertLocalOnlyMode('nutrition actions');
 
-const readMealsFromStorage = () => getJsonItem('meals', []);
-const readSupplementsFromStorage = () => getJsonItem('supplements', []);
-const readMealCategoriesFromStorage = () => getJsonItem('meal_categories', []);
-const readMealsDirectoryFromStorage = () => getJsonItem('meals_directory', []);
-
 export const getMeals = () => async dispatch => {
-  const meals = await readMealsFromStorage();
+  const meals = await readStoredMeals();
   dispatch({type: GET_MEALS, payload: meals});
   return true;
 };
@@ -75,7 +75,7 @@ export const setSupplementItems = data => async dispatch => {
 };
 
 export const getSupplements = () => async dispatch => {
-  const supplements = await readSupplementsFromStorage();
+  const supplements = await readStoredSupplements();
   dispatch({type: GET_SUPPLEMENTS, payload: supplements});
   return true;
 };
@@ -111,13 +111,13 @@ export const deleteSupplementItem = data => async dispatch => {
 };
 
 export const getMealCategories = () => async dispatch => {
-  const categories = await readMealCategoriesFromStorage();
+  const categories = await readStoredMealCategories();
   dispatch({type: GET_MEAL_CATEGORIES, payload: categories});
   return true;
 };
 
 export const getMealsDirectory = () => async dispatch => {
-  const directory = await readMealsDirectoryFromStorage();
+  const directory = await readStoredMealsDirectory();
   dispatch({type: GET_MEALS_DIRECTORY, payload: directory});
   return true;
 };

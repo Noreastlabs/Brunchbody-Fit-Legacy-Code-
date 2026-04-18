@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
+import { readStoredExercises } from './exerciseStorage';
 import {
   ADD_EXERCISE,
   DELETE_EXERCISE,
@@ -17,7 +18,7 @@ const readStoredArray = async storageKey => {
 };
 
 export const getExercises = () => async dispatch => {
-  const exercises = await readStoredArray('exercises');
+  const exercises = await readStoredExercises();
   dispatch({type: GET_EXERCISES, payload: exercises});
   return true;
 };

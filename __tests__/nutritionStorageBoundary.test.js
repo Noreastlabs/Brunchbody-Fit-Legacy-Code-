@@ -11,11 +11,64 @@ import {
   getMealsDirectory,
   getSupplements,
 } from '../src/redux/actions/nutrition';
+import {
+  readStoredMealCategories,
+  readStoredMeals,
+  readStoredMealsDirectory,
+  readStoredSupplements,
+} from '../src/redux/actions/nutritionStorage';
+
+const storageReaders = [
+  {
+    label: 'meals',
+    key: 'meals',
+    read: readStoredMeals,
+    storedValue: [{id: 'meal-1', name: 'Lunch', items: []}],
+  },
+  {
+    label: 'supplements',
+    key: 'supplements',
+    read: readStoredSupplements,
+    storedValue: [{id: 'supp-1', name: 'Omega 3', items: []}],
+  },
+  {
+    label: 'meal categories',
+    key: 'meal_categories',
+    read: readStoredMealCategories,
+    storedValue: [{id: 'cat-1', title: 'Protein'}],
+  },
+  {
+    label: 'meals directory',
+    key: 'meals_directory',
+    read: readStoredMealsDirectory,
+    storedValue: [{id: 'dir-1', name: 'Chicken Breast'}],
+  },
+];
 
 describe('Nutrition storage boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
+  test.each(storageReaders)(
+    '$label reader uses the expected key and returns stored JSON unchanged',
+    async ({key, read, storedValue}) => {
+      AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedValue));
+
+      await expect(read()).resolves.toEqual(storedValue);
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+    },
+  );
+
+  test.each(storageReaders)(
+    '$label reader falls back to an empty array when storage is missing',
+    async ({key, read}) => {
+      AsyncStorage.getItem.mockResolvedValueOnce(null);
+
+      await expect(read()).resolves.toEqual([]);
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+    },
+  );
 
   test('getMeals reads meals and dispatches the legacy Redux contract', async () => {
     const dispatch = jest.fn();

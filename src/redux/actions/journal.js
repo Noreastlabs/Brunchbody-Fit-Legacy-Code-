@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   EDIT_JOURNAL_ENTRY,
   GET_ALL_JOURNAL_ENTRIES,
@@ -6,14 +5,7 @@ import {
   GET_TRAITS,
   SET_JOURNAL_ENTRY,
 } from '../constants';
-
-const TRAITS_STORAGE_KEY = 'traits';
-
-const readStoredTraits = async () => {
-  const traitsString = await AsyncStorage.getItem(TRAITS_STORAGE_KEY);
-
-  return traitsString ? JSON.parse(traitsString) : [];
-};
+import { readStoredTraits } from './journalTraitsStorage';
 
 export const getAllJournalEntries = () => async dispatch => {
   await dispatch({ type: GET_ALL_JOURNAL_ENTRIES });
