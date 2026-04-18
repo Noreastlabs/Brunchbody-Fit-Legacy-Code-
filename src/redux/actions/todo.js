@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
 import {
   ADD_TODO_TASK,
@@ -6,15 +5,9 @@ import {
   EDIT_TODO_TASK,
   GET_TODO_TASKS,
 } from '../constants';
+import { readStoredTodos } from './todoStorage';
 
 assertLocalOnlyMode('todo actions');
-
-const TODO_STORAGE_KEY = 'todos';
-
-const readStoredTodos = async () => {
-  const todosString = await AsyncStorage.getItem(TODO_STORAGE_KEY);
-  return todosString ? JSON.parse(todosString) : [];
-};
 
 export const getTodo = () => async dispatch => {
   const todos = await readStoredTodos();

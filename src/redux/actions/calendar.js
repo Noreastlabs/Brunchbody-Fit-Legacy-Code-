@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
 import {
   ADD_REPEATED_THEME,
@@ -13,13 +12,9 @@ import {
   SET_THEME,
   SET_THEME_WITH_FREQUENCY,
 } from '../constants';
+import { readStoredThemes } from './calendarThemeStorage';
 
 assertLocalOnlyMode('calendar actions');
-
-const loadStoredThemes = async () => {
-  const themesString = await AsyncStorage.getItem('themes');
-  return themesString ? JSON.parse(themesString) : [];
-};
 
 const recomputeRepeatedThemes = dispatch =>
   dispatch({type: SET_THEME_WITH_FREQUENCY, payload: null});
@@ -50,7 +45,7 @@ export const clearThemeDays = data => async dispatch => {
 };
 
 export const getThemes = () => async dispatch => {
-  const themes = await loadStoredThemes();
+  const themes = await readStoredThemes();
   dispatch({type: GET_THEMES, payload: themes});
   dispatch(getRepeatedThemes());
   return true;

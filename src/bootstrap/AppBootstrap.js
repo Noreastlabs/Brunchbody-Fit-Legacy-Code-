@@ -3,7 +3,7 @@ import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import { RootContainer } from '../root-container/RootContainer';
 import { ROOT_ROUTES } from '../navigation/routeNames';
 import { hydrateWorkoutPlans } from '../storage/mmkv/hydration';
-import { hasStoredProfile } from '../redux/actions/authStorage';
+import { hasStoredProfile } from '../redux/actions/profileStorage';
 
 const BOOTSTRAP_FALLBACK_ROUTE = ROOT_ROUTES.COMPLETE_PROFILE;
 const BOOTSTRAP_ERROR_MESSAGE =

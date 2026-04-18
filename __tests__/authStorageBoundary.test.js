@@ -1,12 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  clearOnboardingDraft,
-  getOnboardingDraftValue,
   hasStoredProfile,
   loadStoredProfile,
   saveStoredProfile,
+} from '../src/redux/actions/profileStorage';
+import {
+  clearCompletedOnboardingDraft,
+  clearOnboardingDraft,
+  getOnboardingDraftValue,
   setOnboardingDraftValue,
-} from '../src/redux/actions/authStorage';
+} from '../src/redux/actions/onboardingStorage';
 
 describe('Auth/onboarding storage boundary', () => {
   beforeEach(() => {
@@ -74,6 +77,15 @@ describe('Auth/onboarding storage boundary', () => {
       'dob',
       'height',
       'weight',
+      'gender',
+    ]);
+  });
+
+  test('completed onboarding clear preserves the current partial draft cleanup', async () => {
+    await clearCompletedOnboardingDraft();
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith([
+      'dob',
+      'height',
       'gender',
     ]);
   });

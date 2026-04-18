@@ -3,11 +3,11 @@ import { storage } from '../../storage/mmkv';
 import { hydrateWorkoutPlans } from '../../storage/mmkv/hydration';
 import { CLEAR_USER, RESET_APP, SET_USER } from '../constants';
 import {
+  getStoredProfileKeys,
   loadStoredProfile,
-  ONBOARDING_DRAFT_KEYS,
   saveStoredProfile,
-  USER_PROFILE_KEY,
-} from './authStorage';
+} from './profileStorage';
+import { getOnboardingDraftKeys } from './onboardingStorage';
 
 const LOCAL_PASSWORD_KEY = 'local_password';
 const LOCAL_PASSWORD_RESET_REQUEST_KEY = 'local_password_reset_requested_at';
@@ -28,10 +28,10 @@ const persistProfileAndDispatch = async (dispatch, user) => {
 };
 
 const getScopedLogoutKeys = () => [
-  USER_PROFILE_KEY,
+  ...getStoredProfileKeys(),
   LOCAL_PASSWORD_KEY,
   LOCAL_PASSWORD_RESET_REQUEST_KEY,
-  ...ONBOARDING_DRAFT_KEYS,
+  ...getOnboardingDraftKeys(),
 ];
 
 const clearScopedLocalAuthData = () =>

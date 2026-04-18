@@ -3,10 +3,10 @@ import {useDispatch} from 'react-redux';
 import {useNavigation} from '@react-navigation/native';
 import { AUTH_TAB_ROUTES, ROOT_ROUTES } from '../../../../navigation/routeNames';
 import {
-  clearOnboardingDraft,
+  clearCompletedOnboardingDraft,
   getOnboardingDraftValue,
   setOnboardingDraftValue,
-} from '../../../../redux/actions/authStorage';
+} from '../../../../redux/actions/onboardingStorage';
 import {profile} from '../../../../redux/actions/auth';
 import {Name, Gender, Welcome, Weight} from '../../components';
 import {DateOfBirthWrapper} from './DateOfBirth';
@@ -103,7 +103,7 @@ export const CompleteProfilePage = () => {
       setCurrentScreen(screen);
       setName('');
       setWeight('');
-      await clearOnboardingDraft(['dob', 'height', 'gender']);
+      await clearCompletedOnboardingDraft();
       setLoader(false);
     } else {
       showMessage('Error!', 'This field is required!');

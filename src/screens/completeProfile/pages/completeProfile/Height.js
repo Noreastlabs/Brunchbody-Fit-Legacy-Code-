@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {
   getOnboardingDraftValue,
   setOnboardingDraftValue,
-} from '../../../../redux/actions/authStorage';
+} from '../../../../redux/actions/onboardingStorage';
 import {Height} from '../../components';
 
 export const HeightPage = props => {

@@ -4,7 +4,7 @@ import {RadioButton} from 'react-native-paper';
 import PropTypes from 'prop-types';
 import style from './style';
 import {colors} from '../../../resources';
-import {setOnboardingDraftValue} from '../../../redux/actions/authStorage';
+import {setOnboardingDraftValue} from '../../../redux/actions/onboardingStorage';
 
 const RadioButtons = ({option1, option2}) => {
   const [checked, setChecked] = React.useState('first');

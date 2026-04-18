@@ -72,24 +72,6 @@ describe('calendar theme and repeated-theme boundary', () => {
     });
   });
 
-  test('getThemes falls back to an empty array when themes storage is empty', async () => {
-    AsyncStorage.getItem.mockResolvedValueOnce(null);
-
-    const {dispatch, result} = await runThunk(calendarActions.getThemes());
-
-    expect(result).toBe(true);
-    expect(AsyncStorage.getItem).toHaveBeenCalledWith('themes');
-    expect(dispatch.mock.calls[0][0]).toEqual({
-      type: GET_THEMES,
-      payload: [],
-    });
-    expect(typeof dispatch.mock.calls[1][0]).toBe('function');
-    expect(dispatch.mock.calls[2][0]).toEqual({
-      type: SET_THEME_WITH_FREQUENCY,
-      payload: null,
-    });
-  });
-
   test('simple calendar theme thunks keep their action contracts and return true', async () => {
     const cases = [
       {

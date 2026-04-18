@@ -8,7 +8,7 @@ import {
   PermissionModal,
 } from '../../../components';
 import {strings} from '../../../resources';
-import {setOnboardingDraftValue} from '../../../redux/actions/authStorage';
+import {setOnboardingDraftValue} from '../../../redux/actions/onboardingStorage';
 import NextButton from './NextButton';
 import BackButton from './BackButton';
 import Label from './Label';

@@ -10,7 +10,7 @@ import {
   resetPassword,
 } from '../src/redux/actions/auth';
 import { CLEAR_USER, RESET_APP, SET_USER } from '../src/redux/constants';
-import { ONBOARDING_DRAFT_KEYS } from '../src/redux/actions/authStorage';
+import { ONBOARDING_DRAFT_KEYS } from '../src/redux/actions/onboardingStorage';
 import SettingPage from '../src/screens/setting/pages/Setting/Setting';
 import DeleteAccountPage from '../src/screens/setting/pages/MyProfile/DeleteAccount';
 import { hydrateWorkoutPlans } from '../src/storage/mmkv/hydration';

@@ -12,7 +12,7 @@ import NextButton from './NextButton';
 import BackButton from './BackButton';
 import Label from './Label';
 import {strings} from '../../../resources';
-import {setOnboardingDraftValue} from '../../../redux/actions/authStorage';
+import {setOnboardingDraftValue} from '../../../redux/actions/onboardingStorage';
 import style from './style';
 
 const Height = props => {
