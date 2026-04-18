@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
 import {
   ADD_COMPLETED_WORKOUT,
@@ -22,21 +21,13 @@ import {
   GET_WEEK_PLAN,
   GET_WORKOUTS,
 } from '../constants';
-import {getJSON} from '../../utils/storageUtils';
-import {STORAGE_KEYS} from '../../storage/mmkv/keys';
+import {
+  readStoredBrunchBodyPlans,
+  readStoredRoutines,
+  readStoredWorkouts,
+} from './recreationStorage';
 
 assertLocalOnlyMode('recreation actions');
-
-const ROUTINES_STORAGE_KEY = 'routines';
-const WORKOUTS_STORAGE_KEY = 'workouts';
-
-const readStoredRoutines = async () => {
-  const routinesString = await AsyncStorage.getItem(ROUTINES_STORAGE_KEY);
-  return routinesString ? JSON.parse(routinesString) : [];
-};
-
-const readStoredBrunchBodyPlans = () =>
-  getJSON(STORAGE_KEYS.PLANS.BRUNCH_BODY) || [];
 
 const findBrunchBodyPlan = (plans, id) =>
   plans.find(item => item.name === id || item.id === id);
@@ -45,11 +36,6 @@ const findBrunchBodyPlan = (plans, id) =>
 // eslint-disable-next-line eqeqeq
 const findBrunchBodyWeek = (plan, week) =>
   plan.weeksData.find(w => Number(w.week) == week);
-
-const readStoredWorkouts = async () => {
-  const workoutsString = await AsyncStorage.getItem(WORKOUTS_STORAGE_KEY);
-  return workoutsString ? JSON.parse(workoutsString) : [];
-};
 
 const dispatchWeekPlanSelection = (dispatch, id, week) =>
   dispatch({type: GET_WEEK_PLAN, payload: {id, week}});
