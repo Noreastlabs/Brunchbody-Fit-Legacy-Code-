@@ -546,7 +546,7 @@ describe('Edge-case validation', () => {
     expect(nextState.allJournalEntriesList[0]).toBe(initialEntry);
     expect(nextState.allJournalEntriesList[0].DailyEntry.feelingRate).toBe('4');
   });
-  test('auth reducer produces NaN for malformed profile values (defect characterization)', () => {
+  test('auth reducer omits derived metrics for malformed profile values', () => {
     const state = authReducer(undefined, {
       type: SET_USER,
       payload: {
@@ -557,8 +557,8 @@ describe('Edge-case validation', () => {
       },
     });
 
-    expect(state.user.bmi).toBe('NaN');
-    expect(state.user.bmr).toBe('NaN');
+    expect(state.user).not.toHaveProperty('bmi');
+    expect(state.user).not.toHaveProperty('bmr');
   });
 
   test('reducers are safe with empty datasets and unknown delete ids', () => {

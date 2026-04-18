@@ -62,6 +62,16 @@ describe('App bootstrap route resolution', () => {
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
   });
 
+  test('returns CompleteProfile and repairs malformed stored local profile data', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(resolveInitialRouteName()).resolves.toBe(
+      ROOT_ROUTES.COMPLETE_PROFILE,
+    );
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('user_profile');
+  });
+
   test('renders the resolved startup route when bootstrap succeeds', async () => {
     AsyncStorage.getItem.mockResolvedValueOnce('{"weight":"135"}');
     const consoleErrorSpy = jest

@@ -61,6 +61,51 @@ describe('Local account actions', () => {
     });
   });
 
+  test('loggedIn treats malformed stored local profile data as absent', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+    const dispatch = jest.fn();
+
+    const result = await loggedIn()(dispatch);
+
+    expect(result).toBe('goToCompleteProfile');
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('user_profile');
+  });
+
+  test('loggedIn repairs stale derived profile fields before restoring auth state', async () => {
+    const canonicalProfile = {
+      dob: '01/01/1995',
+      email: 'saved@example.com',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+    };
+    const dispatch = jest.fn();
+
+    await AsyncStorage.setItem(
+      'user_profile',
+      JSON.stringify({
+        ...canonicalProfile,
+        bmi: '999.99',
+        bmr: '9999.99',
+      }),
+    );
+    jest.clearAllMocks();
+
+    const result = await loggedIn()(dispatch);
+
+    expect(result).toBe(true);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SET_USER,
+      payload: canonicalProfile,
+    });
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_profile',
+      JSON.stringify(canonicalProfile),
+    );
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
   test('changeEmail persists the device-local email across relaunch', async () => {
     const dispatch = jest.fn();
     await AsyncStorage.setItem(

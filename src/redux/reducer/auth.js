@@ -5,15 +5,36 @@ const initialState = {
   user: {},
 };
 
-const getUserHeight = userData =>
-  parseInt(
-    userData?.height?.slice(0, userData?.height?.search('\\.')) * 12,
-    10,
-  ) +
-  parseInt(
-    userData?.height?.slice(userData?.height?.search('\\.') + 1),
-    10,
-  );
+const DERIVED_PROFILE_FIELDS = ['bmi', 'bmr'];
+
+const stripDerivedProfileFields = userData => {
+  const sanitizedUserData =
+    userData && typeof userData === 'object' && !Array.isArray(userData)
+      ? { ...userData }
+      : {};
+
+  DERIVED_PROFILE_FIELDS.forEach(field => {
+    delete sanitizedUserData[field];
+  });
+
+  return sanitizedUserData;
+};
+
+const getUserHeight = userData => {
+  if (typeof userData?.height !== 'string') {
+    return null;
+  }
+
+  const [feetValue, inchesValue] = userData.height.split('.');
+  const feet = parseInt(feetValue, 10);
+  const inches = parseInt(inchesValue, 10);
+
+  if (!Number.isFinite(feet) || !Number.isFinite(inches)) {
+    return null;
+  }
+
+  return feet * 12 + inches;
+};
 
 const getCurrentDateArr = (date = new Date()) => [
   `${date.getDate()}`.slice(-2),
@@ -24,12 +45,25 @@ const getCurrentDateArr = (date = new Date()) => [
 const getActualAge = userdob => {
   const currentDateArr = getCurrentDateArr();
   const userdobArr = userdob?.split('/');
+
+  if (!Array.isArray(userdobArr) || userdobArr.length !== 3) {
+    return null;
+  }
+
   const dobDay = parseInt(userdobArr[0], 10);
   const dobMonth = parseInt(userdobArr[1], 10);
   const dobYear = parseInt(userdobArr[2], 10);
   const currentDay = parseInt(currentDateArr[0], 10);
   const currentMonth = parseInt(currentDateArr[1], 10);
   const currentYear = parseInt(currentDateArr[2], 10);
+
+  if (
+    !Number.isFinite(dobDay) ||
+    !Number.isFinite(dobMonth) ||
+    !Number.isFinite(dobYear)
+  ) {
+    return null;
+  }
 
   if (dobMonth === currentMonth) {
     if (dobDay > currentDay) {
@@ -46,20 +80,43 @@ const getActualAge = userdob => {
   return currentYear - dobYear;
 };
 
-const getBmi = (weight, userHeight) =>
-  (703 * (parseInt(weight, 10) / Math.pow(userHeight, 2))).toFixed(2);
+const getParsedWeight = weight => {
+  const parsedWeight = parseInt(weight, 10);
+
+  return Number.isFinite(parsedWeight) ? parsedWeight : null;
+};
+
+const getBmi = (weight, userHeight) => {
+  const parsedWeight = getParsedWeight(weight);
+
+  if (!Number.isFinite(parsedWeight) || !Number.isFinite(userHeight)) {
+    return null;
+  }
+
+  return (703 * (parsedWeight / Math.pow(userHeight, 2))).toFixed(2);
+};
 
 const getBmr = (userData, userHeight, actualAge) => {
+  const parsedWeight = getParsedWeight(userData?.weight);
+
+  if (
+    !Number.isFinite(parsedWeight) ||
+    !Number.isFinite(userHeight) ||
+    !Number.isFinite(actualAge)
+  ) {
+    return null;
+  }
+
   const bmrMale = (
     66 +
-    6.23 * userData?.weight +
+    6.23 * parsedWeight +
     12.7 * userHeight -
     6.8 * actualAge
   ).toFixed(2);
 
   const bmrFemale = (
     655 +
-    4.35 * userData?.weight +
+    4.35 * parsedWeight +
     4.7 * userHeight -
     4.7 * actualAge
   ).toFixed(2);
@@ -70,22 +127,24 @@ const getBmr = (userData, userHeight, actualAge) => {
 const deriveUserMetrics = userData => {
   const userHeight = getUserHeight(userData);
   const actualAge = getActualAge(userData?.dob);
+  const bmi = getBmi(userData?.weight, userHeight);
+  const bmr = getBmr(userData, userHeight, actualAge);
 
   return {
-    bmi: getBmi(userData?.weight, userHeight),
-    bmr: getBmr(userData, userHeight, actualAge),
+    ...(bmi ? { bmi } : {}),
+    ...(bmr ? { bmr } : {}),
   };
 };
 
 const authReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_USER: {
-      const userData = { ...action.payload };
-      const { bmi, bmr } = deriveUserMetrics(userData);
+      const userData = stripDerivedProfileFields(action.payload || {});
+      const derivedMetrics = deriveUserMetrics(userData);
 
       return {
         ...state,
-        user: { ...userData, bmi, bmr },
+        user: { ...userData, ...derivedMetrics },
       };
     }
     case CLEAR_USER:
