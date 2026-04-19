@@ -27,6 +27,8 @@ import {
   CreateItemContent,
   WheelPickerContent,
   ColorPickerContent,
+} from './modalShells';
+import {
   AddExerciseModal,
   ProgramDetailModal,
   AddWorkoutModal,
