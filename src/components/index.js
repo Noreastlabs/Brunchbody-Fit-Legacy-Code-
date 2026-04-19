@@ -1,25 +1,27 @@
 import LogoHeader from './LogoHeader';
-import Button from './Button';
 import CustomTextArea from './CustomTextArea';
-import AddButton from './AddButton';
 import CustomHeader from './CustomHeader';
 import TopTabs from './TopTabs';
 import CustomSlider from './CustomSlider';
 import CustomOptions from './CustomOptions';
 import CustomTable from './CustomTable';
-import CustomText from './CustomText';
 import SelectComp from './SelectComp';
 import WeeklyTable from './WeeklyTable';
 import ProgramTable from './ProgramTable';
-import CloseButton from './CloseButton';
 import PermissionModal from './PermissionModal';
 import CustomTopTabs from './CustomTopTabs';
-import TextButton from './TextButton';
 import SearchBar from './SearchBar';
-import Input from './TextInput';
 import Dashed from './Dashed';
-import TextVal from './Text';
 import SafeAreaWrapper from './SafeAreaWrapper';
+import {
+  Button,
+  AddButton,
+  TextButton,
+  CloseButton,
+  CustomText,
+  Input,
+  TextVal,
+} from './primitives';
 import {
   CustomModal,
   ModalContent,
