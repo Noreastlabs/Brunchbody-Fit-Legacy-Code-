@@ -1,6 +1,4 @@
-import LogoHeader from './LogoHeader';
 import CustomTextArea from './CustomTextArea';
-import CustomHeader from './CustomHeader';
 import TopTabs from './TopTabs';
 import CustomSlider from './CustomSlider';
 import CustomOptions from './CustomOptions';
@@ -12,7 +10,7 @@ import PermissionModal from './PermissionModal';
 import CustomTopTabs from './CustomTopTabs';
 import SearchBar from './SearchBar';
 import Dashed from './Dashed';
-import SafeAreaWrapper from './SafeAreaWrapper';
+import {CustomHeader, LogoHeader, SafeAreaWrapper} from './chrome';
 import {
   Button,
   AddButton,
