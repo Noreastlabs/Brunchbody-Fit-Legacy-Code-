@@ -29,9 +29,7 @@ import {
   ColorPickerContent,
 } from './modalShells';
 import {
-  AddExerciseModal,
   ProgramDetailModal,
-  AddWorkoutModal,
   CreateTraitModal,
   DatePickerModal,
   HeightPickerModal,
@@ -39,11 +37,8 @@ import {
   NutritionItems,
   ItineraryDetail,
   CalculationContent,
-  AddSingleExercise,
-  SupersetModal,
   AddRemoveTheme,
   ClearTheme,
-  AddCardioExercise,
 } from './CustomModal';
 
 export {
@@ -69,12 +64,10 @@ export {
   ColorPickerContent,
   PermissionModal,
   TextButton,
-  AddExerciseModal,
   Dashed,
   Input,
   TextVal,
   ProgramDetailModal,
-  AddWorkoutModal,
   CreateTraitModal,
   SearchBar,
   DatePickerModal,
@@ -83,11 +76,8 @@ export {
   NutritionItems,
   ItineraryDetail,
   CalculationContent,
-  AddSingleExercise,
-  SupersetModal,
   AddRemoveTheme,
   ClearTheme,
-  AddCardioExercise,
   CustomTopTabs,
   SafeAreaWrapper,
 };

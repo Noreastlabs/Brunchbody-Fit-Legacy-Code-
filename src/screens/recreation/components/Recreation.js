@@ -3,7 +3,6 @@ import { Image, ScrollView, Text, View } from 'react-native';
 import { RFValue } from 'react-native-responsive-fontsize';
 import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import {
-  AddWorkoutModal,
   CreateItemContent,
   CustomModal,
   DatePickerModal,
@@ -17,6 +16,7 @@ import {
 } from '../../../components';
 import { colors, images } from '../../../resources';
 import BodyPlans from './BodyPlans';
+import { AddWorkoutModal } from './modals';
 import MyRoutines from './MyRoutines';
 import MyWorkout from './MyWorkout';
 import styles from './style';

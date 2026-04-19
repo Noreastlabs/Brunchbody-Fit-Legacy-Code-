@@ -46,11 +46,7 @@ describe('modal shell surface boundary', () => {
   ];
 
   const remainingCustomModalExports = [
-    'AddCardioExercise',
-    'AddExerciseModal',
     'AddRemoveTheme',
-    'AddSingleExercise',
-    'AddWorkoutModal',
     'CalculationContent',
     'ClearTheme',
     'CreateTraitModal',
@@ -59,7 +55,6 @@ describe('modal shell surface boundary', () => {
     'ItineraryDetail',
     'NutritionItems',
     'ProgramDetailModal',
-    'SupersetModal',
     'TimePickerModal',
   ];
 

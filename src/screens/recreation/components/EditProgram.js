@@ -10,13 +10,15 @@ import {
   ProgramTable,
   SelectModalContent,
   CreateItemContent,
-  AddExerciseModal,
   WheelPickerContent,
   PermissionModal,
+} from '../../../components';
+import {
+  AddCardioExercise,
+  AddExerciseModal,
   AddSingleExercise,
   SupersetModal,
-  AddCardioExercise,
-} from '../../../components';
+} from './modals';
 import styles from './style';
 
 export default function EditProgram(props) {
