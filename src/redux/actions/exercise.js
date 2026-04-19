@@ -1,6 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { assertLocalOnlyMode } from '../../config/appMode';
-import { readStoredExercises } from './exerciseStorage';
+import {
+  readStoredExerciseDirectory,
+  readStoredExercises,
+} from './exerciseStorage';
 import {
   ADD_EXERCISE,
   DELETE_EXERCISE,
@@ -11,11 +13,6 @@ import {
 } from '../constants';
 
 assertLocalOnlyMode('exercise actions');
-
-const readStoredArray = async storageKey => {
-  const storedValue = await AsyncStorage.getItem(storageKey);
-  return storedValue ? JSON.parse(storedValue) : [];
-};
 
 export const getExercises = () => async dispatch => {
   const exercises = await readStoredExercises();
@@ -40,7 +37,7 @@ export const deleteExercise = id => async dispatch => {
 };
 
 export const getExerciseDirectory = () => async dispatch => {
-  const directory = await readStoredArray('exercise_directory');
+  const directory = await readStoredExerciseDirectory();
   dispatch({type: GET_EXERCISE_DIRECTORY, payload: directory});
   return true;
 };

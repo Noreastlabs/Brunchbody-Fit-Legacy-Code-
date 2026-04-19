@@ -29,6 +29,7 @@ describe('exercise merge and directory boundary', () => {
 
     await expect(getExercises()(dispatch)).resolves.toBe(true);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('exercises');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith({
       type: GET_EXERCISES,
       payload: savedExercises,
@@ -43,6 +44,7 @@ describe('exercise merge and directory boundary', () => {
 
     await expect(getExerciseDirectory()(dispatch)).resolves.toBe(true);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('exercise_directory');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith({
       type: GET_EXERCISE_DIRECTORY,
       payload: savedDirectory,
@@ -62,6 +64,83 @@ describe('exercise merge and directory boundary', () => {
       payload: [],
     });
     expect(dispatch).toHaveBeenNthCalledWith(2, {
+      type: GET_EXERCISE_DIRECTORY,
+      payload: [],
+    });
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('getExercises discards malformed exercises storage and preserves its dispatch contract', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(getExercises()(dispatch)).resolves.toBe(true);
+
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('exercises');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('exercises');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith(
+      'exercise_directory',
+    );
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_EXERCISES,
+      payload: [],
+    });
+  });
+
+  test('getExercises discards non-array exercises storage and preserves its dispatch contract', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({id: 'exercise-1', name: 'Rows', type: 'Back'}),
+    );
+
+    await expect(getExercises()(dispatch)).resolves.toBe(true);
+
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('exercises');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('exercises');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith(
+      'exercise_directory',
+    );
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_EXERCISES,
+      payload: [],
+    });
+  });
+
+  test('getExerciseDirectory discards malformed exercise_directory storage and preserves its dispatch contract', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(getExerciseDirectory()(dispatch)).resolves.toBe(true);
+
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('exercise_directory');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('exercise_directory');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('exercises');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_EXERCISE_DIRECTORY,
+      payload: [],
+    });
+  });
+
+  test('getExerciseDirectory discards non-array exercise_directory storage and preserves its dispatch contract', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({id: 'dir-1', name: 'Pull-Up', type: 'Back'}),
+    );
+
+    await expect(getExerciseDirectory()(dispatch)).resolves.toBe(true);
+
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('exercise_directory');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('exercise_directory');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('exercises');
+    expect(dispatch).toHaveBeenCalledWith({
       type: GET_EXERCISE_DIRECTORY,
       payload: [],
     });
