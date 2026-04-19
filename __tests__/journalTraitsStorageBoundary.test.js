@@ -13,6 +13,8 @@ describe('journal traits storage boundary', () => {
 
     await expect(readStoredTraits()).resolves.toEqual([]);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('traits');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
   });
 
   test('readStoredTraits parses and returns the stored traits unchanged', async () => {
@@ -22,6 +24,8 @@ describe('journal traits storage boundary', () => {
 
     await expect(readStoredTraits()).resolves.toEqual(storedTraits);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('traits');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
   });
 
   test('readStoredTraits reads the traits storage key', async () => {
@@ -31,6 +35,26 @@ describe('journal traits storage boundary', () => {
 
     expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('traits');
+  });
+
+  test('readStoredTraits removes malformed JSON and falls back to an empty array', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(readStoredTraits()).resolves.toEqual([]);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('traits');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('traits');
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+  });
+
+  test('readStoredTraits removes non-array payloads and falls back to an empty array', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({id: 'trait-1', name: 'Calm'}),
+    );
+
+    await expect(readStoredTraits()).resolves.toEqual([]);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('traits');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('traits');
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
   });
 
   test('getTraits preserves its dispatch contract and return value', async () => {

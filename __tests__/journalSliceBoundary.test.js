@@ -187,6 +187,19 @@ describe('journal slice boundary', () => {
     });
   });
 
+  test('getTraits dispatches an empty array when stored traits are malformed', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(getTraits()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('traits');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_TRAITS,
+      payload: [],
+    });
+  });
+
   test('getAllJournalEntries dispatches its current action and resolves true', async () => {
     const dispatch = jest.fn();
 
