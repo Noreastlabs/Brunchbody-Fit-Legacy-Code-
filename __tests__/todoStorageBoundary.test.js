@@ -13,6 +13,7 @@ describe('todo storage boundary', () => {
 
     await expect(readStoredTodos()).resolves.toEqual([]);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
 
   test('readStoredTodos parses and returns the stored todo payload unchanged', async () => {
@@ -22,6 +23,27 @@ describe('todo storage boundary', () => {
 
     await expect(readStoredTodos()).resolves.toEqual(storedTodos);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('readStoredTodos removes malformed JSON and falls back to an empty array', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(readStoredTodos()).resolves.toEqual([]);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('todos');
+  });
+
+  test('readStoredTodos removes non-array payloads and falls back to an empty array', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({id: 'task-1', name: 'Stretch', notes: ''}),
+    );
+
+    await expect(readStoredTodos()).resolves.toEqual([]);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('todos');
   });
 
   test('getTodo preserves its dispatch contract and return value', async () => {
@@ -35,6 +57,39 @@ describe('todo storage boundary', () => {
     expect(dispatch).toHaveBeenCalledWith({
       type: GET_TODO_TASKS,
       payload: storedTodos,
+    });
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('getTodo removes malformed JSON, dispatches an empty array, and still returns true', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(getTodo()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('todos');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_TODO_TASKS,
+      payload: [],
+    });
+  });
+
+  test('getTodo removes non-array payloads, dispatches an empty array, and still returns true', async () => {
+    const dispatch = jest.fn();
+
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({id: 'task-1', name: 'Stretch', notes: ''}),
+    );
+
+    await expect(getTodo()(dispatch)).resolves.toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('todos');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('todos');
+    expect(dispatch).toHaveBeenCalledWith({
+      type: GET_TODO_TASKS,
+      payload: [],
     });
   });
 });
