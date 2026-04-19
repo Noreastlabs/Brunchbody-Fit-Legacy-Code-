@@ -70,6 +70,45 @@ describe('calendar theme and repeated-theme boundary', () => {
       type: SET_THEME_WITH_FREQUENCY,
       payload: null,
     });
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('getThemes dispatches an empty array for a missing themes key and still recomputes repeated themes', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(null);
+
+    const {dispatch, result} = await runThunk(calendarActions.getThemes());
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('themes');
+    expect(dispatch.mock.calls[0][0]).toEqual({
+      type: GET_THEMES,
+      payload: [],
+    });
+    expect(typeof dispatch.mock.calls[1][0]).toBe('function');
+    expect(dispatch.mock.calls[2][0]).toEqual({
+      type: SET_THEME_WITH_FREQUENCY,
+      payload: null,
+    });
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('getThemes discards malformed storage, dispatches an empty array, and still recomputes repeated themes', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    const {dispatch, result} = await runThunk(calendarActions.getThemes());
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('themes');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('themes');
+    expect(dispatch.mock.calls[0][0]).toEqual({
+      type: GET_THEMES,
+      payload: [],
+    });
+    expect(typeof dispatch.mock.calls[1][0]).toBe('function');
+    expect(dispatch.mock.calls[2][0]).toEqual({
+      type: SET_THEME_WITH_FREQUENCY,
+      payload: null,
+    });
   });
 
   test('simple calendar theme thunks keep their action contracts and return true', async () => {
