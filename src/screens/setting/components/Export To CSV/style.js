@@ -67,6 +67,15 @@ export default StyleSheet.create({
   headingText3: {
     fontSize: RFValue(20),
     color: colors.white,
+    textAlign: 'center',
+    marginTop: RFValue(10),
+  },
+  helperText: {
+    fontSize: RFValue(16),
+    color: colors.grey,
+    textAlign: 'center',
+    marginTop: RFValue(10),
+    marginHorizontal: RFValue(20),
   },
   dateText: {
     fontWeight: 'bold',

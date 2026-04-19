@@ -9,17 +9,15 @@ import { ROOT_ROUTES } from '../../../../navigation/routeNames';
 
 export default function DeleteAccountPage(props) {
   const {navigation, deleteUserAccount} = props;
-  const [isEnabled, setIsEnabled] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   const [loader, setLoader] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [isPermissionModal, setIsPermissionModal] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
   const [check, setCheck] = useState(false);
 
   const toggleSwitch = () => {
-    setIsEnabled(!isEnabled);
+    setIsConfirmed(!isConfirmed);
   };
 
   const showMessage = (headingText, text) => {
@@ -30,32 +28,28 @@ export default function DeleteAccountPage(props) {
 
   const onDeleteAccount = async () => {
     setLoader(true);
-    const regx = /^\w+([\\.-]?\w+)*@\w+([\\.-]?\w+)*(\.\w{2,3})+$/;
 
-    if (email.trim() && password.trim()) {
-      if (!regx.test(email)) {
-        showMessage('Error!', 'Email address is badly formatted!');
-      } else if (isEnabled) {
-        showMessage('Error!', 'Please check confirm deletion!');
-      } else {
-        const response = await deleteUserAccount({
-          email,
-          password,
-        });
-        if (response === true) {
-          setEmail('');
-          setPassword('');
-          setCheck(true);
-          showMessage('Success!', 'User deleted successfully.');
-        } else {
-          showMessage('Error!', `${response}`);
-        }
-      }
+    if (!isConfirmed) {
       setLoader(false);
-    } else {
-      setLoader(false);
-      showMessage('Error!', 'All fields are required!');
+      showMessage(
+        'Error!',
+        'Please confirm that you want to delete saved local data from this device.',
+      );
+      return;
     }
+
+    const response = await deleteUserAccount();
+    if (response === true) {
+      setIsConfirmed(false);
+      setCheck(true);
+      showMessage(
+        'Success!',
+        'Saved Brunch Body data was removed from this device.\n\nFiles you exported to another app or folder were not deleted.\n\nStarter plans included with Brunch Body may appear again after setup.',
+      );
+    } else {
+      showMessage('Error!', `${response}`);
+    }
+    setLoader(false);
   };
 
   const onDonePermissionModal = () => {
@@ -73,14 +67,9 @@ export default function DeleteAccountPage(props) {
   return (
     <DeleteAccount
       navigation={navigation}
-      isEnabled={isEnabled}
-      setIsEnabled={setIsEnabled}
+      isConfirmed={isConfirmed}
       toggleSwitch={toggleSwitch}
       loader={loader}
-      email={email}
-      setEmail={setEmail}
-      password={password}
-      setPassword={setPassword}
       onDeleteAccount={onDeleteAccount}
       isPermissionModal={isPermissionModal}
       setIsPermissionModal={setIsPermissionModal}
@@ -97,7 +86,7 @@ DeleteAccountPage.propTypes = {
 };
 
 const mapDispatchToProps = dispatch => ({
-  deleteUserAccount: data => dispatch(deleteAccount(data)),
+  deleteUserAccount: () => dispatch(deleteAccount()),
 });
 
 export const DeleteAccountWrapper = connect(

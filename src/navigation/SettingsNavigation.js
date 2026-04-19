@@ -5,9 +5,6 @@ import {
   AbbrevationsWrapper,
   DeleteAccountWrapper,
   ExportToCSVWrapper,
-  MyAccountWrapper,
-  MyEmailWrapper,
-  MyPasswordWrapper,
   MyProfileWrapper,
   MyVitalsWrapper,
   PrivacyPolicyWrapper,
@@ -34,18 +31,6 @@ const SETTINGS_STACK_SCREENS = [
   {
     name: SETTINGS_ROUTES.MY_VITALS,
     component: MyVitalsWrapper,
-  },
-  {
-    name: SETTINGS_ROUTES.MY_ACCOUNT,
-    component: MyAccountWrapper,
-  },
-  {
-    name: SETTINGS_ROUTES.MY_EMAIL,
-    component: MyEmailWrapper,
-  },
-  {
-    name: SETTINGS_ROUTES.MY_PASSWORD,
-    component: MyPasswordWrapper,
   },
   {
     name: SETTINGS_ROUTES.DELETE_ACCOUNT,

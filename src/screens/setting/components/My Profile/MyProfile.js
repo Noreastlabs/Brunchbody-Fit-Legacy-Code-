@@ -4,7 +4,6 @@
 /* eslint-disable no-unused-expressions */
 import React from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -18,13 +17,15 @@ import {CustomHeader, SafeAreaWrapper} from '../../../../components';
 
 export default function MyProfile(props) {
   const {navigation, listData, user} = props;
+  const nickname = user?.name?.trim();
 
   return (
     <SafeAreaWrapper>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <CustomHeader />
         <View style={styles.headingView}>
-          <Text style={styles.headingText1}>My Profile</Text>
+          <Text style={styles.headingText1}>Profile</Text>
+          <Text style={styles.headingText3}>Saved on this device only.</Text>
         </View>
         <View style={{paddingVertical: 10}}>
           {listData.map(item => (
@@ -38,7 +39,7 @@ export default function MyProfile(props) {
                   onPress={() => {
                     option.screen ? navigation.navigate(option.screen) : {};
                   }}>
-                  {item.id === 6 ? (
+                  {option.list?.length ? (
                     (user.targetCalories || option.list).map(opt => (
                       <View
                         key={opt.id}
@@ -149,7 +150,9 @@ export default function MyProfile(props) {
                         alignItems: 'center',
                       }}>
                       <Text style={styles.textStyle2}>
-                        {item.title === 'Current Weight'
+                        {item.title === 'Profile'
+                          ? nickname || 'No nickname set'
+                          : item.title === 'Current Weight'
                           ? `${user.weight} LBS`
                           : option.name}
                       </Text>
@@ -177,6 +180,4 @@ MyProfile.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
   listData: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.any)).isRequired,
   user: PropTypes.objectOf(PropTypes.any).isRequired,
-  bmi: PropTypes.number.isRequired,
-  bmr: PropTypes.node.isRequired,
 };

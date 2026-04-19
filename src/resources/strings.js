@@ -9,7 +9,7 @@ module.exports.strings = {
 
   completeProfile: {
     labels: {
-      name: 'What should we call you?',
+      name: 'What nickname should we use? (optional)',
       dataSelection:
         'Would you like to participate in our study by sharing some of your in-app data?',
       welcome: 'Welcome, Your profile is complete',
@@ -21,7 +21,7 @@ module.exports.strings = {
     },
     placeholders: {
       weight: 'Weight (lbs)',
-      name: 'Enter Name',
+      name: 'Enter nickname (optional)',
       dob: 'MM/DD/YYYY',
       height: 'Height',
     },

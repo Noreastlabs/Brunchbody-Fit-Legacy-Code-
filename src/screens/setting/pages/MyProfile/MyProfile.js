@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { SETTINGS_ROUTES } from '../../../../navigation/routeNames';
@@ -8,11 +8,11 @@ import { MyProfile } from '../../components';
 const listData = [
   {
     id: 1,
-    title: 'My Vitals',
+    title: 'Profile',
     options: [
       {
         id: 1,
-        name: 'My Vitals',
+        name: 'Edit nickname and vitals',
         type: '',
         screen: SETTINGS_ROUTES.MY_VITALS,
       },
@@ -20,38 +20,25 @@ const listData = [
   },
   {
     id: 2,
-    title: 'My Account',
-    options: [
-      {
-        id: 1,
-        name: 'My Accounts',
-        type: '',
-        screen: SETTINGS_ROUTES.MY_ACCOUNT,
-      },
-    ],
-    screen: '',
-  },
-  {
-    id: 3,
     title: 'Current Weight',
     options: [{ id: 1, name: '215 LBS', screen: '' }],
     screen: '',
   },
   {
-    id: 4,
+    id: 3,
     title: 'BMI',
     options: [{ id: 1, name: '29.2', type: '', screen: '' }],
     screen: '',
   },
   {
-    id: 5,
+    id: 4,
     title: 'BMR',
     options: [{ id: 1, name: '1850 CALORIES', type: '', screen: '' }],
     screen: '',
   },
   {
-    id: 6,
-    title: 'My Current Target Totals',
+    id: 5,
+    title: 'Current Target Totals',
     options: [
       {
         id: 1,
@@ -73,18 +60,10 @@ const listData = [
 
 export default function MyProfilePage(props) {
   const { navigation } = props;
-  const [isEnabled, setIsEnabled] = useState(false);
-
-  const toggleSwitch = () => {
-    setIsEnabled(!isEnabled);
-  };
 
   return (
     <MyProfile
       {...props}
-      isEnabled={isEnabled}
-      setIsEnabled={setIsEnabled}
-      toggleSwitch={toggleSwitch}
       navigation={navigation}
       listData={listData}
     />

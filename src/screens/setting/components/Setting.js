@@ -14,7 +14,7 @@ import {
   PermissionModal,
   TimePickerModal,
   SafeAreaWrapper,
-  } from '../../../components';
+} from '../../../components';
 import styles from './style';
 
 export default function Setting(props) {
@@ -23,15 +23,10 @@ export default function Setting(props) {
     onChangeHandler,
     state,
     listing,
-    onLogoutPermission,
     onAddAlarmHandler,
     setIndex,
-    onLogoutHandler,
-    isPermissionModal,
-    setIsPermissionModal,
     alertHeading,
     alertText,
-    setAlarmHeading,
     isWarningModal,
     setIsWarningModal,
     onDoneWarningModal,
@@ -48,9 +43,8 @@ export default function Setting(props) {
             <View key={item.id} style={styles.listView}>
               <Text style={styles.textStyle1}>{item.title}</Text>
               {item.options.map((option, index) => (
-                <>
+                <View key={option.id}>
                   <TouchableOpacity
-                    key={option.id}
                     activeOpacity={0.5}
                     style={styles.linkView}
                     onPress={() => {
@@ -58,8 +52,6 @@ export default function Setting(props) {
                         ? navigation.navigate(option.screen)
                         : option.link
                         ? Linking.openURL(option.link)
-                        : option.name === 'Logout'
-                        ? onLogoutPermission()
                         : {};
                     }}
                   >
@@ -110,7 +102,6 @@ export default function Setting(props) {
                           name: 'isTimePickerModal',
                           value: true,
                         });
-                        setAlarmHeading(option.name);
                       }}
                     >
                       <Feather name="clock" size={20} color="white" />
@@ -119,7 +110,7 @@ export default function Setting(props) {
                   ) : (
                     <View />
                   )}
-                </>
+                </View>
               ))}
             </View>
           ))}
@@ -149,22 +140,6 @@ export default function Setting(props) {
       />
 
       <CustomModal
-        isVisible={isPermissionModal}
-        onDismiss={() => setIsPermissionModal(false)}
-        content={
-          <PermissionModal
-            heading={alertHeading}
-            text={alertText}
-            isCancelBtn={
-              alertHeading !== 'Success!' && alertHeading !== 'Error!'
-            }
-            onDone={onLogoutHandler}
-            onCancel={() => setIsPermissionModal(false)}
-          />
-        }
-      />
-
-      <CustomModal
         isVisible={isWarningModal}
         onDismiss={() => setIsWarningModal(false)}
         content={
@@ -185,19 +160,13 @@ export default function Setting(props) {
 
 Setting.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
-  listData: PropTypes.arrayOf(PropTypes.any).isRequired,
   onChangeHandler: PropTypes.func.isRequired,
   onAddAlarmHandler: PropTypes.func.isRequired,
-  onLogoutPermission: PropTypes.func.isRequired,
   setIndex: PropTypes.func.isRequired,
   state: PropTypes.objectOf(PropTypes.any).isRequired,
   listing: PropTypes.arrayOf(PropTypes.any).isRequired,
-  onLogoutHandler: PropTypes.func.isRequired,
-  isPermissionModal: PropTypes.bool.isRequired,
-  setIsPermissionModal: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
-  setAlarmHeading: PropTypes.func.isRequired,
   isWarningModal: PropTypes.bool.isRequired,
   setIsWarningModal: PropTypes.func.isRequired,
   onDoneWarningModal: PropTypes.func.isRequired,

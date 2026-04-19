@@ -37,7 +37,7 @@ const getScopedLogoutKeys = () => [
 const clearScopedLocalAuthData = () =>
   AsyncStorage.multiRemove(getScopedLogoutKeys());
 
-const clearAllLocalAccountData = async () => {
+const clearAllLocalAppData = async () => {
   await AsyncStorage.clear();
   storage.clearAll();
   hydrateWorkoutPlans();
@@ -129,29 +129,12 @@ export const resetPassword = ({ email }) => async () => {
   return true;
 };
 
-export const deleteAccount =
-  ({ email, password }) =>
-  async dispatch => {
-    const existingProfile = await loadStoredProfile();
+export const deleteAccount = () => async dispatch => {
+  dispatch({
+    type: RESET_APP,
+  });
 
-    if (!existingProfile) {
-      return 'No local profile was found on this device.';
-    }
+  await clearAllLocalAppData();
 
-    if (existingProfile.email && existingProfile.email !== email) {
-      return 'Enter the email saved on this device.';
-    }
-
-    const storedPassword = await AsyncStorage.getItem(LOCAL_PASSWORD_KEY);
-    if (storedPassword && storedPassword !== password) {
-      return 'Password is incorrect.';
-    }
-
-    dispatch({
-      type: RESET_APP,
-    });
-
-    await clearAllLocalAccountData();
-
-    return true;
-  };
+  return true;
+};

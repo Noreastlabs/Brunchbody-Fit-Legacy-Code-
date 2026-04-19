@@ -58,7 +58,7 @@ export const CompleteProfilePage = () => {
       });
     } else if (screen === 'Name') {
       setCurrentScreen(screen);
-    } else if (screen === 'DateOfBirth' && name) {
+    } else if (screen === 'DateOfBirth') {
       setCurrentScreen(screen);
     } else if (screen === 'Height' && dob) {
       if (new Date().getFullYear() - dob.split('/')[2] < 18)
@@ -74,7 +74,7 @@ export const CompleteProfilePage = () => {
       setLoader(true);
 
       const profileData = {
-        name,
+        name: name.trim(),
         dob,
         height,
         weight,

@@ -20,7 +20,7 @@ export default function MyVitalsPage(props) {
   const [isHeightSelected, setIsHeightSelected] = useState(false);
   const [feet, setFeet] = useState(1);
   const [inches, setInches] = useState(0);
-  const [name, setName] = useState(user.name);
+  const [name, setName] = useState(user.name || '');
   const [gender, setGender] = useState('');
   const [isPermissionModal, setIsPermissionModal] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
@@ -52,7 +52,7 @@ export default function MyVitalsPage(props) {
       showMessage('Error!', 'Invalid date of birth!');
     else {
       const response = await updateUserProfile({
-        name: name || user.name,
+        name: name.trim(),
         dob: isDateSelected ? `${date}/${month}/${year}` : user.dob,
         height: isHeightSelected ? `${feet}.${inches}` : user.height,
         gender: gender || user.gender,

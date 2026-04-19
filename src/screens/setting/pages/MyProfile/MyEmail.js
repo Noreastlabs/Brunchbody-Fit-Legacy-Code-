@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { MyEmail } from '../../components';
+import MyEmail from '../../components/My Profile/MyEmail';
 import { changeEmail } from '../../../../redux/actions';
 
 export default function MyEmailPage(props) {

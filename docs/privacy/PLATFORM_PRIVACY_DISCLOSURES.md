@@ -1,6 +1,6 @@
 # Platform Privacy Disclosures (Release Candidate 1.0.0-rc2)
 
-_Last reviewed: 2026-03-28_
+_Last reviewed: 2026-04-19_
 
 ## iOS App Store Connect + Privacy Manifest
 
@@ -37,4 +37,5 @@ Declare the following for this release candidate:
 - Repository scan confirms user data persistence is local-device storage only in current app paths:
   - AsyncStorage is used across profile, navigation bootstrap, and Redux action persistence.
   - No analytics/ads SDKs are integrated for tracking or third-party data sharing.
-  - Export-to-CSV writes files locally via `react-native-fs`.
+  - Export journal data writes local `.xlsx` workbook files via `react-native-fs`.
+  - `Delete local data` removes on-device app data, does not remove user-exported copies outside app-controlled storage, and may re-seed bundled starter plans included with the app.

@@ -116,7 +116,10 @@ export default function ExportToCSVPage(props) {
 
       RNFS.writeFile(filePath, wbout, 'ascii')
         .then(() => {
-          showMessage('Success!', 'File downloaded successfully.');
+          showMessage(
+            'Success!',
+            'Journal data was exported as an Excel workbook (.xlsx).',
+          );
         })
         .catch(e => {
           console.log('Error in file', e);
@@ -131,7 +134,10 @@ export default function ExportToCSVPage(props) {
         false,
       )
         .then(() => {
-          showMessage('Success!', 'File downloaded successfully.');
+          showMessage(
+            'Success!',
+            'Journal data was exported as an Excel workbook (.xlsx).',
+          );
         })
         .catch(e => {
           console.log('Error in file', e);

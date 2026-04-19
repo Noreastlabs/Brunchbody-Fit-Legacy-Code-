@@ -35,7 +35,7 @@ jest.mock('../src/screens/setting/components', () => {
   };
 });
 
-describe('Local account actions', () => {
+describe('Local data actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -227,75 +227,59 @@ describe('Local account actions', () => {
   });
 });
 
-describe('Settings/account navigation', () => {
+describe('Settings navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('logout resets the root navigator to CompleteProfile', async () => {
-    const rootNavigation = {
-      getParent: jest.fn(() => undefined),
-      reset: jest.fn(),
-    };
-    const tabNavigation = {
-      getParent: jest.fn(() => rootNavigation),
-      reset: jest.fn(),
-    };
-    const settingsNavigation = {
-      getParent: jest.fn(() => tabNavigation),
-      reset: jest.fn(),
-    };
-    const navigation = {
-      getParent: jest.fn(() => settingsNavigation),
-      reset: jest.fn(),
-    };
-    const logoutUser = jest.fn().mockResolvedValue(true);
-    let renderer;
-
-    await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(
-        <SettingPage navigation={navigation} logoutUser={logoutUser} />,
-      );
-    });
-
-    await ReactTestRenderer.act(async () => {
-      await renderer.root.findByType('mock-setting').props.onLogoutHandler();
-    });
-
-    expect(rootNavigation.reset).toHaveBeenCalledWith({
-      index: 0,
-      routes: [{ name: 'CompleteProfile' }],
-    });
-    expect(settingsNavigation.reset).not.toHaveBeenCalled();
-    expect(tabNavigation.reset).not.toHaveBeenCalled();
-  });
-
-  test('settings still expose the Export to CSV entry in the RC2 build', async () => {
+  test('settings no longer expose a logout entry in the Phase 1 surface', async () => {
     const navigation = {
       getParent: jest.fn(),
       reset: jest.fn(),
     };
-    const logoutUser = jest.fn();
     let renderer;
 
     await ReactTestRenderer.act(async () => {
-      renderer = ReactTestRenderer.create(
-        <SettingPage navigation={navigation} logoutUser={logoutUser} />,
-      );
+      renderer = ReactTestRenderer.create(<SettingPage navigation={navigation} />);
     });
 
-    const exportSection = renderer.root
-      .findByType('mock-setting')
-      .props.listData.find(item => item.title === 'Export to CSV');
+    expect(
+      renderer.root
+        .findByType('mock-setting')
+        .props.listData.find(item => item.title === 'Logout'),
+    ).toBeUndefined();
+  });
+
+  test('settings expose export and delete-local-data entries in the Phase 1 surface', async () => {
+    const navigation = {
+      getParent: jest.fn(),
+      reset: jest.fn(),
+    };
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<SettingPage navigation={navigation} />);
+    });
+
+    const settingsList = renderer.root.findByType('mock-setting').props.listData;
+    const exportSection = settingsList.find(item => item.title === 'Export data');
+    const deleteSection = settingsList.find(
+      item => item.title === 'Delete local data',
+    );
 
     expect(exportSection.options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ screen: 'ExportToCSV' }),
       ]),
     );
+    expect(deleteSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ screen: 'DeleteAccount' }),
+      ]),
+    );
   });
 
-  test('delete account returns the user to CompleteProfile after success confirmation', async () => {
+  test('delete local data returns the user to CompleteProfile after success confirmation', async () => {
     const rootNavigation = {
       getParent: jest.fn(() => undefined),
       reset: jest.fn(),
@@ -326,8 +310,7 @@ describe('Settings/account navigation', () => {
 
     await ReactTestRenderer.act(async () => {
       const props = renderer.root.findByType('mock-delete-account').props;
-      props.setEmail('saved@example.com');
-      props.setPassword('local-pass');
+      props.toggleSwitch();
     });
 
     await ReactTestRenderer.act(async () => {
@@ -338,10 +321,7 @@ describe('Settings/account navigation', () => {
       renderer.root.findByType('mock-delete-account').props.onDonePermissionModal();
     });
 
-    expect(deleteUserAccount).toHaveBeenCalledWith({
-      email: 'saved@example.com',
-      password: 'local-pass',
-    });
+    expect(deleteUserAccount).toHaveBeenCalledWith();
     expect(rootNavigation.reset).toHaveBeenCalledWith({
       index: 0,
       routes: [{ name: 'CompleteProfile' }],

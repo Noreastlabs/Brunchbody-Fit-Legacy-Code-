@@ -1,9 +1,6 @@
 import Setting from './Setting';
 import MyProfile from './My Profile/MyProfile';
 import MyVitals from './My Profile/MyVitals';
-import MyAccount from './My Profile/MyAccount';
-import MyEmail from './My Profile/MyEmail';
-import MyPassword from './My Profile/MyPassword';
 import DeleteAccount from './My Profile/DeleteAccount';
 import ExportToCSV from './Export To CSV/ExportToCSV';
 import TermsOfUse from './TermsOfUse/TermsOfUse';
@@ -20,8 +17,5 @@ export {
   PrivacyPolicy,
   Abbrevations,
   Tutorials,
-  MyAccount,
-  MyEmail,
-  MyPassword,
   DeleteAccount,
 };

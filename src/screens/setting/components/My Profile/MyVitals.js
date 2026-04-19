@@ -20,6 +20,7 @@ import {
   PermissionModal,
   SafeAreaWrapper,
 } from '../../../../components';
+import {colors} from '../../../../resources';
 
 export default function MyVitals(props) {
   const {
@@ -54,17 +55,20 @@ export default function MyVitals(props) {
       <ScrollView contentContainerStyle={styles.container}>
         <CustomHeader />
         <View style={styles.headingView}>
-          <Text style={styles.headingText1}>My Vitals</Text>
+          <Text style={styles.headingText1}>Profile details</Text>
+          <Text style={styles.headingText3}>Saved on this device only.</Text>
         </View>
         <View>
           <View style={styles.listView}>
-            <Text style={styles.textStyle1}>Name</Text>
+            <Text style={styles.textStyle1}>Nickname (optional)</Text>
             <TouchableOpacity activeOpacity={0.5} style={styles.linkView}>
               <View style={{flex: 1}}>
                 <TextInput
                   value={name}
                   onChangeText={text => setName(text)}
                   style={styles.TextInput}
+                  placeholder="Enter a nickname"
+                  placeholderTextColor={colors.grey}
                 />
               </View>
             </TouchableOpacity>

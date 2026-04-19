@@ -36,7 +36,14 @@ export default function ExportToCSV(props) {
       <ScrollView contentContainerStyle={styles.container}>
         <CustomHeader />
         <View style={styles.headingView}>
-          <Text style={styles.headingText1}>Export To CSV</Text>
+          <Text style={styles.headingText1}>Export Journal Data</Text>
+          <Text style={styles.headingText3}>
+            Exports selected journal entries as an Excel workbook (.xlsx).
+          </Text>
+          <Text style={styles.helperText}>
+            Files you save outside the app stay where you put them and are not
+            removed by Delete local data.
+          </Text>
         </View>
         <View style={{paddingVertical: 10, marginHorizontal: 20}}>
           {listData.map(item => (
@@ -76,7 +83,11 @@ export default function ExportToCSV(props) {
             </View>
           ))}
           <View style={{padding: 20, paddingTop: 30}}>
-            <Button loader={loader} title="Export" onPress={onExportHandler} />
+            <Button
+              loader={loader}
+              title="Export Data"
+              onPress={onExportHandler}
+            />
           </View>
         </View>
       </ScrollView>

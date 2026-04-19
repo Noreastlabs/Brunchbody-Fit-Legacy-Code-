@@ -415,7 +415,6 @@ import MealDetailPage from '../src/screens/nutrition/pages/MealDetail/MealDetail
 import MealsList from '../src/screens/nutrition/components/MealsList';
 import RoutineManager from '../src/screens/recreation/components/RoutineManager';
 import EditRoutine from '../src/screens/recreation/components/EditRoutine';
-import MyAccount from '../src/screens/setting/components/My Profile/MyAccount';
 import NewDay from '../src/screens/writing/components/NewDay';
 
 const renderTree = element => {
@@ -780,7 +779,7 @@ describe('Navigation smoke representative flows', () => {
     );
   });
 
-  test('MyProfilePage still exposes MyAccount as the representative settings entry route', async () => {
+  test('MyProfilePage now routes its primary profile action to MyVitals', async () => {
     let renderer;
 
     await ReactTestRenderer.act(async () => {
@@ -792,39 +791,14 @@ describe('Navigation smoke representative flows', () => {
       );
     });
 
-    const myAccountItem = renderer.root
+    const profileItem = renderer.root
       .findByType('mock-setting-my-profile')
-      .props.listData.find(item => item.title === 'My Account');
+      .props.listData.find(item => item.title === 'Profile');
 
-    expect(myAccountItem.options).toEqual(
+    expect(profileItem.options).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ screen: SETTINGS_ROUTES.MY_ACCOUNT }),
+        expect.objectContaining({ screen: SETTINGS_ROUTES.MY_VITALS }),
       ]),
-    );
-  });
-
-  test('MyAccount still relies on the default header back behavior', () => {
-    const renderer = renderTree(
-      <MyAccount
-        navigation={mockNavigation}
-        listData={[
-          {
-            id: 1,
-            title: 'Email',
-            options: [
-              {
-                id: 1,
-                name: 'My Email',
-                screen: SETTINGS_ROUTES.MY_EMAIL,
-              },
-            ],
-          },
-        ]}
-      />,
-    );
-
-    expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
-      undefined,
     );
   });
 });

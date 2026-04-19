@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import { MyPassword } from '../../components';
+import MyPassword from '../../components/My Profile/MyPassword';
 import { changePassword, resetPassword } from '../../../../redux/actions';
 
 export default function MyPasswordPage(props) {

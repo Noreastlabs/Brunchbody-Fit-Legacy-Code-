@@ -3,8 +3,8 @@
 Release candidate date: 2026-03-29
 
 ## Highlights
-- Completed local-only account flows for logout, local email updates, local password change/reset, and delete-account reset behavior.
-- Fixed post-account-action navigation so logout/delete-account return users to `CompleteProfile` instead of a removed legacy route.
+- Reframed the local-only settings surface around profile editing, journal export, and a `Delete local data` action.
+- Fixed post-delete navigation so clearing local data returns users to `CompleteProfile`.
 - Made the secret scan portable on stock macOS Bash and aligned the secret-scan workflow/docs on one override-label and required-check policy.
 - Re-ran RC2 technical verification against the current `main` state after the latest release-readiness fixes.
 
@@ -13,8 +13,9 @@ BrunchBody `1.0.3-rc.2` continues to operate in a **local-only data mode**:
 - User data is stored on-device only (AsyncStorage/MMKV-backed paths).
 - No active developer-server user data collection path is enabled in this release candidate.
 - No analytics/tracking SDK pipeline is enabled in this release candidate.
-- Local account changes remain device-scoped; they do not sync to any cloud backend.
-- Exported journal data is written to local files when users choose Export to CSV.
+- Local profile changes remain device-scoped; they do not sync to any cloud backend.
+- Exported journal data is written to local `.xlsx` files when users choose Export Journal Data.
+- `Delete local data` removes on-device app data, does not remove user-exported copies saved elsewhere, and may re-seed bundled starter plans included with the app.
 
 ## Compliance/Verification Notes
 - Settings links remain HTTPS-only:

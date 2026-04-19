@@ -3,7 +3,7 @@ import React, {useState} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import { SETTINGS_ROUTES } from '../../../../navigation/routeNames';
-import {MyAccount} from '../../components';
+import MyAccount from '../../components/My Profile/MyAccount';
 
 const listData = [
   {

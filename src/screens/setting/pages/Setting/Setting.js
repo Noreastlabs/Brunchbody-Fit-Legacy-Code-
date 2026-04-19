@@ -6,8 +6,6 @@ import PropTypes from 'prop-types';
 import { useFocusEffect } from '@react-navigation/core';
 import moment from 'moment';
 import { Setting } from '../../components';
-import { logout } from '../../../../redux/actions';
-import { getRootNavigation } from '../../../../navigation/getRootNavigation';
 import { ROOT_ROUTES, SETTINGS_ROUTES } from '../../../../navigation/routeNames';
 
 const initialState = {
@@ -29,11 +27,11 @@ const ABOUT_LINKS = {
 const listData = [
   {
     id: 1,
-    title: 'My Profile',
+    title: 'Profile',
     options: [
       {
         id: 1,
-        name: 'Manage Profile',
+        name: 'View and edit profile',
         type: '',
         screen: SETTINGS_ROUTES.MY_PROFILE,
       },
@@ -104,14 +102,27 @@ const listData = [
   //   screen: '',
   // },
   {
-    id: 5,
-    title: 'Export to CSV',
+    id: 4,
+    title: 'Export data',
     options: [
       {
         id: 1,
-        name: 'Export Journal to Files',
+        name: 'Export journal data',
         value: false,
         screen: SETTINGS_ROUTES.EXPORT_TO_CSV,
+      },
+    ],
+    screen: '',
+  },
+  {
+    id: 5,
+    title: 'Delete local data',
+    options: [
+      {
+        id: 1,
+        name: 'Delete local data',
+        type: '',
+        screen: SETTINGS_ROUTES.DELETE_ACCOUNT,
       },
     ],
     screen: '',
@@ -150,30 +161,22 @@ const listData = [
     ],
     screen: '',
   },
-  {
-    id: 7,
-    title: 'Logout',
-    options: [{ id: 1, name: 'Logout', type: '', screen: '' }],
-    screen: '',
-  },
 ];
 
 let currentHours = '';
 let currentMinutes = '';
 
 export default function SettingPage(props) {
-  const { navigation, logoutUser } = props;
+  const { navigation } = props;
   const [state, setState] = useState(initialState);
   const [hours, setHours] = useState(moment().format('h'));
   const [minutes, setMinutes] = useState(moment().format('m'));
   const [timeFormat, setTimeFormat] = useState(moment().format('A'));
   const [listing] = useState(listData);
   const [selectedIndex, setIndex] = useState();
-  const [isPermissionModal, setIsPermissionModal] = useState(false);
   const [isWarningModal, setIsWarningModal] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
-  const [alarmHeading, setAlarmHeading] = useState('');
 
   useFocusEffect(
     React.useCallback(() => {
@@ -209,26 +212,6 @@ export default function SettingPage(props) {
     }, 500);
   };
 
-  const onLogoutPermission = () => {
-    setAlertHeading('Logout');
-    setAlertText('Are you sure you want to logout?');
-    setIsPermissionModal(true);
-  };
-
-  const onLogoutHandler = async () => {
-    const response = await logoutUser();
-    if (response) {
-      const rootNavigation = getRootNavigation(navigation);
-      rootNavigation.reset({
-        index: 0,
-        routes: [{ name: ROOT_ROUTES.COMPLETE_PROFILE }],
-      });
-      setIsPermissionModal(false);
-    } else {
-      showMessage('Error!', 'Something went wrong!');
-    }
-  };
-
   const onAddAlarmHandler = async () => {
     const currentDate = new Date();
     let hrs = hours;
@@ -260,7 +243,6 @@ export default function SettingPage(props) {
       navigation={navigation}
       listData={listData}
       onChangeHandler={onChangeHandler}
-      onLogoutHandler={onLogoutHandler}
       onAddAlarmHandler={onAddAlarmHandler}
       minutes={minutes}
       hours={hours}
@@ -271,12 +253,8 @@ export default function SettingPage(props) {
       setIndex={setIndex}
       currentHours={currentHours}
       currentMinutes={currentMinutes}
-      isPermissionModal={isPermissionModal}
-      setIsPermissionModal={setIsPermissionModal}
       alertHeading={alertHeading}
       alertText={alertText}
-      onLogoutPermission={onLogoutPermission}
-      setAlarmHeading={setAlarmHeading}
       isWarningModal={isWarningModal}
       setIsWarningModal={setIsWarningModal}
       onDoneWarningModal={onDoneWarningModal}
@@ -286,11 +264,5 @@ export default function SettingPage(props) {
 
 SettingPage.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
-  logoutUser: PropTypes.func.isRequired,
 };
-
-const mapDispatchToProps = dispatch => ({
-  logoutUser: () => dispatch(logout()),
-});
-
-export const SettingWrapper = connect(null, mapDispatchToProps)(SettingPage);
+export const SettingWrapper = connect(null, null)(SettingPage);

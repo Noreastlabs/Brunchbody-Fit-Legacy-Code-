@@ -18,7 +18,8 @@ This repository can be made public once the top-level contributor-facing documen
 
 - Fresh installs route to `CompleteProfile`.
 - Existing local profiles route to `Home`.
-- Settings exposes local account/profile actions, including logout, email update, password change/reset, delete-account reset behavior, and Export to CSV.
+- Settings exposes local profile editing, journal export, and a `Delete local data` action.
+- `Delete local data` removes saved Brunch Body data from this device, does not remove exported copies saved elsewhere, and may re-seed bundled starter plans included with the app.
 - User data remains stored on-device only in the current build.
 
 ## Relationship To RC2 Release Gating

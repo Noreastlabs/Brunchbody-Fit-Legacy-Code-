@@ -4,12 +4,13 @@ Brunch Body is a React Native fitness and journaling app in active development. 
 
 ## Project Overview
 
-The project includes charting, scheduling tools, journaling, nutrition, recreation planning, and local profile/account management built on Redux.
+The project includes charting, scheduling tools, journaling, nutrition, recreation planning, and device-local profile/data management built on Redux.
 
 Current behavior in RC2:
 - Fresh installs route to `CompleteProfile` to create a device-local profile.
 - Returning users with a saved local profile route to `Home`.
-- Settings exposes device-local account actions for logout, local email update, local password change/reset, delete-account reset behavior, and Export to CSV.
+- Settings exposes device-local profile editing, journal export, and a `Delete local data` action.
+- `Delete local data` removes saved Brunch Body data from this device, does not remove files you exported elsewhere, and may re-seed bundled starter plans included with the app.
 - User data remains on-device only unless a future backend mode is explicitly reintroduced.
 
 ## Public Status
@@ -112,7 +113,7 @@ The app is local-first and can operate offline.
 ### No-cloud-sync guarantee (current behavior)
 
 - There is **no backend persistence** in the current build.
-- There is **no automatic cloud backup/sync** for user records, workouts, meals, todos, or themes.
+- There is **no automatic cloud backup/sync** for device-local records, workouts, meals, todos, or themes.
 - Data continuity depends on local device storage (`AsyncStorage` + MMKV). Clearing app storage or uninstalling the app removes locally stored data.
 - Any future backend return must be explicitly enabled via the single app-mode switch (`LOCAL_ONLY_MODE_ENABLED` in `src/config/runtimeMode.js`).
 
@@ -170,7 +171,7 @@ To preserve compatibility with existing local users when backend sync returns:
    yarn android # or yarn ios
    ```
 
-On a fresh install, the app routes to `CompleteProfile` to capture local profile data. If local profile data already exists, the app routes to `Home`. Account/profile actions in Settings remain device-local in the current build.
+On a fresh install, the app routes to `CompleteProfile` to capture local profile data. If local profile data already exists, the app routes to `Home`. Profile editing, journal export, and local-data deletion in Settings remain device-local in the current build.
 
 
 For secure onboarding/setup, read [SECURITY.md](SECURITY.md), [docs/secrets-and-debug-keys.md](docs/secrets-and-debug-keys.md), and [docs/security/KEY_MATERIAL_STORAGE.md](docs/security/KEY_MATERIAL_STORAGE.md) before configuring local environment/signing values.

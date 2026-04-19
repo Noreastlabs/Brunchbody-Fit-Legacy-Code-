@@ -6,6 +6,7 @@ import style from './style';
 
 function Details(props) {
   const {user, currentTheme} = props;
+  const nickname = user?.name?.trim();
 
   return (
     <View style={{flex: 1}}>
@@ -13,7 +14,7 @@ function Details(props) {
         <Text style={style.detailsText}>
           {strings.dashboard.details.greetings}
         </Text>
-        <Text style={style.detailsText}> {user.name}</Text>
+        <Text style={style.detailsText}> {nickname || 'there'}</Text>
       </View>
 
       <View style={style.row}>
