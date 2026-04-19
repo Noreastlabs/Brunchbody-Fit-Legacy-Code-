@@ -23,24 +23,32 @@ const storageReaders = [
     label: 'meals',
     key: 'meals',
     read: readStoredMeals,
+    thunk: getMeals,
+    actionType: GET_MEALS,
     storedValue: [{id: 'meal-1', name: 'Lunch', items: []}],
   },
   {
     label: 'supplements',
     key: 'supplements',
     read: readStoredSupplements,
+    thunk: getSupplements,
+    actionType: GET_SUPPLEMENTS,
     storedValue: [{id: 'supp-1', name: 'Omega 3', items: []}],
   },
   {
     label: 'meal categories',
     key: 'meal_categories',
     read: readStoredMealCategories,
+    thunk: getMealCategories,
+    actionType: GET_MEAL_CATEGORIES,
     storedValue: [{id: 'cat-1', title: 'Protein'}],
   },
   {
     label: 'meals directory',
     key: 'meals_directory',
     read: readStoredMealsDirectory,
+    thunk: getMealsDirectory,
+    actionType: GET_MEALS_DIRECTORY,
     storedValue: [{id: 'dir-1', name: 'Chicken Breast'}],
   },
 ];
@@ -57,6 +65,7 @@ describe('Nutrition storage boundary', () => {
 
       await expect(read()).resolves.toEqual(storedValue);
       expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
     },
   );
 
@@ -67,6 +76,33 @@ describe('Nutrition storage boundary', () => {
 
       await expect(read()).resolves.toEqual([]);
       expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    },
+  );
+
+  test.each(storageReaders)(
+    '$label reader removes malformed JSON and falls back to an empty array',
+    async ({key, read}) => {
+      AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+      await expect(read()).resolves.toEqual([]);
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith(key);
+    },
+  );
+
+  test.each(storageReaders)(
+    '$label reader removes non-array payloads and falls back to an empty array',
+    async ({key, read}) => {
+      AsyncStorage.getItem.mockResolvedValueOnce(
+        JSON.stringify({id: `${key}-invalid`}),
+      );
+
+      await expect(read()).resolves.toEqual([]);
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith(key);
     },
   );
 
@@ -95,6 +131,7 @@ describe('Nutrition storage boundary', () => {
       type: GET_MEALS,
       payload: [],
     });
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
 
   test('getSupplements reads supplements and dispatches the legacy Redux contract', async () => {
@@ -163,5 +200,44 @@ describe('Nutrition storage boundary', () => {
       type: GET_MEALS_DIRECTORY,
       payload: [],
     });
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
+
+  test.each(storageReaders)(
+    '$label thunk repairs malformed JSON and preserves the legacy Redux contract',
+    async ({key, thunk, actionType}) => {
+      const dispatch = jest.fn();
+
+      AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+      await expect(thunk()(dispatch)).resolves.toBe(true);
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith(key);
+      expect(dispatch).toHaveBeenCalledWith({
+        type: actionType,
+        payload: [],
+      });
+    },
+  );
+
+  test.each(storageReaders)(
+    '$label thunk repairs non-array payloads and preserves the legacy Redux contract',
+    async ({key, thunk, actionType}) => {
+      const dispatch = jest.fn();
+
+      AsyncStorage.getItem.mockResolvedValueOnce(
+        JSON.stringify({id: `${key}-invalid`}),
+      );
+
+      await expect(thunk()(dispatch)).resolves.toBe(true);
+      expect(AsyncStorage.getItem).toHaveBeenCalledWith(key);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+      expect(AsyncStorage.removeItem).toHaveBeenCalledWith(key);
+      expect(dispatch).toHaveBeenCalledWith({
+        type: actionType,
+        payload: [],
+      });
+    },
+  );
 });
