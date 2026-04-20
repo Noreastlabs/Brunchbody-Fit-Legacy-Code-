@@ -30,15 +30,12 @@ import {
 } from './modalShells';
 import {
   ProgramDetailModal,
-  CreateTraitModal,
   DatePickerModal,
   HeightPickerModal,
   TimePickerModal,
   NutritionItems,
   ItineraryDetail,
   CalculationContent,
-  AddRemoveTheme,
-  ClearTheme,
 } from './CustomModal';
 
 export {
@@ -68,7 +65,6 @@ export {
   Input,
   TextVal,
   ProgramDetailModal,
-  CreateTraitModal,
   SearchBar,
   DatePickerModal,
   HeightPickerModal,
@@ -76,8 +72,6 @@ export {
   NutritionItems,
   ItineraryDetail,
   CalculationContent,
-  AddRemoveTheme,
-  ClearTheme,
   CustomTopTabs,
   SafeAreaWrapper,
 };

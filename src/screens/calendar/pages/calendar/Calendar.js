@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { connect, useDispatch } from 'react-redux';
-import { AddRemoveTheme, ClearTheme, CustomModal, DatePickerModal, PermissionModal, SafeAreaWrapper, WheelPickerContent } from '../../../../components';
+import { CustomModal, DatePickerModal, PermissionModal, SafeAreaWrapper, WheelPickerContent } from '../../../../components';
+import {AddRemoveTheme, ClearTheme} from './modals';
 import {
   addRepeatedTheme,
   addTheme,

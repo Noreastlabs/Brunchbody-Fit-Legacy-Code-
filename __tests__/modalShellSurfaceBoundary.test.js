@@ -46,10 +46,7 @@ describe('modal shell surface boundary', () => {
   ];
 
   const remainingCustomModalExports = [
-    'AddRemoveTheme',
     'CalculationContent',
-    'ClearTheme',
-    'CreateTraitModal',
     'DatePickerModal',
     'HeightPickerModal',
     'ItineraryDetail',

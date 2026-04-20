@@ -7,7 +7,6 @@ import {
   AddButton,
   Button,
   ColorPickerContent,
-  CreateTraitModal,
   CustomHeader,
   CustomModal,
   CustomOptions,
@@ -17,6 +16,7 @@ import {
   TextButton,
   SafeAreaWrapper,
 } from '../../../components';
+import {CreateTraitModal} from './modals';
 import { JOURNAL_ROUTES } from '../../../navigation/routeNames';
 import { colors, strings } from '../../../resources';
 import styles from './style';
