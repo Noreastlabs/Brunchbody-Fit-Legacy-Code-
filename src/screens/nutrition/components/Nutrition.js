@@ -9,7 +9,6 @@ import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
   AddButton,
-  CalculationContent,
   ColorPickerContent,
   CreateItemContent,
   CustomModal,
@@ -22,6 +21,7 @@ import {
 import { NUTRITION_ROUTES } from '../../../navigation/routeNames';
 import { colors } from '../../../resources';
 import CalorieCalculation from './CalorieCalculation';
+import { CalculationContent } from './modals';
 import styles from './style';
 
 export default function Nutrition(props) {

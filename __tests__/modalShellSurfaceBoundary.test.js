@@ -46,7 +46,6 @@ describe('modal shell surface boundary', () => {
   ];
 
   const remainingCustomModalExports = [
-    'CalculationContent',
     'DatePickerModal',
     'HeightPickerModal',
     'ItineraryDetail',

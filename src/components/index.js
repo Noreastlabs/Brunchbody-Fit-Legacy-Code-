@@ -35,7 +35,6 @@ import {
   TimePickerModal,
   NutritionItems,
   ItineraryDetail,
-  CalculationContent,
 } from './CustomModal';
 
 export {
@@ -71,7 +70,6 @@ export {
   TimePickerModal,
   NutritionItems,
   ItineraryDetail,
-  CalculationContent,
   CustomTopTabs,
   SafeAreaWrapper,
 };
