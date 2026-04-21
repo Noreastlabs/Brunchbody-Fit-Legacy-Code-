@@ -1,5 +1,4 @@
-/* eslint-disable no-param-reassign */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import moment from 'moment';
@@ -14,63 +13,54 @@ import {
 const questions = [
   {
     id: 1,
-    value: '',
     title: strings.quarterlyEntry.content1,
     placeholder: 'Thoughts, Actions',
     state: 'presenceThoughts',
   },
   {
     id: 2,
-    value: '',
     title: strings.quarterlyEntry.content2,
     placeholder: 'Thoughts',
     state: 'personalProjectThoughts',
   },
   {
     id: 3,
-    value: '',
     title: strings.quarterlyEntry.content3,
     placeholder: 'Actions',
     state: 'personalProjectActions',
   },
   {
     id: 4,
-    value: '',
     title: strings.quarterlyEntry.content4,
     placeholder: 'Thoughts',
     state: 'subjectToLearnThoughts',
   },
   {
     id: 5,
-    value: '',
     title: strings.quarterlyEntry.content5,
     placeholder: 'Actions',
     state: 'subjectToLearnActions',
   },
   {
     id: 6,
-    value: '',
     title: strings.quarterlyEntry.content6,
     placeholder: 'Thoughts',
     state: 'clearThingsThoughts',
   },
   {
     id: 7,
-    value: '',
     title: strings.quarterlyEntry.content7,
     placeholder: 'Thoughts',
     state: 'letGoThoughts',
   },
   {
     id: 8,
-    value: '',
     title: strings.quarterlyEntry.content8,
     placeholder: 'Thoughts',
     state: 'dietaryExpectionsThoughts',
   },
   {
     id: 9,
-    value: '',
     title: strings.quarterlyEntry.content9,
     placeholder: 'Thoughts',
     state: 'routineThoughts',
@@ -85,12 +75,12 @@ export default function QuarterlyEntryPage(props) {
     getAllJournalEntries,
     onEditEntry,
   } = props;
-  const { entryData, entryId } = route.params;
+  const entryData = route?.params?.entryData || {};
+  const entryId = route?.params?.entryId;
+  const savePendingRef = useRef(false);
   const [loader, setLoader] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
-  const [entryName, setEntryName] = useState(
-    moment(entryData.date, 'YYYY/MM/DD').format('M/DD/YYYY'),
-  );
+  const [entryName, setEntryName] = useState('');
   const [presenceThoughts, setPresenceThoughts] = useState(
     entryData.presenceThoughts || '',
   );
@@ -121,41 +111,83 @@ export default function QuarterlyEntryPage(props) {
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
   const [check, setCheck] = useState('');
-  const [questionsList, setQuestionsList] = useState(questions);
+  const [formErrorText, setFormErrorText] = useState('');
+
+  const hydrateFromEntryData = sourceEntryData => {
+    const entryDate = sourceEntryData.date
+      ? moment(sourceEntryData.date, 'YYYY/MM/DD').format('M/DD/YYYY')
+      : moment().format('M/DD/YYYY');
+
+    setEntryName(entryDate);
+    setPresenceThoughts(sourceEntryData.presenceThoughts || '');
+    setPersonalProjectThoughts(sourceEntryData.personalProjectThoughts || '');
+    setPersonalProjectActions(sourceEntryData.personalProjectActions || '');
+    setSubjectToLearnThoughts(sourceEntryData.subjectToLearnThoughts || '');
+    setSubjectToLearnActions(sourceEntryData.subjectToLearnActions || '');
+    setClearThingsThoughts(sourceEntryData.clearThingsThoughts || '');
+    setLetGoThoughts(sourceEntryData.letGoThoughts || '');
+    setDietaryExpectionsThoughts(
+      sourceEntryData.dietaryExpectionsThoughts || '',
+    );
+    setRoutineThoughts(sourceEntryData.routineThoughts || '');
+    setFormErrorText('');
+  };
 
   useEffect(() => {
+    hydrateFromEntryData(entryData);
+
     const unsubscribe = navigation.addListener('focus', () => {
-      const questionsCopy = [...questions];
-
-      questionsCopy[0].value = entryData.presenceThoughts || '';
-      questionsCopy[1].value = entryData.personalProjectThoughts || '';
-      questionsCopy[2].value = entryData.personalProjectActions || '';
-      questionsCopy[3].value = entryData.subjectToLearnThoughts || '';
-      questionsCopy[4].value = entryData.subjectToLearnActions || '';
-      questionsCopy[5].value = entryData.clearThingsThoughts || '';
-      questionsCopy[6].value = entryData.letGoThoughts || '';
-      questionsCopy[7].value = entryData.dietaryExpectionsThoughts || '';
-      questionsCopy[8].value = entryData.routineThoughts || '';
-
-      setQuestionsList(questionsCopy);
+      hydrateFromEntryData(route?.params?.entryData || {});
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [entryData, navigation]);
 
-  const onChangeText = (text, itemState, index) => {
-    questions[index].value = text;
-    if (itemState === 'presenceThoughts') setPresenceThoughts(text);
-    if (itemState === 'personalProjectThoughts')
+  const questionsList = questions.map(item => ({
+    ...item,
+    value:
+      {
+        presenceThoughts,
+        personalProjectThoughts,
+        personalProjectActions,
+        subjectToLearnThoughts,
+        subjectToLearnActions,
+        clearThingsThoughts,
+        letGoThoughts,
+        dietaryExpectionsThoughts,
+        routineThoughts,
+      }[item.state] || '',
+  }));
+
+  const onChangeText = (text, itemState) => {
+    setFormErrorText('');
+    if (itemState === 'presenceThoughts') {
+      setPresenceThoughts(text);
+    }
+    if (itemState === 'personalProjectThoughts') {
       setPersonalProjectThoughts(text);
-    if (itemState === 'personalProjectActions') setPersonalProjectActions(text);
-    if (itemState === 'subjectToLearnThoughts') setSubjectToLearnThoughts(text);
-    if (itemState === 'subjectToLearnActions') setSubjectToLearnActions(text);
-    if (itemState === 'clearThingsThoughts') setClearThingsThoughts(text);
-    if (itemState === 'letGoThoughts') setLetGoThoughts(text);
-    if (itemState === 'dietaryExpectionsThoughts')
+    }
+    if (itemState === 'personalProjectActions') {
+      setPersonalProjectActions(text);
+    }
+    if (itemState === 'subjectToLearnThoughts') {
+      setSubjectToLearnThoughts(text);
+    }
+    if (itemState === 'subjectToLearnActions') {
+      setSubjectToLearnActions(text);
+    }
+    if (itemState === 'clearThingsThoughts') {
+      setClearThingsThoughts(text);
+    }
+    if (itemState === 'letGoThoughts') {
+      setLetGoThoughts(text);
+    }
+    if (itemState === 'dietaryExpectionsThoughts') {
       setDietaryExpectionsThoughts(text);
-    if (itemState === 'routineThoughts') setRoutineThoughts(text);
+    }
+    if (itemState === 'routineThoughts') {
+      setRoutineThoughts(text);
+    }
   };
 
   const showMessage = (headingText, text) => {
@@ -164,12 +196,23 @@ export default function QuarterlyEntryPage(props) {
     setPermissionModal(true);
   };
 
+  const closePermissionModal = () => {
+    setPermissionModal(false);
+    setCheck('');
+    setAlertHeading('');
+    setAlertText('');
+  };
+
+  const openClearEntryConfirmation = () => {
+    setAlertHeading('Clear Entry');
+    setAlertText('Clear this quarterly entry form?');
+    setCheck('clearEntry');
+    setPermissionModal(true);
+  };
+
   const onDonePermissionModal = () => {
     setPermissionModal(false);
     if (check === 'clearEntry') {
-      questions.forEach(item => {
-        item.value = '';
-      });
       setPresenceThoughts('');
       setPersonalProjectThoughts('');
       setPersonalProjectActions('');
@@ -179,32 +222,43 @@ export default function QuarterlyEntryPage(props) {
       setLetGoThoughts('');
       setDietaryExpectionsThoughts('');
       setRoutineThoughts('');
+      setFormErrorText('');
       setCheck('');
+      setAlertHeading('');
+      setAlertText('');
     } else {
       if (alertHeading === 'Success!') {
         navigation.goBack();
       }
-      setTimeout(() => {
-        setAlertText('');
-        setAlertHeading('');
-      }, 500);
+      setAlertText('');
+      setAlertHeading('');
     }
   };
 
   const onSaveHandler = async () => {
+    if (savePendingRef.current) {
+      return;
+    }
+
+    savePendingRef.current = true;
     setLoader(true);
     let response = null;
     // Replace slashes with dashes for consistent date parsing (matching Daily Entry)
-    const d = new Date(entryData.date.replace(/\//g, '-'));
+    const d = new Date(
+      (entryData.date || moment().format('YYYY/MM/DD')).replace(/\//g, '-'),
+    );
     d.setHours(0, 0, 0, 0);
 
     if (d.getTime() > new Date().getTime()) {
-      showMessage('Error!', 'You cannot enter data on future dates.');
+      setFormErrorText('You cannot enter data on future dates.');
       setLoader(false);
+      savePendingRef.current = false;
       return;
     }
 
     try {
+      setFormErrorText('');
+
       if (entryId) {
         response = await onEditEntry(entryId, {
           QuarterlyEntry: {
@@ -238,17 +292,17 @@ export default function QuarterlyEntryPage(props) {
       }
 
       if (response === true) {
-        setLoader(false);
         showMessage('Success!', 'Entry updated successfully.');
         await getAllJournalEntries(d.getTime());
       } else {
-        setLoader(false);
         showMessage('Error!', response || 'Failed to save entry.');
       }
     } catch (error) {
       console.error('Save error:', error);
-      setLoader(false);
       showMessage('Error!', 'An unexpected error occurred while saving.');
+    } finally {
+      setLoader(false);
+      savePendingRef.current = false;
     }
   };
 
@@ -257,7 +311,6 @@ export default function QuarterlyEntryPage(props) {
       loader={loader}
       questions={questionsList}
       permissionModal={permissionModal}
-      setPermissionModal={setPermissionModal}
       entryName={entryName}
       setEntryName={setEntryName}
       onSaveHandler={onSaveHandler}
@@ -265,7 +318,9 @@ export default function QuarterlyEntryPage(props) {
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}
-      setCheck={setCheck}
+      onClosePermissionModal={closePermissionModal}
+      onPromptClearEntry={openClearEntryConfirmation}
+      formErrorText={formErrorText}
     />
   );
 }

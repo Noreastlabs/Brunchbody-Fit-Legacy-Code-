@@ -20,6 +20,9 @@ export default function CreateTraitModal(props) {
     openDirectory,
     onChangeText,
     value,
+    errorText,
+    submitDisabled,
+    loader,
   } = props;
 
   return (
@@ -38,6 +41,11 @@ export default function CreateTraitModal(props) {
           style={styles.textInputStyle}
           onChangeText={text => onChangeText(text)}
         />
+        {errorText ? (
+          <Text style={[styles.supportingText, styles.supportingTextError]}>
+            {errorText}
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.setMargin3}>
@@ -79,11 +87,22 @@ export default function CreateTraitModal(props) {
       </View>
 
       <View style={styles.btnView2}>
-        <Button title={btnTitle} onPress={onBtnPress} />
+        <Button
+          title={btnTitle}
+          onPress={onBtnPress}
+          disabled={submitDisabled}
+          loader={loader}
+        />
       </View>
     </View>
   );
 }
+
+CreateTraitModal.defaultProps = {
+  errorText: '',
+  submitDisabled: false,
+  loader: false,
+};
 
 CreateTraitModal.propTypes = {
   color: PropTypes.string.isRequired,
@@ -97,4 +116,7 @@ CreateTraitModal.propTypes = {
   openDirectory: PropTypes.func.isRequired,
   onChangeText: PropTypes.func.isRequired,
   value: PropTypes.string.isRequired,
+  errorText: PropTypes.string,
+  submitDisabled: PropTypes.bool,
+  loader: PropTypes.bool,
 };

@@ -1,5 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable no-nested-ternary */
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import PropTypes from 'prop-types';
@@ -31,6 +29,7 @@ export default function SelectModalContent(props) {
     loader,
     btnLoader,
     returnItem,
+    formErrorText,
   } = props;
 
   return (
@@ -109,6 +108,12 @@ export default function SelectModalContent(props) {
           disabled={disabled}
         />
       </View>
+
+      {formErrorText ? (
+        <Text style={[styles.supportingText, styles.supportingTextError]}>
+          {formErrorText}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -128,6 +133,7 @@ SelectModalContent.defaultProps = {
   loader: false,
   btnLoader: false,
   returnItem: false,
+  formErrorText: '',
 };
 
 SelectModalContent.propTypes = {
@@ -149,4 +155,5 @@ SelectModalContent.propTypes = {
   loader: PropTypes.bool,
   btnLoader: PropTypes.bool,
   returnItem: PropTypes.bool,
+  formErrorText: PropTypes.string,
 };

@@ -23,7 +23,6 @@ export default function WeeklyEntry(props) {
     loader,
     questions,
     permissionModal,
-    setPermissionModal,
     setEntryName,
     onSaveHandler,
     entryName,
@@ -34,7 +33,9 @@ export default function WeeklyEntry(props) {
     alertHeading,
     alertText,
     onDonePermissionModal,
-    setCheck,
+    onClosePermissionModal,
+    onPromptClearEntry,
+    formErrorText,
   } = props;
 
   return (
@@ -58,7 +59,7 @@ export default function WeeklyEntry(props) {
           />
         </View>
 
-        {questions.map((item, index) => (
+        {questions.map(item => (
           <View key={item.id}>
             <CustomTextArea
               {...props}
@@ -70,32 +71,28 @@ export default function WeeklyEntry(props) {
               setChecked={val => onSetRating(val, item.state)}
               isTextArea={item.isTextArea}
               placeholder={item.placeholder}
-              onChangeText={text => onChangeText(text, item.state, index)}
+              onChangeText={text => onChangeText(text, item.state)}
             />
           </View>
         ))}
 
         <View style={styles.btnView}>
           <Button loader={loader} title="Save" onPress={onSaveHandler} />
+          {formErrorText ? (
+            <Text style={[styles.supportingText, styles.supportingTextError]}>
+              {formErrorText}
+            </Text>
+          ) : null}
         </View>
 
         <TouchableOpacity activeOpacity={0.5} style={styles.bottomTextView}>
-          <TextButton
-            title="Clear Entry"
-            onPress={() => {
-              setPermissionModal(true);
-              setCheck('clearEntry');
-            }}
-          />
+          <TextButton title="Clear Entry" onPress={onPromptClearEntry} />
         </TouchableOpacity>
       </ScrollView>
 
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() => {
-          setPermissionModal(false);
-          setCheck('');
-        }}
+        onDismiss={onClosePermissionModal}
         content={
           <PermissionModal
             heading={alertHeading}
@@ -104,10 +101,7 @@ export default function WeeklyEntry(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() => {
-              setPermissionModal(false);
-              setCheck('');
-            }}
+            onCancel={onClosePermissionModal}
           />
         }
       />
@@ -119,7 +113,6 @@ WeeklyEntry.propTypes = {
   loader: PropTypes.bool.isRequired,
   questions: PropTypes.arrayOf(PropTypes.any).isRequired,
   permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
   entryName: PropTypes.string.isRequired,
   setEntryName: PropTypes.func.isRequired,
   onSaveHandler: PropTypes.func.isRequired,
@@ -130,5 +123,7 @@ WeeklyEntry.propTypes = {
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
-  setCheck: PropTypes.func.isRequired,
+  onClosePermissionModal: PropTypes.func.isRequired,
+  onPromptClearEntry: PropTypes.func.isRequired,
+  formErrorText: PropTypes.string.isRequired,
 };

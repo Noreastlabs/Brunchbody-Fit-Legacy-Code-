@@ -21,7 +21,6 @@ export default function WeightLog(props) {
   const {
     loader,
     permissionModal,
-    setPermissionModal,
     entryName,
     setEntryName,
     weight,
@@ -32,7 +31,10 @@ export default function WeightLog(props) {
     alertHeading,
     alertText,
     onDonePermissionModal,
-    setCheck,
+    onClosePermissionModal,
+    onPromptClearEntry,
+    weightErrorText,
+    formErrorText,
   } = props;
 
   return (
@@ -66,6 +68,11 @@ export default function WeightLog(props) {
             keyboardType="number-pad"
             style={styles.textInputStyle}
           />
+          {weightErrorText ? (
+            <Text style={[styles.supportingText, styles.supportingTextError]}>
+              {weightErrorText}
+            </Text>
+          ) : null}
         </View>
 
         <View style={styles.setMargin}>
@@ -82,25 +89,21 @@ export default function WeightLog(props) {
 
         <View style={styles.btnView}>
           <Button loader={loader} title="Save" onPress={onSaveHandler} />
+          {formErrorText ? (
+            <Text style={[styles.supportingText, styles.supportingTextError]}>
+              {formErrorText}
+            </Text>
+          ) : null}
         </View>
 
         <TouchableOpacity activeOpacity={0.5} style={styles.bottomTextView}>
-          <TextButton
-            title="Clear Entry"
-            onPress={() => {
-              setPermissionModal(true);
-              setCheck('clearEntry');
-            }}
-          />
+          <TextButton title="Clear Entry" onPress={onPromptClearEntry} />
         </TouchableOpacity>
       </ScrollView>
 
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() => {
-          setPermissionModal(false);
-          setCheck('');
-        }}
+        onDismiss={onClosePermissionModal}
         content={
           <PermissionModal
             heading={alertHeading}
@@ -109,10 +112,7 @@ export default function WeightLog(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() => {
-              setPermissionModal(false);
-              setCheck('');
-            }}
+            onCancel={onClosePermissionModal}
           />
         }
       />
@@ -123,10 +123,9 @@ export default function WeightLog(props) {
 WeightLog.propTypes = {
   loader: PropTypes.bool.isRequired,
   permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
   entryName: PropTypes.string.isRequired,
   setEntryName: PropTypes.func.isRequired,
-  weight: PropTypes.number.isRequired,
+  weight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   setWeight: PropTypes.func.isRequired,
   note: PropTypes.string.isRequired,
   setNote: PropTypes.func.isRequired,
@@ -134,5 +133,8 @@ WeightLog.propTypes = {
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
-  setCheck: PropTypes.func.isRequired,
+  onClosePermissionModal: PropTypes.func.isRequired,
+  onPromptClearEntry: PropTypes.func.isRequired,
+  weightErrorText: PropTypes.string.isRequired,
+  formErrorText: PropTypes.string.isRequired,
 };

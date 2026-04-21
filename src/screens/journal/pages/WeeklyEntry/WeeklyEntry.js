@@ -1,6 +1,4 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import moment from 'moment';
@@ -12,17 +10,17 @@ import {
   getJournalEntries,
 } from '../../../../redux/actions';
 
+const DEFAULT_RATING = 1;
+
 const questions = [
   {
     id: 1,
-    value: '',
     isTextArea: false,
     title: strings.weeklyEntry.content1,
     state: 'effectiveness',
   },
   {
     id: 2,
-    value: '',
     isTextArea: true,
     title: strings.weeklyEntry.content2,
     placeholder: 'Thoughts, Actions',
@@ -30,7 +28,6 @@ const questions = [
   },
   {
     id: 3,
-    value: '',
     isTextArea: true,
     title: strings.weeklyEntry.content3,
     placeholder: 'Thoughts',
@@ -38,14 +35,12 @@ const questions = [
   },
   {
     id: 4,
-    value: '',
     isTextArea: false,
     title: strings.weeklyEntry.content4,
     state: 'focusRating',
   },
   {
     id: 5,
-    value: '',
     isTextArea: true,
     title: strings.weeklyEntry.content5,
     placeholder: 'Actions',
@@ -53,7 +48,6 @@ const questions = [
   },
   {
     id: 6,
-    value: '',
     isTextArea: true,
     title: strings.weeklyEntry.content6,
     placeholder: 'Thoughts',
@@ -69,14 +63,14 @@ export default function WeeklyEntryPage(props) {
     getAllJournalEntries,
     onEditEntry,
   } = props;
-  const { entryData, entryId } = route.params;
+  const entryData = route?.params?.entryData || {};
+  const entryId = route?.params?.entryId;
+  const savePendingRef = useRef(false);
   const [loader, setLoader] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
-  const [entryName, setEntryName] = useState(
-    moment(entryData.date, 'YYYY/MM/DD').format('M/DD/YYYY'),
-  );
+  const [entryName, setEntryName] = useState('');
   const [effectiveness, setEffectiveness] = useState(
-    entryData.effectiveness || 1,
+    entryData.effectiveness || DEFAULT_RATING,
   );
   const [communicationThoughts, setCommunicationThoughts] = useState(
     entryData.communicationThoughts || '',
@@ -84,7 +78,9 @@ export default function WeeklyEntryPage(props) {
   const [focusThoughts, setFocusThoughts] = useState(
     entryData.focusThoughts || '',
   );
-  const [focusRating, setFocusRating] = useState(entryData.focus || 1);
+  const [focusRating, setFocusRating] = useState(
+    entryData.focus || DEFAULT_RATING,
+  );
   const [focusActions, setFocusActions] = useState(
     entryData.focusActions || '',
   );
@@ -94,34 +90,68 @@ export default function WeeklyEntryPage(props) {
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
   const [check, setCheck] = useState('');
-  const [questionsList, setQuestionsList] = useState(questions);
+  const [formErrorText, setFormErrorText] = useState('');
+
+  const hydrateFromEntryData = sourceEntryData => {
+    const entryDate = sourceEntryData.date
+      ? moment(sourceEntryData.date, 'YYYY/MM/DD').format('M/DD/YYYY')
+      : moment().format('M/DD/YYYY');
+
+    setEntryName(entryDate);
+    setEffectiveness(sourceEntryData.effectiveness || DEFAULT_RATING);
+    setCommunicationThoughts(sourceEntryData.communicationThoughts || '');
+    setFocusThoughts(sourceEntryData.focusThoughts || '');
+    setFocusRating(sourceEntryData.focus || DEFAULT_RATING);
+    setFocusActions(sourceEntryData.focusActions || '');
+    setNewSitutionThoughts(sourceEntryData.newSitutionThoughts || '');
+    setFormErrorText('');
+  };
 
   useEffect(() => {
+    hydrateFromEntryData(entryData);
+
     const unsubscribe = navigation.addListener('focus', () => {
-      const questionsCopy = [...questions];
-
-      questionsCopy[1].value = entryData.communicationThoughts || '';
-      questionsCopy[2].value = entryData.focusThoughts || '';
-      questionsCopy[4].value = entryData.focusActions || '';
-      questionsCopy[5].value = entryData.newSitutionThoughts || '';
-
-      setQuestionsList(questionsCopy);
+      hydrateFromEntryData(route?.params?.entryData || {});
     });
 
     return unsubscribe;
-  }, [navigation]);
+  }, [entryData, navigation]);
+
+  const questionsList = questions.map(item => ({
+    ...item,
+    value:
+      {
+        communicationThoughts,
+        focusThoughts,
+        focusActions,
+        newSitutionThoughts,
+      }[item.state] || '',
+  }));
 
   const onSetRating = (val, itemState) => {
-    if (itemState === 'effectiveness') setEffectiveness(val);
-    if (itemState === 'focusRating') setFocusRating(val);
+    setFormErrorText('');
+    if (itemState === 'effectiveness') {
+      setEffectiveness(val);
+    }
+    if (itemState === 'focusRating') {
+      setFocusRating(val);
+    }
   };
 
-  const onChangeText = (text, itemState, index) => {
-    questions[index].value = text;
-    if (itemState === 'communicationThoughts') setCommunicationThoughts(text);
-    if (itemState === 'focusThoughts') setFocusThoughts(text);
-    if (itemState === 'focusActions') setFocusActions(text);
-    if (itemState === 'newSitutionThoughts') setNewSitutionThoughts(text);
+  const onChangeText = (text, itemState) => {
+    setFormErrorText('');
+    if (itemState === 'communicationThoughts') {
+      setCommunicationThoughts(text);
+    }
+    if (itemState === 'focusThoughts') {
+      setFocusThoughts(text);
+    }
+    if (itemState === 'focusActions') {
+      setFocusActions(text);
+    }
+    if (itemState === 'newSitutionThoughts') {
+      setNewSitutionThoughts(text);
+    }
   };
 
   const showMessage = (headingText, text) => {
@@ -130,44 +160,66 @@ export default function WeeklyEntryPage(props) {
     setPermissionModal(true);
   };
 
+  const closePermissionModal = () => {
+    setPermissionModal(false);
+    setCheck('');
+    setAlertHeading('');
+    setAlertText('');
+  };
+
+  const openClearEntryConfirmation = () => {
+    setAlertHeading('Clear Entry');
+    setAlertText('Clear this weekly entry form?');
+    setCheck('clearEntry');
+    setPermissionModal(true);
+  };
+
   const onDonePermissionModal = () => {
     setPermissionModal(false);
     if (check === 'clearEntry') {
-      questions.forEach(item => {
-        item.value = '';
-      });
-      setEffectiveness(1);
+      setEffectiveness(DEFAULT_RATING);
       setCommunicationThoughts('');
       setFocusThoughts('');
-      setFocusRating(1);
+      setFocusRating(DEFAULT_RATING);
       setFocusActions('');
       setNewSitutionThoughts('');
+      setFormErrorText('');
       setCheck('');
+      setAlertHeading('');
+      setAlertText('');
     } else {
       if (alertHeading === 'Success!') {
         navigation.goBack();
       }
-      setTimeout(() => {
-        setAlertText('');
-        setAlertHeading('');
-      }, 500);
+      setAlertText('');
+      setAlertHeading('');
     }
   };
 
   const onSaveHandler = async () => {
+    if (savePendingRef.current) {
+      return;
+    }
+
+    savePendingRef.current = true;
     setLoader(true);
     let response = null;
     // Replace slashes with dashes for consistent date parsing (matching Daily Entry)
-    const d = new Date(entryData.date.replace(/\//g, '-'));
+    const d = new Date(
+      (entryData.date || moment().format('YYYY/MM/DD')).replace(/\//g, '-'),
+    );
     d.setHours(0, 0, 0, 0);
 
     if (d.getTime() > new Date().getTime()) {
-      showMessage('Error!', 'You cannot enter data on future dates.');
+      setFormErrorText('You cannot enter data on future dates.');
       setLoader(false);
+      savePendingRef.current = false;
       return;
     }
 
     try {
+      setFormErrorText('');
+
       if (entryId) {
         response = await onEditEntry(entryId, {
           WeeklyEntry: {
@@ -195,17 +247,17 @@ export default function WeeklyEntryPage(props) {
       }
 
       if (response === true) {
-        setLoader(false);
         showMessage('Success!', 'Entry updated successfully.');
         await getAllJournalEntries(d.getTime());
       } else {
-        setLoader(false);
         showMessage('Error!', response || 'Failed to save entry.');
       }
     } catch (error) {
       console.error('Save error:', error);
-      setLoader(false);
       showMessage('Error!', 'An unexpected error occurred while saving.');
+    } finally {
+      setLoader(false);
+      savePendingRef.current = false;
     }
   };
 
@@ -214,7 +266,6 @@ export default function WeeklyEntryPage(props) {
       loader={loader}
       questions={questionsList}
       permissionModal={permissionModal}
-      setPermissionModal={setPermissionModal}
       entryName={entryName}
       setEntryName={setEntryName}
       onSaveHandler={onSaveHandler}
@@ -225,7 +276,9 @@ export default function WeeklyEntryPage(props) {
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}
-      setCheck={setCheck}
+      onClosePermissionModal={closePermissionModal}
+      onPromptClearEntry={openClearEntryConfirmation}
+      formErrorText={formErrorText}
     />
   );
 }

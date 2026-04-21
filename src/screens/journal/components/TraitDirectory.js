@@ -1,4 +1,3 @@
-/* eslint-disable arrow-body-style */
 import React from 'react';
 import {
   SafeAreaView,
@@ -26,7 +25,7 @@ export default function TraitDirectory(props) {
     <SafeAreaView style={styles.safeAreaView}>
       <CustomHeader />
 
-      <View style={[styles.setMargin, {marginBottom: 10}]}>
+      <View style={styles.searchView}>
         <SearchBar
           value={search}
           onChangeText={text => {
@@ -50,7 +49,7 @@ export default function TraitDirectory(props) {
                 prevChar = item.name.charAt(0);
               }
               return (
-                <>
+                <React.Fragment key={item.id}>
                   {temp ? (
                     <View style={styles.alphaTagView}>
                       <Text style={styles.alphaTagText}>
@@ -61,11 +60,15 @@ export default function TraitDirectory(props) {
 
                   <TouchableOpacity
                     activeOpacity={0.5}
-                    key={item.id}
                     style={styles.directoryItemView}
                     onPress={() =>
-                      navigation.navigate(JOURNAL_ROUTES.DAILY_ENTRY, {
-                        trait: item.name,
+                      navigation.navigate({
+                        name: JOURNAL_ROUTES.DAILY_ENTRY,
+                        params: {
+                          trait: item.name,
+                          openCreateTrait: true,
+                        },
+                        merge: true,
                       })
                     }>
                     <AntDesign
@@ -75,7 +78,7 @@ export default function TraitDirectory(props) {
                     />
                     <Text style={styles.directoryItemText}>{item.name}</Text>
                   </TouchableOpacity>
-                </>
+                </React.Fragment>
               );
             })}
         </View>

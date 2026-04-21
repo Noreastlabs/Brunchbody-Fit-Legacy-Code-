@@ -117,6 +117,13 @@ export default StyleSheet.create({
     fontSize: RFValue(18),
     color: colors.qccentError,
   },
+  supportingText: {
+    fontSize: RFValue(13),
+    marginTop: RFValue(8),
+  },
+  supportingTextError: {
+    color: colors.qccentError,
+  },
   directoryItemText: {
     fontWeight: 'normal',
     color: colors.white,
@@ -139,6 +146,11 @@ export default StyleSheet.create({
   setMargin1: {
     marginTop: RFValue(25),
     marginHorizontal: RFValue(20),
+  },
+  searchView: {
+    marginTop: RFValue(20),
+    marginHorizontal: RFValue(20),
+    marginBottom: RFValue(10),
   },
   setMargin2: {
     marginTop: RFValue(10),

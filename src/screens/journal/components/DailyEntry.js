@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { Text, View, ScrollView, TextInput } from 'react-native';
 import PropTypes from 'prop-types';
@@ -29,17 +28,11 @@ export default function DailyEntry(props) {
     isVisible,
     setIsVisible,
     createItemModal,
-    setCreateItemModal,
     colorPickerModal,
-    setColorPickerModal,
     color,
-    setColor,
     addToFavorite,
-    setAddToFavorite,
     isRemove,
-    setIsRemove,
     permissionModal,
-    setPermissionModal,
     entryName,
     setEntryName,
     feelingRate,
@@ -52,17 +45,31 @@ export default function DailyEntry(props) {
     setNewTrait,
     newTrait,
     disabled,
-    setDisabled,
     onTraitSelect,
     onAddTrait,
     onRemoveTrait,
     selectedTraits,
     selectedOption,
-    setSelectedOption,
     alertHeading,
     alertText,
     onDonePermissionModal,
-    setCheck,
+    onClosePermissionModal,
+    onOpenCreateTraitModal,
+    onCloseCreateTraitModal,
+    onPromptClearEntry,
+    onPromptRemoveTrait,
+    onCloseTraitSelectModal,
+    onToggleFavorite,
+    onTraitOptionSelect,
+    onSelectModalToggleRemove,
+    onOpenColorPicker,
+    onCloseColorPicker,
+    onChangeColor,
+    traitErrorText,
+    createTraitErrorText,
+    saveErrorText,
+    selectTraitPending,
+    addTraitPending,
   } = props;
 
   return (
@@ -106,13 +113,14 @@ export default function DailyEntry(props) {
           </Text>
           <CustomOptions
             data={selectedTraits || []}
-            onOptionSelect={item => {
-              setCheck('removeTrait');
-              setSelectedOption(item);
-              setPermissionModal(true);
-            }}
+            onOptionSelect={onPromptRemoveTrait}
           />
           <AddButton onPress={() => setIsVisible(true)} />
+          {traitErrorText ? (
+            <Text style={[styles.supportingText, styles.supportingTextError]}>
+              {traitErrorText}
+            </Text>
+          ) : null}
         </View>
 
         <CustomTextArea
@@ -125,48 +133,46 @@ export default function DailyEntry(props) {
 
         <View style={styles.btnView}>
           <Button loader={loader} title="Save" onPress={onSaveHandler} />
+          {saveErrorText ? (
+            <Text style={[styles.supportingText, styles.supportingTextError]}>
+              {saveErrorText}
+            </Text>
+          ) : null}
         </View>
 
         <View style={styles.bottomTextView}>
-          <TextButton
-            title="Clear Entry"
-            onPress={() => {
-              setPermissionModal(true);
-              setCheck('clearEntry');
-            }}
-          />
+          <TextButton title="Clear Entry" onPress={onPromptClearEntry} />
         </View>
       </ScrollView>
 
       <CustomModal
         isVisible={isVisible}
-        onDismiss={() => setIsVisible(false)}
+        onDismiss={onCloseTraitSelectModal}
         content={
           <SelectModalContent
             isRemove={isRemove}
-            setRemove={() => setIsRemove(!isRemove)}
+            setRemove={onSelectModalToggleRemove}
             onRemove={onRemoveTrait}
             heading="Add Trait"
             subHeading="Select Favorite"
             options={traitOptions.filter(i => i.isFavorite)}
             selectedOption={selectedOption}
-            onOptionSelect={option => {
-              setSelectedOption(option);
-              setDisabled(false);
-            }}
-            hideModal={() => setIsVisible(false)}
+            onOptionSelect={onTraitOptionSelect}
+            hideModal={onCloseTraitSelectModal}
             btnTitle="Select"
             disabled={disabled}
-            onBtnPress={() => onTraitSelect()}
+            btnLoader={selectTraitPending}
+            formErrorText={traitErrorText}
+            onBtnPress={onTraitSelect}
             addButton
-            onAddTrait={() => setCreateItemModal(true)}
+            onAddTrait={onOpenCreateTraitModal}
           />
         }
       />
 
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() => setCreateItemModal(false)}
+        onDismiss={onCloseCreateTraitModal}
         content={
           <CreateTraitModal
             color={color}
@@ -174,12 +180,15 @@ export default function DailyEntry(props) {
             favorite={addToFavorite}
             value={newTrait}
             onChangeText={text => setNewTrait(text)}
+            errorText={createTraitErrorText}
+            submitDisabled={!newTrait.trim()}
+            loader={addTraitPending}
             openDirectory={() =>
               navigation.navigate(JOURNAL_ROUTES.TRAIT_DIRECTORY)
             }
-            setFavorite={() => setAddToFavorite(!addToFavorite)}
-            openColorPicker={() => setColorPickerModal(true)}
-            hideModal={() => setCreateItemModal(false)}
+            setFavorite={onToggleFavorite}
+            openColorPicker={onOpenColorPicker}
+            hideModal={onCloseCreateTraitModal}
             btnTitle="Create"
             onBtnPress={onAddTrait}
           />
@@ -188,24 +197,21 @@ export default function DailyEntry(props) {
 
       <CustomModal
         isVisible={colorPickerModal}
-        onDismiss={() => setColorPickerModal(false)}
+        onDismiss={onCloseColorPicker}
         content={
           <ColorPickerContent
             color={color}
-            onChangeColor={setColor}
-            hideModal={() => setColorPickerModal(false)}
+            onChangeColor={onChangeColor}
+            hideModal={onCloseColorPicker}
             btnTitle="Save"
-            onBtnPress={() => setColorPickerModal(false)}
+            onBtnPress={onCloseColorPicker}
           />
         }
       />
 
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() => {
-          setPermissionModal(false);
-          setCheck('');
-        }}
+        onDismiss={onClosePermissionModal}
         content={
           <PermissionModal
             heading={alertHeading}
@@ -214,10 +220,7 @@ export default function DailyEntry(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() => {
-              setPermissionModal(false);
-              setCheck('');
-            }}
+            onCancel={onClosePermissionModal}
           />
         }
       />
@@ -231,17 +234,11 @@ DailyEntry.propTypes = {
   isVisible: PropTypes.bool.isRequired,
   setIsVisible: PropTypes.func.isRequired,
   createItemModal: PropTypes.bool.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
   colorPickerModal: PropTypes.bool.isRequired,
-  setColorPickerModal: PropTypes.func.isRequired,
   color: PropTypes.string.isRequired,
-  setColor: PropTypes.func.isRequired,
   addToFavorite: PropTypes.bool.isRequired,
-  setAddToFavorite: PropTypes.func.isRequired,
   isRemove: PropTypes.bool.isRequired,
-  setIsRemove: PropTypes.func.isRequired,
   permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
   entryName: PropTypes.string.isRequired,
   setEntryName: PropTypes.func.isRequired,
   feelingRate: PropTypes.number.isRequired,
@@ -260,9 +257,24 @@ DailyEntry.propTypes = {
   onRemoveTrait: PropTypes.func.isRequired,
   selectedTraits: PropTypes.arrayOf(PropTypes.any).isRequired,
   selectedOption: PropTypes.objectOf(PropTypes.any).isRequired,
-  setSelectedOption: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
-  setCheck: PropTypes.func.isRequired,
+  onClosePermissionModal: PropTypes.func.isRequired,
+  onOpenCreateTraitModal: PropTypes.func.isRequired,
+  onCloseCreateTraitModal: PropTypes.func.isRequired,
+  onPromptClearEntry: PropTypes.func.isRequired,
+  onPromptRemoveTrait: PropTypes.func.isRequired,
+  onCloseTraitSelectModal: PropTypes.func.isRequired,
+  onToggleFavorite: PropTypes.func.isRequired,
+  onTraitOptionSelect: PropTypes.func.isRequired,
+  onSelectModalToggleRemove: PropTypes.func.isRequired,
+  onOpenColorPicker: PropTypes.func.isRequired,
+  onCloseColorPicker: PropTypes.func.isRequired,
+  onChangeColor: PropTypes.func.isRequired,
+  traitErrorText: PropTypes.string.isRequired,
+  createTraitErrorText: PropTypes.string.isRequired,
+  saveErrorText: PropTypes.string.isRequired,
+  selectTraitPending: PropTypes.bool.isRequired,
+  addTraitPending: PropTypes.bool.isRequired,
 };

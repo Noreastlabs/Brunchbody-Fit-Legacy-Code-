@@ -1,5 +1,4 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import moment from 'moment';
@@ -38,6 +37,11 @@ const traitOptions = [
   },
 ];
 
+const DEFAULT_FEELING_RATE = 1;
+const DEFAULT_TRAIT_COLOR = colors.darkBlue2;
+const TRAIT_LIMIT = 4;
+const FAVORITE_LIMIT = 8;
+
 export default function DailyEntryPage(props) {
   const {
     route,
@@ -46,20 +50,28 @@ export default function DailyEntryPage(props) {
     getAllJournalEntries,
     onEditEntry,
   } = props;
+  const entryData = route?.params?.entryData || {};
+  const entryId = route?.params?.entryId;
   const traitFromDirectory = route?.params?.trait;
-  const { entryData, entryId } = route.params;
+  const openCreateTrait = route?.params?.openCreateTrait;
+  const entryDate = entryData.date || moment().format('YYYY/MM/DD');
+  const savePendingRef = useRef(false);
+  const selectTraitPendingRef = useRef(false);
+  const addTraitPendingRef = useRef(false);
   const [loader, setLoader] = useState(false);
-  const [feelingRate, setFeelingRate] = useState(entryData.feelingRate || 1);
+  const [feelingRate, setFeelingRate] = useState(
+    entryData.feelingRate || DEFAULT_FEELING_RATE,
+  );
   const [isVisible, setIsVisible] = useState(false);
   const [createItemModal, setCreateItemModal] = useState(false);
   const [colorPickerModal, setColorPickerModal] = useState(false);
-  const [color, setColor] = useState(colors.darkBlue2);
+  const [color, setColor] = useState(DEFAULT_TRAIT_COLOR);
   const [addToFavorite, setAddToFavorite] = useState(false);
   const [isRemove, setIsRemove] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
   const [selectedTraits, setSelectedTraits] = useState(entryData.traits || []);
   const [entryName, setEntryName] = useState(
-    moment(entryData.date, 'YYYY/MM/DD').format('M/DD/YYYY'),
+    moment(entryDate, 'YYYY/MM/DD').format('M/DD/YYYY'),
   );
   const [task, setTask] = useState(entryData.task || '');
   const [thought, setThought] = useState(entryData.thought || '');
@@ -70,16 +82,99 @@ export default function DailyEntryPage(props) {
   const [alertText, setAlertText] = useState('');
   const [check, setCheck] = useState('');
   const [traits, setTraits] = useState(traitOptions);
+  const [traitErrorText, setTraitErrorText] = useState('');
+  const [createTraitErrorText, setCreateTraitErrorText] = useState('');
+  const [saveErrorText, setSaveErrorText] = useState('');
+  const [selectTraitPending, setSelectTraitPending] = useState(false);
+  const [addTraitPending, setAddTraitPending] = useState(false);
 
   useEffect(() => {
     if (traitFromDirectory) {
+      setColor(DEFAULT_TRAIT_COLOR);
+      setAddToFavorite(false);
       setNewTrait(traitFromDirectory);
+      setCreateItemModal(true);
+      setIsVisible(false);
+      setIsRemove(false);
+      setSelectedOption({});
+      setDisabled(true);
+      setColorPickerModal(false);
+      setTraitErrorText('');
+      setCreateTraitErrorText('');
+      if ((openCreateTrait || traitFromDirectory) &&
+          typeof navigation.setParams === 'function') {
+        navigation.setParams({
+          trait: undefined,
+          openCreateTrait: undefined,
+        });
+      }
     }
-  }, [traitFromDirectory]);
+  }, [navigation, openCreateTrait, traitFromDirectory]);
+
+  useEffect(() => {
+    if (!isVisible) {
+      selectTraitPendingRef.current = false;
+      setSelectTraitPending(false);
+    }
+  }, [isVisible]);
+
+  useEffect(() => {
+    if (!createItemModal) {
+      addTraitPendingRef.current = false;
+      setAddTraitPending(false);
+    }
+  }, [createItemModal]);
+
+  const clearAlert = () => {
+    setAlertHeading('');
+    setAlertText('');
+  };
+
+  const clearCreateTraitDraft = () => {
+    setNewTrait('');
+    setColor(DEFAULT_TRAIT_COLOR);
+    setAddToFavorite(false);
+    setCreateTraitErrorText('');
+    setColorPickerModal(false);
+  };
+
+  const closeCreateTraitModal = () => {
+    setCreateItemModal(false);
+    clearCreateTraitDraft();
+  };
+
+  const closeTraitSelectModal = () => {
+    setIsVisible(false);
+    setIsRemove(false);
+    setSelectedOption({});
+    setDisabled(true);
+    setTraitErrorText('');
+  };
+
+  const closePermissionModal = () => {
+    setPermissionModal(false);
+    setCheck('');
+    clearAlert();
+  };
 
   const showMessage = (heading, text) => {
     setAlertHeading(heading);
     setAlertText(text);
+    setPermissionModal(true);
+  };
+
+  const openClearEntryConfirmation = () => {
+    setAlertHeading('Clear Entry');
+    setAlertText('Clear this daily entry form?');
+    setCheck('clearEntry');
+    setPermissionModal(true);
+  };
+
+  const openRemoveTraitConfirmation = item => {
+    setSelectedOption(item);
+    setAlertHeading('Remove Trait');
+    setAlertText(`Remove ${item.title} from this entry?`);
+    setCheck('removeTrait');
     setPermissionModal(true);
   };
 
@@ -89,55 +184,93 @@ export default function DailyEntryPage(props) {
       setTask('');
       setThought('');
       setSelectedTraits([]);
-      setFeelingRate(1);
+      setFeelingRate(DEFAULT_FEELING_RATE);
+      clearCreateTraitDraft();
+      setTraitErrorText('');
+      setSaveErrorText('');
+      setSelectedOption({});
+      setDisabled(true);
       setCheck('');
+      clearAlert();
     } else if (check === 'removeTrait') {
-      const temp = [...selectedTraits];
-      const index = temp.findIndex(x => x.id === selectedOption.id);
-      temp.splice(index, 1);
-      setSelectedTraits(temp);
+      setSelectedTraits(prev =>
+        prev.filter(item => item.id !== selectedOption.id),
+      );
+      setTraitErrorText('');
+      setSaveErrorText('');
+      setSelectedOption({});
       setCheck('');
+      clearAlert();
     } else {
       if (alertHeading === 'Success!') {
         navigation.goBack();
       }
-      setTimeout(() => {
-        setAlertText('');
-        setAlertHeading('');
-      }, 500);
+      clearAlert();
     }
   };
 
   const onTraitSelect = () => {
-    if (selectedTraits.length < 4) {
-      setSelectedTraits(prev => [...prev, selectedOption]);
-    } else showMessage('Error!', `You can't select traits more than 4.`);
+    if (selectTraitPendingRef.current) {
+      return;
+    }
 
-    setIsVisible(false);
-    setIsRemove(false);
-    setSelectedOption({});
-    setDisabled(true);
+    if (!selectedOption.id) {
+      setTraitErrorText('Select a favorite trait to continue.');
+      return;
+    }
+
+    if (selectedTraits.length >= TRAIT_LIMIT) {
+      setTraitErrorText(`You can't select traits more than 4.`);
+      return;
+    }
+
+    selectTraitPendingRef.current = true;
+    setSelectTraitPending(true);
+    setSelectedTraits(prev => [...prev, selectedOption]);
+    setTraitErrorText('');
+    setSaveErrorText('');
+    closeTraitSelectModal();
   };
 
   const onAddTrait = async () => {
+    if (addTraitPendingRef.current) {
+      return;
+    }
+
+    const trimmedTrait = newTrait.trim();
+    const favoriteCount = traits.filter(item => item.isFavorite).length;
+
+    if (!trimmedTrait) {
+      setCreateTraitErrorText('Enter a trait name before creating it.');
+      return;
+    }
+
+    if (selectedTraits.length >= TRAIT_LIMIT) {
+      setCreateTraitErrorText(`You can't select traits more than 4.`);
+      setTraitErrorText(`You can't select traits more than 4.`);
+      return;
+    }
+
+    if (addToFavorite && favoriteCount >= FAVORITE_LIMIT) {
+      setCreateTraitErrorText('8 favorites max.');
+      return;
+    }
+
+    addTraitPendingRef.current = true;
+    setAddTraitPending(true);
     const data = {
       id: traits.length + 1,
-      title: newTrait,
+      title: trimmedTrait,
       bgColor: color,
       isFavorite: addToFavorite,
     };
 
-    if (selectedTraits.length === 4) {
-      showMessage('Error!', `You can't select traits more than 4.`);
-    } else if (addToFavorite && traits.length === 8) {
-      showMessage('Error!', `8 favorites max.`);
-    } else {
-      setTraits(prev => [...prev, data]);
-      setSelectedTraits(prev => [...prev, data]);
-      setNewTrait('');
-      setIsVisible(false);
-      setCreateItemModal(false);
-    }
+    setTraits(prev => [...prev, data]);
+    setSelectedTraits(prev => [...prev, data]);
+    setTraitErrorText('');
+    setSaveErrorText('');
+    setIsVisible(false);
+    closeCreateTraitModal();
   };
 
   const onRemoveTrait = async id => {
@@ -148,21 +281,39 @@ export default function DailyEntryPage(props) {
   };
 
   const onSaveHandler = async () => {
+    if (savePendingRef.current) {
+      return;
+    }
+
+    savePendingRef.current = true;
     setLoader(true);
     let response = null;
     // Replace slashes with dashes for consistent date parsing
-    const d = new Date(entryData.date.replace(/\//g, '-'));
+    const d = new Date(entryDate.replace(/\//g, '-'));
     d.setHours(0, 0, 0, 0);
 
     if (d.getTime() > new Date().getTime()) {
-      showMessage('Error!', 'You cannot enter data on future dates.');
-    } else if (selectedTraits.length < 1) {
-      showMessage('Error!', 'Please add atleast one trait.');
-    } else {
+      setSaveErrorText('You cannot enter data on future dates.');
+      setLoader(false);
+      savePendingRef.current = false;
+      return;
+    }
+
+    if (selectedTraits.length < 1) {
+      setTraitErrorText('Please add atleast one trait.');
+      setSaveErrorText('');
+      setLoader(false);
+      savePendingRef.current = false;
+      return;
+    }
+
+    try {
+      setTraitErrorText('');
+      setSaveErrorText('');
+
       if (entryId) {
         response = await onEditEntry(entryId, {
           DailyEntry: {
-            // entryDate: d.getTime(),
             task,
             thought,
             traits: selectedTraits,
@@ -173,7 +324,6 @@ export default function DailyEntryPage(props) {
       } else {
         response = await onCreateEntry(d.getTime(), {
           DailyEntry: {
-            // entryDate: d.getTime(),
             task,
             thought,
             traits: selectedTraits,
@@ -184,15 +334,18 @@ export default function DailyEntryPage(props) {
       }
 
       if (response === true) {
-        setLoader(false);
         showMessage('Success!', 'Entry updated successfully.');
         await getAllJournalEntries(d.getTime());
       } else {
-        showMessage('Error!', response);
+        showMessage('Error!', response || 'Failed to save entry.');
       }
+    } catch (error) {
+      console.error('Save error:', error);
+      showMessage('Error!', 'An unexpected error occurred while saving.');
+    } finally {
+      setLoader(false);
+      savePendingRef.current = false;
     }
-
-    setLoader(false);
   };
 
   return (
@@ -219,12 +372,21 @@ export default function DailyEntryPage(props) {
       entryName={entryName}
       setEntryName={setEntryName}
       task={task}
-      setTask={setTask}
+      setTask={text => {
+        setTask(text);
+        setSaveErrorText('');
+      }}
       thought={thought}
-      setThought={setThought}
+      setThought={text => {
+        setThought(text);
+        setSaveErrorText('');
+      }}
       onSaveHandler={onSaveHandler}
       newTrait={newTrait}
-      setNewTrait={setNewTrait}
+      setNewTrait={text => {
+        setNewTrait(text);
+        setCreateTraitErrorText('');
+      }}
       disabled={disabled}
       setDisabled={setDisabled}
       onTraitSelect={onTraitSelect}
@@ -236,7 +398,39 @@ export default function DailyEntryPage(props) {
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}
-      setCheck={setCheck}
+      onClosePermissionModal={closePermissionModal}
+      onOpenCreateTraitModal={() => {
+        setCreateTraitErrorText('');
+        setCreateItemModal(true);
+      }}
+      onCloseCreateTraitModal={closeCreateTraitModal}
+      onPromptClearEntry={openClearEntryConfirmation}
+      onPromptRemoveTrait={openRemoveTraitConfirmation}
+      onCloseTraitSelectModal={closeTraitSelectModal}
+      onToggleFavorite={() => {
+        setAddToFavorite(prev => !prev);
+        setCreateTraitErrorText('');
+      }}
+      onTraitOptionSelect={option => {
+        setSelectedOption(option);
+        setDisabled(false);
+        setTraitErrorText('');
+      }}
+      onSelectModalToggleRemove={() => {
+        setIsRemove(prev => !prev);
+        setTraitErrorText('');
+      }}
+      onOpenColorPicker={() => setColorPickerModal(true)}
+      onCloseColorPicker={() => setColorPickerModal(false)}
+      onChangeColor={selectedColor => {
+        setColor(selectedColor);
+        setCreateTraitErrorText('');
+      }}
+      traitErrorText={traitErrorText}
+      createTraitErrorText={createTraitErrorText}
+      saveErrorText={saveErrorText}
+      selectTraitPending={selectTraitPending}
+      addTraitPending={addTraitPending}
     />
   );
 }
