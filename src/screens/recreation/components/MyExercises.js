@@ -24,27 +24,24 @@ export default function MyExercises(props) {
   const {
     exercisesList,
     heading,
-    setHeading,
     isVisible,
     setIsVisible,
     permissionModal,
     setPermissionModal,
     createItemModal,
-    setCreateItemModal,
+    closeCreateItemModal,
     editExerciseModal,
-    setEditExerciseModal,
+    closeEditExerciseModal,
     createExerciseFields,
     wheelPickerModal,
     setWheelPickerModal,
-    exerciseName,
-    setExerciseName,
+    onExerciseNameChange,
     onAddExercise,
     onEditExercise,
-    setExerciseId,
     onDonePermissionModal,
     equivalentExercise,
-    setEquivalentExercise,
-    btnLoader,
+    submitPending,
+    deleteLoader,
     alertHeading,
     alertText,
     setCheck,
@@ -54,7 +51,14 @@ export default function MyExercises(props) {
     setExeTypeModal,
     exerciseTypeOptions,
     onNextBtnPress,
-    pickerExercises,
+    availableEquivalentExercises,
+    onOpenCreateExerciseTypeModal,
+    onOpenExerciseActions,
+    onOpenEditExerciseModal,
+    openEquivalentExercisePicker,
+    onEquivalentExerciseSelect,
+    createItemFormErrorText,
+    editItemFormErrorText,
   } = props;
 
   return (
@@ -71,19 +75,7 @@ export default function MyExercises(props) {
             <TouchableOpacity
               key={item.id}
               activeOpacity={0.5}
-              onPress={() => {
-                // console.log('item.id: ', item.id);
-                setHeading(item.name);
-                setExerciseId(item.id);
-                setExerciseName(item.name);
-                setEquivalentExercise(
-                  pickerExercises?.find(
-                    a => a.name === item.equivalentExercise,
-                  ) || item,
-                );
-                setExerciseType(item.type);
-                setIsVisible(true);
-              }}>
+              onPress={() => onOpenExerciseActions(item)}>
               <Text style={[styles.textStyle3, {color: colors.tertiary}]}>
                 {item.name || item.value}
               </Text>
@@ -91,13 +83,7 @@ export default function MyExercises(props) {
           ))}
 
           <View style={{marginTop: 10}}>
-            <AddButton
-              onPress={() => {
-                setExeTypeModal(true);
-                setExerciseName('');
-                setEquivalentExercise('');
-              }}
-            />
+            <AddButton onPress={onOpenCreateExerciseTypeModal} />
           </View>
         </View>
       </ScrollView>
@@ -129,10 +115,7 @@ export default function MyExercises(props) {
             heading={heading}
             hideModal={() => setIsVisible(false)}
             btnTitle="Edit"
-            onBtnPress={() => {
-              setIsVisible(false);
-              setEditExerciseModal(true);
-            }}
+            onBtnPress={onOpenEditExerciseModal}
             isDeleteBtn
             onDeleteBtnPress={() => {
               setPermissionModal(true);
@@ -145,19 +128,19 @@ export default function MyExercises(props) {
       {/* Add exercise modal */}
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() => setCreateItemModal(false)}
+        onDismiss={closeCreateItemModal}
         content={
           <CreateItemContent
-            loader={btnLoader}
+            loader={submitPending}
             heading="Add Exercise"
-            value={exerciseName}
-            selectedPickerItem={equivalentExercise.name}
-            onChangeText={text => setExerciseName(text)}
+            selectedPickerItem={equivalentExercise?.name || ''}
+            onChangeText={onExerciseNameChange}
             createItemFields={createExerciseFields}
-            hideModal={() => setCreateItemModal(false)}
+            hideModal={closeCreateItemModal}
             btnTitle="Add"
+            formErrorText={createItemFormErrorText}
             onBtnPress={onAddExercise}
-            onDropdownSelect={() => setWheelPickerModal(true)}
+            onDropdownSelect={openEquivalentExercisePicker}
           />
         }
       />
@@ -165,19 +148,19 @@ export default function MyExercises(props) {
       {/* Edit exercise modal */}
       <CustomModal
         isVisible={editExerciseModal}
-        onDismiss={() => setEditExerciseModal(false)}
+        onDismiss={closeEditExerciseModal}
         content={
           <CreateItemContent
-            loader={btnLoader}
+            loader={submitPending}
             heading="Edit Exercise"
-            value={exerciseName}
-            selectedPickerItem={equivalentExercise.name}
-            onChangeText={text => setExerciseName(text)}
+            selectedPickerItem={equivalentExercise?.name || ''}
+            onChangeText={onExerciseNameChange}
             createItemFields={createExerciseFields}
-            hideModal={() => setEditExerciseModal(false)}
+            hideModal={closeEditExerciseModal}
             btnTitle="Save"
-            onBtnPress={() => onEditExercise(false)}
-            onDropdownSelect={() => setWheelPickerModal(true)}
+            formErrorText={editItemFormErrorText}
+            onBtnPress={onEditExercise}
+            onDropdownSelect={openEquivalentExercisePicker}
           />
         }
       />
@@ -187,17 +170,10 @@ export default function MyExercises(props) {
         onDismiss={() => setWheelPickerModal(false)}
         content={
           <WheelPickerContent
-            pickerItems={pickerExercises.filter(
-              i => i.type.toLowerCase() === exerciseType.toLowerCase(),
-            )}
-            onValueChange={index => {
-              setEquivalentExercise(pickerExercises[index - 1]);
-            }}
+            pickerItems={availableEquivalentExercises}
+            onValueChange={onEquivalentExerciseSelect}
             onConfirm={() => setWheelPickerModal(false)}
-            onCancel={() => {
-              setEquivalentExercise('');
-              setWheelPickerModal(false);
-            }}
+            onCancel={() => setWheelPickerModal(false)}
           />
         }
       />
@@ -207,7 +183,7 @@ export default function MyExercises(props) {
         onDismiss={() => setPermissionModal(false)}
         content={
           <PermissionModal
-            loader={btnLoader}
+            loader={deleteLoader}
             heading={alertHeading}
             text={alertText}
             isCancelBtn={
@@ -225,27 +201,24 @@ export default function MyExercises(props) {
 MyExercises.propTypes = {
   exercisesList: PropTypes.arrayOf(PropTypes.any).isRequired,
   heading: PropTypes.string.isRequired,
-  setHeading: PropTypes.func.isRequired,
   isVisible: PropTypes.bool.isRequired,
   setIsVisible: PropTypes.func.isRequired,
   permissionModal: PropTypes.bool.isRequired,
   setPermissionModal: PropTypes.func.isRequired,
   createItemModal: PropTypes.bool.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
+  closeCreateItemModal: PropTypes.func.isRequired,
   editExerciseModal: PropTypes.bool.isRequired,
-  setEditExerciseModal: PropTypes.func.isRequired,
+  closeEditExerciseModal: PropTypes.func.isRequired,
   createExerciseFields: PropTypes.arrayOf(PropTypes.any).isRequired,
   wheelPickerModal: PropTypes.bool.isRequired,
   setWheelPickerModal: PropTypes.func.isRequired,
-  exerciseName: PropTypes.string.isRequired,
-  setExerciseName: PropTypes.func.isRequired,
+  onExerciseNameChange: PropTypes.func.isRequired,
   onAddExercise: PropTypes.func.isRequired,
   onEditExercise: PropTypes.func.isRequired,
-  setExerciseId: PropTypes.func.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
   equivalentExercise: PropTypes.objectOf(PropTypes.any).isRequired,
-  setEquivalentExercise: PropTypes.func.isRequired,
-  btnLoader: PropTypes.bool.isRequired,
+  submitPending: PropTypes.bool.isRequired,
+  deleteLoader: PropTypes.bool.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   setCheck: PropTypes.func.isRequired,
@@ -255,5 +228,12 @@ MyExercises.propTypes = {
   setExeTypeModal: PropTypes.func.isRequired,
   exerciseTypeOptions: PropTypes.arrayOf(PropTypes.any).isRequired,
   onNextBtnPress: PropTypes.func.isRequired,
-  pickerExercises: PropTypes.arrayOf(PropTypes.any).isRequired,
+  availableEquivalentExercises: PropTypes.arrayOf(PropTypes.any).isRequired,
+  onOpenCreateExerciseTypeModal: PropTypes.func.isRequired,
+  onOpenExerciseActions: PropTypes.func.isRequired,
+  onOpenEditExerciseModal: PropTypes.func.isRequired,
+  openEquivalentExercisePicker: PropTypes.func.isRequired,
+  onEquivalentExerciseSelect: PropTypes.func.isRequired,
+  createItemFormErrorText: PropTypes.string.isRequired,
+  editItemFormErrorText: PropTypes.string.isRequired,
 };

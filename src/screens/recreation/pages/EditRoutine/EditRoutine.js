@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { EditRoutine } from '../../components';
@@ -9,12 +9,15 @@ import {
   editRoutineTask,
 } from '../../../../redux/actions';
 
-const createTaskFields = [
+const getCreateTaskFields = ({ itemName, fieldErrors }) => [
   {
     id: 1,
-    value: '',
+    value: itemName,
+    state: 'itemName',
     fieldName: 'Task Name',
     placeholder: 'Enter Name',
+    helperText: 'Use a clear label for this task.',
+    errorText: fieldErrors.itemName,
   },
 ];
 
@@ -22,24 +25,106 @@ export default function EditRoutinePage(props) {
   const { route, onAddRoutineTask, onDeleteRoutineTask, onEditRoutineTask } =
     props;
   const { selectedItem } = route.params; // selectedItem = selectedRoutine
-  const [loader, setLoader] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [createItemModal, setCreateItemModal] = useState(false);
   const [editTaskModal, setEditTaskModal] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
   const [heading, setHeading] = useState('');
   const [itemName, setItemName] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [createItemFormErrorText, setCreateItemFormErrorText] = useState('');
+  const [editItemFormErrorText, setEditItemFormErrorText] = useState('');
+  const [createItemPending, setCreateItemPending] = useState(false);
+  const [editItemPending, setEditItemPending] = useState(false);
+  const [deleteLoader, setDeleteLoader] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
-  const [selectedTask, setSelectedTask] = useState('');
+  const [selectedTask, setSelectedTask] = useState(null);
   const [check, setCheck] = useState('');
+  const submitLockRef = useRef(false);
+  const deleteLockRef = useRef(false);
+  const createTaskFields = getCreateTaskFields({ itemName, fieldErrors });
 
   const onRoutineTaskHandler = task => {
     setIsVisible(true);
     setSelectedTask(task);
     setHeading(task.name);
-    setItemName(task.name);
-    createTaskFields[0].value = task.name;
+  };
+
+  const resetTaskForm = () => {
+    setItemName('');
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+  };
+
+  const closeCreateTaskModal = () => {
+    submitLockRef.current = false;
+    setCreateItemPending(false);
+    setCreateItemModal(false);
+    resetTaskForm();
+  };
+
+  const closeEditTaskModal = () => {
+    submitLockRef.current = false;
+    setEditItemPending(false);
+    setEditTaskModal(false);
+    resetTaskForm();
+  };
+
+  const onOpenCreateTaskModal = () => {
+    submitLockRef.current = false;
+    setCreateItemPending(false);
+    resetTaskForm();
+    setCreateItemModal(true);
+  };
+
+  const onOpenEditTaskModal = () => {
+    if (!selectedTask) {
+      return;
+    }
+
+    submitLockRef.current = false;
+    setEditItemPending(false);
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+    setItemName(selectedTask.name || '');
+    setIsVisible(false);
+    setEditTaskModal(true);
+  };
+
+  const onTaskNameChange = text => {
+    setItemName(text);
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      itemName: '',
+    }));
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+  };
+
+  const validateTaskForm = mode => {
+    const errors = {};
+
+    if (!itemName.trim()) {
+      errors.itemName = 'Enter a task name.';
+    }
+
+    setFieldErrors(errors);
+
+    const formErrorText =
+      Object.keys(errors).length > 0
+        ? 'Check the highlighted task field before saving.'
+        : '';
+
+    if (mode === 'create') {
+      setCreateItemFormErrorText(formErrorText);
+    } else {
+      setEditItemFormErrorText(formErrorText);
+    }
+
+    return Object.keys(errors).length === 0;
   };
 
   const showMessage = (headingText, text) => {
@@ -49,74 +134,89 @@ export default function EditRoutinePage(props) {
   };
 
   const onCreateItem = async () => {
-    setLoader(true);
-    const d = new Date();
+    if (submitLockRef.current || createItemPending) {
+      return;
+    }
 
-    if (itemName.trim()) {
-      const response = await onAddRoutineTask(selectedItem.id, {
-        name: itemName,
-        createdOn: d.getTime(),
-      });
+    if (!validateTaskForm('create')) {
+      return;
+    }
 
-      if (response === true) {
-        setItemName('');
-        setLoader(false);
-        setCreateItemModal(false);
-      } else {
-        setLoader(false);
-        showMessage('Error!', response);
-      }
+    submitLockRef.current = true;
+    setCreateItemPending(true);
+
+    const response = await onAddRoutineTask(selectedItem.id, {
+      name: itemName.trim(),
+      createdOn: new Date().getTime(),
+    });
+
+    submitLockRef.current = false;
+    setCreateItemPending(false);
+
+    if (response === true) {
+      closeCreateTaskModal();
     } else {
-      setLoader(false);
-      showMessage('Error!', 'All fields are required.');
+      showMessage('Error!', response);
     }
   };
 
   const onEditItem = async () => {
-    setLoader(true);
+    if (submitLockRef.current || editItemPending || !selectedTask) {
+      return;
+    }
 
     const data = {
-      name: itemName,
+      name: itemName.trim(),
     };
 
-    if (itemName.trim()) {
-      const response = await onEditRoutineTask({
-        data,
-        routine_id: selectedItem.id,
-        task_id: selectedTask.id,
-      });
+    if (!validateTaskForm('edit')) {
+      return;
+    }
 
-      if (response === true) {
-        setItemName('');
-        setLoader(false);
-        setEditTaskModal(false);
-      } else {
-        setLoader(false);
-        showMessage('Error!', response);
-      }
+    submitLockRef.current = true;
+    setEditItemPending(true);
+
+    const response = await onEditRoutineTask({
+      data,
+      routine_id: selectedItem.id,
+      task_id: selectedTask.id,
+    });
+
+    submitLockRef.current = false;
+    setEditItemPending(false);
+
+    if (response === true) {
+      closeEditTaskModal();
     } else {
-      setLoader(false);
-      showMessage('Error!', 'All fields are required.');
+      showMessage('Error!', response);
     }
   };
 
   const onDonePermissionModal = async () => {
     if (check === 'delete') {
-      setLoader(true);
+      if (deleteLockRef.current || !selectedTask) {
+        return;
+      }
+
+      deleteLockRef.current = true;
+      setDeleteLoader(true);
 
       const response = await onDeleteRoutineTask({
         routine_id: selectedItem.id,
         task_id: selectedTask.id,
       });
 
+      deleteLockRef.current = false;
+      setDeleteLoader(false);
+
       if (response === true) {
         setCheck('');
-        setLoader(false);
         setIsVisible(false);
         setPermissionModal(false);
+        setSelectedTask(null);
+        resetTaskForm();
       } else {
         setCheck('');
-        setLoader(false);
         showMessage('Error!', response);
       }
     } else {
@@ -132,26 +232,32 @@ export default function EditRoutinePage(props) {
   return (
     <EditRoutine
       {...props}
-      loader={loader}
       heading={heading}
       isVisible={isVisible}
       setIsVisible={setIsVisible}
       createTaskFields={createTaskFields}
       createItemModal={createItemModal}
-      setCreateItemModal={setCreateItemModal}
+      closeCreateTaskModal={closeCreateTaskModal}
       editTaskModal={editTaskModal}
-      setEditTaskModal={setEditTaskModal}
+      closeEditTaskModal={closeEditTaskModal}
       permissionModal={permissionModal}
       setPermissionModal={setPermissionModal}
       onRoutineTaskHandler={onRoutineTaskHandler}
       itemName={itemName}
-      setItemName={setItemName}
+      onTaskNameChange={onTaskNameChange}
       onCreateItem={onCreateItem}
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}
       setCheck={setCheck}
       onEditItem={onEditItem}
+      onOpenCreateTaskModal={onOpenCreateTaskModal}
+      onOpenEditTaskModal={onOpenEditTaskModal}
+      createItemFormErrorText={createItemFormErrorText}
+      editItemFormErrorText={editItemFormErrorText}
+      createItemPending={createItemPending}
+      editItemPending={editItemPending}
+      deleteLoader={deleteLoader}
     />
   );
 }

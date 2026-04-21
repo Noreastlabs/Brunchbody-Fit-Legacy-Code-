@@ -32,7 +32,6 @@ export default function Recreation(props) {
     onNavigate,
     btnTitle,
     createItemModal,
-    setCreateItemModal,
     createItemFields,
     pickerItems,
     wheelPickerModal,
@@ -66,11 +65,14 @@ export default function Recreation(props) {
     onProgramMenuSelect,
     onCreateItem,
     title,
-    setTitle,
+    onCreateItemTitleChange,
     setPickerType,
     onPickerItemSelect,
     week,
     onCancelWheelPicker,
+    closeCreateItemModal,
+    createItemPending,
+    createItemErrorText,
     loader,
     alertHeading,
     alertText,
@@ -248,17 +250,18 @@ export default function Recreation(props) {
 
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() => setCreateItemModal(false)}
+        onDismiss={closeCreateItemModal}
         content={
           <CreateItemContent
-            loader={loader}
+            loader={createItemPending}
             heading={heading}
             value={title}
             createItemFields={createItemFields}
-            hideModal={() => setCreateItemModal(false)}
-            onChangeText={text => setTitle(text)}
+            hideModal={closeCreateItemModal}
+            onChangeText={onCreateItemTitleChange}
             selectedPickerItem={week}
             btnTitle={btnTitle}
+            formErrorText={createItemErrorText}
             onBtnPress={onCreateItem}
             onDropdownSelect={(data, type) => {
               setWheelPickerModal(true);
@@ -363,7 +366,6 @@ Recreation.propTypes = {
   subText: PropTypes.string.isRequired,
   btnTitle: PropTypes.string.isRequired,
   createItemModal: PropTypes.bool.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
   wheelPickerModal: PropTypes.bool.isRequired,
   setWheelPickerModal: PropTypes.func.isRequired,
   createItemFields: PropTypes.arrayOf(PropTypes.any).isRequired,
@@ -397,11 +399,14 @@ Recreation.propTypes = {
   onProgramMenuSelect: PropTypes.func.isRequired,
   onCreateItem: PropTypes.func.isRequired,
   title: PropTypes.string.isRequired,
-  setTitle: PropTypes.func.isRequired,
+  onCreateItemTitleChange: PropTypes.func.isRequired,
   setPickerType: PropTypes.func.isRequired,
   onPickerItemSelect: PropTypes.func.isRequired,
   week: PropTypes.string.isRequired,
   onCancelWheelPicker: PropTypes.func.isRequired,
+  closeCreateItemModal: PropTypes.func.isRequired,
+  createItemPending: PropTypes.bool.isRequired,
+  createItemErrorText: PropTypes.string.isRequired,
   loader: PropTypes.bool.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,

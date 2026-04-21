@@ -5,14 +5,6 @@ import {AddButton, CustomText} from '../../../components';
 import { RECREATION_ROUTES } from '../../../navigation/routeNames';
 import styles from './style';
 
-const createRoutineFields = [
-  {
-    id: 1,
-    fieldName: 'Routine Name',
-    placeholder: 'Enter Name',
-  },
-];
-
 export default function MyRoutines(props) {
   const {
     myRoutines,
@@ -21,11 +13,8 @@ export default function MyRoutines(props) {
     setHeading,
     setScreen,
     setBtnTitle,
-    setCreateItemModal,
-    setCreateItemFields,
-    setSubText,
     setShowDeleteBtn,
-    setProgram,
+    openCreateRoutineModal,
   } = props;
 
   return (
@@ -50,12 +39,7 @@ export default function MyRoutines(props) {
       <View style={styles.setMargin2}>
         <AddButton
           onPress={() => {
-            setCreateItemModal(true);
-            setHeading('Create Routine');
-            setSubText('');
-            setBtnTitle('Create');
-            setProgram('Routine Program');
-            setCreateItemFields(createRoutineFields);
+            openCreateRoutineModal();
           }}
         />
       </View>
@@ -70,9 +54,6 @@ MyRoutines.propTypes = {
   setHeading: PropTypes.func.isRequired,
   setScreen: PropTypes.func.isRequired,
   setBtnTitle: PropTypes.func.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
-  setCreateItemFields: PropTypes.func.isRequired,
-  setSubText: PropTypes.func.isRequired,
   setShowDeleteBtn: PropTypes.func.isRequired,
-  setProgram: PropTypes.func.isRequired,
+  openCreateRoutineModal: PropTypes.func.isRequired,
 };

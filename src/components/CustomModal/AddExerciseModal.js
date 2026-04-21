@@ -19,7 +19,18 @@ export default function AddExerciseModal(props) {
     onDeleteBtnPress,
     numberOfExercises,
     supersetOptions,
+    btnLoader,
+    submitDisabled,
+    formErrorText,
+    supersetFieldErrors,
   } = props;
+
+  const renderErrorText = text =>
+    text ? (
+      <Text style={[styles.supportingText, styles.supportingTextError]}>
+        {text}
+      </Text>
+    ) : null;
 
   return (
     <View style={styles.contentContainer}>
@@ -32,12 +43,22 @@ export default function AddExerciseModal(props) {
         .fill()
         .map((_, index) => (
           <View key={index}>
-            <SupersetExeComp {...props} exeNum={index + 1} />
+            <SupersetExeComp
+              {...props}
+              exeNum={index + 1}
+              fieldErrors={supersetFieldErrors[index]}
+            />
           </View>
         ))}
+      {renderErrorText(formErrorText)}
 
       <View style={styles.btnView2}>
-        <Button title={btnTitle} onPress={onBtnPress} />
+        <Button
+          loader={btnLoader}
+          disabled={submitDisabled}
+          title={btnTitle}
+          onPress={onBtnPress}
+        />
       </View>
 
       {isDeleteBtn ? (
@@ -49,7 +70,12 @@ export default function AddExerciseModal(props) {
   );
 }
 
-AddExerciseModal.defaultProps = {};
+AddExerciseModal.defaultProps = {
+  btnLoader: false,
+  submitDisabled: false,
+  formErrorText: '',
+  supersetFieldErrors: [],
+};
 
 AddExerciseModal.propTypes = {
   hideModal: PropTypes.func.isRequired,
@@ -65,4 +91,8 @@ AddExerciseModal.propTypes = {
   isDeleteBtn: PropTypes.bool.isRequired,
   onDeleteBtnPress: PropTypes.func.isRequired,
   supersetOptions: PropTypes.arrayOf(PropTypes.any).isRequired,
+  btnLoader: PropTypes.bool,
+  submitDisabled: PropTypes.bool,
+  formErrorText: PropTypes.string,
+  supersetFieldErrors: PropTypes.arrayOf(PropTypes.any),
 };

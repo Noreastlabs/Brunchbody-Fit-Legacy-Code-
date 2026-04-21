@@ -40,20 +40,16 @@ export default function EditProgram(props) {
     createExerciseModal,
     createItemFields,
     isAddSupersetExercise,
-    setIsAddSupersetExercise,
     onEditExercise,
     isDeleteBtn,
     isPermissionModal,
-    setIsPermissionModal,
     onPickerItemSelect,
     allDayPlan,
     singleExerciseModal,
-    setSingleExerciseModal,
     onAddSingleExercise,
     alertHeading,
     alertText,
     supersetModal,
-    setSupersetModal,
     onSupersetModalBtnPress,
     onAddCardioExe,
     onAddBtnPress,
@@ -61,21 +57,38 @@ export default function EditProgram(props) {
     btnLoader,
     onSaveHandler,
     onDonePermissionModal,
-    setCheck,
     deleteLoader,
     onAddNote,
     note,
-    setNote,
-    setExeIndex,
     onCloseCreateNoteModal,
     cardioExeModal,
-    setCardioExeModal,
-    setSupersetExeIndex,
     supersetWheelPicker,
     setSupersetWheelPicker,
     onSupersetPickerSelect,
     onAddSupersetExercises,
     pickerContent,
+    singleExerciseFieldErrors,
+    singleExerciseFormErrorText,
+    singleExercisePending,
+    onSingleAmountChange,
+    closeSingleExerciseModal,
+    cardioFieldErrors,
+    cardioFormErrorText,
+    cardioPending,
+    onCardioAmountChange,
+    closeCardioExerciseModal,
+    supersetSetupFieldErrors,
+    supersetSetupFormErrorText,
+    supersetSetupPending,
+    closeSupersetSetupModal,
+    supersetFieldErrors,
+    supersetItemsFormErrorText,
+    supersetItemsPending,
+    closeSupersetItemsModal,
+    onRequestDeleteEntry,
+    onRequestDeleteNote,
+    closePermissionModal,
+    onSupersetAmountChange,
   } = props;
   const {selectedProgram, selectedDay} = route.params;
 
@@ -108,7 +121,6 @@ export default function EditProgram(props) {
         <Button loader={btnLoader} title="Save" onPress={onSaveHandler} />
       </View>
 
-      {/* Select exercise's type modal */}
       <CustomModal
         isVisible={addExerciseModal}
         onDismiss={() => setAddExerciseModal(false)}
@@ -127,7 +139,6 @@ export default function EditProgram(props) {
         }
       />
 
-      {/* Create Exercise Modal */}
       <CustomModal
         isVisible={createExerciseModal}
         onDismiss={onCloseCreateNoteModal}
@@ -135,112 +146,112 @@ export default function EditProgram(props) {
           <CreateItemContent
             heading={heading}
             createItemFields={createItemFields}
-            onChangeText={text => onChangeText(text)}
+            onChangeText={onChangeText}
             hideModal={onCloseCreateNoteModal}
             btnTitle={btnTitle}
             onBtnPress={onAddNote}
-            onDropdownSelect={(data, pickerType) => {
+            onDropdownSelect={(data, nextPickerType) => {
               setWheelPickerModal(true);
               setPickerItems(data);
-              setPickerType(pickerType);
+              setPickerType(nextPickerType);
             }}
             isDeleteBtn={isDeleteBtn}
-            onDeleteBtnPress={() => {
-              setNote('');
-              setExeIndex(null);
-              setCheck('delete');
-              setIsPermissionModal(true);
-            }}
+            onDeleteBtnPress={onRequestDeleteNote}
           />
         }
       />
 
-      {/* Create Single Exercise Modal */}
       <CustomModal
         isVisible={singleExerciseModal}
-        onDismiss={() => setSingleExerciseModal(false)}
+        onDismiss={closeSingleExerciseModal}
         content={
           <AddSingleExercise
             {...props}
-            hideModal={() => setSingleExerciseModal(false)}
+            hideModal={closeSingleExerciseModal}
+            btnLoader={singleExercisePending}
+            submitDisabled={singleExercisePending}
+            fieldErrors={singleExerciseFieldErrors}
+            formErrorText={singleExerciseFormErrorText}
+            setAmount={onSingleAmountChange}
             onBtnPress={onAddSingleExercise}
-            onDropdownSelect={(data, pickerType) => {
+            onDropdownSelect={(data, nextPickerType) => {
               setPickerItems(data);
-              setPickerType(pickerType);
+              setPickerType(nextPickerType);
               setWheelPickerModal(true);
             }}
-            onDeleteBtnPress={() => {
-              setIsPermissionModal(true);
-              setCheck('delete');
-            }}
+            onDeleteBtnPress={onRequestDeleteEntry}
           />
         }
       />
 
-      {/* Select Number of Superset Exercises Modal */}
       <CustomModal
         isVisible={supersetModal}
-        onDismiss={() => setSupersetModal(false)}
+        onDismiss={closeSupersetSetupModal}
         content={
           <SupersetModal
             {...props}
-            hideModal={() => setSupersetModal(false)}
+            hideModal={closeSupersetSetupModal}
+            btnLoader={supersetSetupPending}
+            submitDisabled={supersetSetupPending}
+            fieldErrors={supersetSetupFieldErrors}
+            formErrorText={supersetSetupFormErrorText}
             onBtnPress={onSupersetModalBtnPress}
-            onDropdownSelect={(data, pickerType) => {
+            onDropdownSelect={(data, nextPickerType) => {
               setWheelPickerModal(true);
               setPickerItems(data);
-              setPickerType(pickerType);
+              setPickerType(nextPickerType);
             }}
           />
         }
       />
 
-      {/* Create Superset Exercises Modal */}
       <CustomModal
         isVisible={isAddSupersetExercise}
-        onDismiss={() => setIsAddSupersetExercise(false)}
+        onDismiss={closeSupersetItemsModal}
         content={
           <AddExerciseModal
             {...props}
-            hideModal={() => setIsAddSupersetExercise(false)}
+            hideModal={closeSupersetItemsModal}
+            btnLoader={supersetItemsPending}
+            submitDisabled={supersetItemsPending}
+            formErrorText={supersetItemsFormErrorText}
+            supersetFieldErrors={supersetFieldErrors}
+            onAmountChange={onSupersetAmountChange}
             onBtnPress={onAddSupersetExercises}
-            onDropdownSelect={(data, pickerType, index) => {
+            onDropdownSelect={(data, nextPickerType, index) => {
               setPickerItems(data);
-              setPickerType(pickerType);
-              setSupersetExeIndex(index);
+              setPickerType(nextPickerType);
+              props.setSupersetExeIndex(index);
               setSupersetWheelPicker(true);
             }}
-            onDeleteBtnPress={() => {
-              setIsPermissionModal(true);
-              setCheck('delete');
-            }}
+            onDeleteBtnPress={onRequestDeleteEntry}
           />
         }
       />
 
-      {/* Create Cardio Exercise Modal */}
       <CustomModal
         isVisible={cardioExeModal}
-        onDismiss={() => setCardioExeModal(false)}
+        onDismiss={closeCardioExerciseModal}
         content={
           <AddCardioExercise
             {...props}
-            hideModal={() => setCardioExeModal(false)}
+            hideModal={closeCardioExerciseModal}
+            btnLoader={cardioPending}
+            submitDisabled={cardioPending}
+            fieldErrors={cardioFieldErrors}
+            formErrorText={cardioFormErrorText}
+            setAmount={onCardioAmountChange}
             onBtnPress={onAddCardioExe}
-            onDropdownSelect={(data, pickerType) => {
+            onDropdownSelect={(data, nextPickerType) => {
               setWheelPickerModal(true);
               setPickerItems(data);
-              setPickerType(pickerType);
+              setPickerType(nextPickerType);
             }}
-            onDeleteBtnPress={() => {
-              setIsPermissionModal(true);
-              setCheck('delete');
-            }}
+            onDeleteBtnPress={onRequestDeleteEntry}
           />
         }
       />
 
-      {/* Superset exercise wheel picker */}
       <CustomModal
         isVisible={supersetWheelPicker}
         onDismiss={() => setSupersetWheelPicker(false)}
@@ -273,7 +284,7 @@ export default function EditProgram(props) {
 
       <CustomModal
         isVisible={isPermissionModal}
-        onDismiss={() => setIsPermissionModal(false)}
+        onDismiss={closePermissionModal}
         content={
           <PermissionModal
             loader={deleteLoader}
@@ -283,7 +294,7 @@ export default function EditProgram(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() => setIsPermissionModal(false)}
+            onCancel={closePermissionModal}
           />
         }
       />
@@ -297,13 +308,13 @@ EditProgram.defaultProps = {
 
 EditProgram.propTypes = {
   route: PropTypes.objectOf(PropTypes.any),
-  btnTitle: PropTypes.string.isRequired,
-  heading: PropTypes.string.isRequired,
-  wheelPickerModal: PropTypes.bool.isRequired,
-  setWheelPickerModal: PropTypes.func.isRequired,
   pickerItems: PropTypes.arrayOf(PropTypes.any).isRequired,
   setPickerType: PropTypes.func.isRequired,
   setPickerItems: PropTypes.func.isRequired,
+  heading: PropTypes.string.isRequired,
+  btnTitle: PropTypes.string.isRequired,
+  wheelPickerModal: PropTypes.bool.isRequired,
+  setWheelPickerModal: PropTypes.func.isRequired,
   addExerciseOptions: PropTypes.arrayOf(PropTypes.any).isRequired,
   addExerciseModal: PropTypes.bool.isRequired,
   setAddExerciseModal: PropTypes.func.isRequired,
@@ -313,20 +324,17 @@ EditProgram.propTypes = {
   createExerciseModal: PropTypes.bool.isRequired,
   createItemFields: PropTypes.arrayOf(PropTypes.any).isRequired,
   isAddSupersetExercise: PropTypes.bool.isRequired,
-  setIsAddSupersetExercise: PropTypes.func.isRequired,
   onEditExercise: PropTypes.func.isRequired,
   isDeleteBtn: PropTypes.bool.isRequired,
   isPermissionModal: PropTypes.bool.isRequired,
-  setIsPermissionModal: PropTypes.func.isRequired,
   onPickerItemSelect: PropTypes.func.isRequired,
   allDayPlan: PropTypes.arrayOf(PropTypes.any).isRequired,
   singleExerciseModal: PropTypes.bool.isRequired,
-  setSingleExerciseModal: PropTypes.func.isRequired,
   onAddSingleExercise: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   supersetModal: PropTypes.bool.isRequired,
-  setSupersetModal: PropTypes.func.isRequired,
+  numberOfExercises: PropTypes.string.isRequired,
   onSupersetModalBtnPress: PropTypes.func.isRequired,
   onAddCardioExe: PropTypes.func.isRequired,
   onAddBtnPress: PropTypes.func.isRequired,
@@ -334,19 +342,37 @@ EditProgram.propTypes = {
   btnLoader: PropTypes.bool.isRequired,
   onSaveHandler: PropTypes.func.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
-  setCheck: PropTypes.func.isRequired,
   deleteLoader: PropTypes.bool.isRequired,
   onAddNote: PropTypes.func.isRequired,
   note: PropTypes.string.isRequired,
-  setNote: PropTypes.func.isRequired,
-  setExeIndex: PropTypes.func.isRequired,
   onCloseCreateNoteModal: PropTypes.func.isRequired,
   cardioExeModal: PropTypes.bool.isRequired,
-  setCardioExeModal: PropTypes.func.isRequired,
-  setSupersetExeIndex: PropTypes.func.isRequired,
   supersetWheelPicker: PropTypes.bool.isRequired,
   setSupersetWheelPicker: PropTypes.func.isRequired,
   onSupersetPickerSelect: PropTypes.func.isRequired,
   onAddSupersetExercises: PropTypes.func.isRequired,
   pickerContent: PropTypes.string.isRequired,
+  singleExerciseFieldErrors: PropTypes.objectOf(PropTypes.any).isRequired,
+  singleExerciseFormErrorText: PropTypes.string.isRequired,
+  singleExercisePending: PropTypes.bool.isRequired,
+  onSingleAmountChange: PropTypes.func.isRequired,
+  closeSingleExerciseModal: PropTypes.func.isRequired,
+  cardioFieldErrors: PropTypes.objectOf(PropTypes.any).isRequired,
+  cardioFormErrorText: PropTypes.string.isRequired,
+  cardioPending: PropTypes.bool.isRequired,
+  onCardioAmountChange: PropTypes.func.isRequired,
+  closeCardioExerciseModal: PropTypes.func.isRequired,
+  supersetSetupFieldErrors: PropTypes.objectOf(PropTypes.any).isRequired,
+  supersetSetupFormErrorText: PropTypes.string.isRequired,
+  supersetSetupPending: PropTypes.bool.isRequired,
+  closeSupersetSetupModal: PropTypes.func.isRequired,
+  supersetFieldErrors: PropTypes.arrayOf(PropTypes.any).isRequired,
+  supersetItemsFormErrorText: PropTypes.string.isRequired,
+  supersetItemsPending: PropTypes.bool.isRequired,
+  closeSupersetItemsModal: PropTypes.func.isRequired,
+  onRequestDeleteEntry: PropTypes.func.isRequired,
+  onRequestDeleteNote: PropTypes.func.isRequired,
+  closePermissionModal: PropTypes.func.isRequired,
+  onSupersetAmountChange: PropTypes.func.isRequired,
+  setSupersetExeIndex: PropTypes.func.isRequired,
 };

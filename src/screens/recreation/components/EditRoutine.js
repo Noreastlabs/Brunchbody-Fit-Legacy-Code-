@@ -27,21 +27,27 @@ export default function EditRoutine(props) {
     setIsVisible,
     heading,
     createItemModal,
-    setCreateItemModal,
+    closeCreateTaskModal,
     createTaskFields,
     editTaskModal,
-    setEditTaskModal,
+    closeEditTaskModal,
     permissionModal,
     setPermissionModal,
     onRoutineTaskHandler,
-    itemName,
-    setItemName,
+    onTaskNameChange,
     onCreateItem,
     onDonePermissionModal,
     alertHeading,
     alertText,
     setCheck,
     onEditItem,
+    onOpenCreateTaskModal,
+    onOpenEditTaskModal,
+    createItemFormErrorText,
+    editItemFormErrorText,
+    createItemPending,
+    editItemPending,
+    deleteLoader,
   } = props;
   const {selectedItem} = route.params;
 
@@ -69,11 +75,7 @@ export default function EditRoutine(props) {
 
           <View style={{marginTop: 10}}>
             <AddButton
-              onPress={() => {
-                setCreateItemModal(true);
-                setItemName('');
-                createTaskFields[0].value = '';
-              }}
+              onPress={onOpenCreateTaskModal}
             />
           </View>
         </View>
@@ -87,10 +89,7 @@ export default function EditRoutine(props) {
             heading={heading}
             hideModal={() => setIsVisible(false)}
             btnTitle="Edit"
-            onBtnPress={() => {
-              setIsVisible(false);
-              setEditTaskModal(true);
-            }}
+            onBtnPress={onOpenEditTaskModal}
             isDeleteBtn
             onDeleteBtnPress={() => {
               setPermissionModal(true);
@@ -103,16 +102,16 @@ export default function EditRoutine(props) {
       {/* Create new task modal */}
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() => setCreateItemModal(false)}
+        onDismiss={closeCreateTaskModal}
         content={
           <CreateItemContent
-            {...props}
             heading="Add Task"
             createItemFields={createTaskFields}
-            value={itemName}
-            onChangeText={text => setItemName(text)}
-            hideModal={() => setCreateItemModal(false)}
+            onChangeText={onTaskNameChange}
+            hideModal={closeCreateTaskModal}
             btnTitle="Add"
+            loader={createItemPending}
+            formErrorText={createItemFormErrorText}
             onBtnPress={onCreateItem}
           />
         }
@@ -121,19 +120,16 @@ export default function EditRoutine(props) {
       {/* Edit task modal */}
       <CustomModal
         isVisible={editTaskModal}
-        onDismiss={() => setEditTaskModal(false)}
+        onDismiss={closeEditTaskModal}
         content={
           <CreateItemContent
-            {...props}
             heading="Edit Task"
             createItemFields={createTaskFields}
-            value={itemName}
-            onChangeText={text => {
-              setItemName(text);
-              createTaskFields[0].value = text;
-            }}
-            hideModal={() => setEditTaskModal(false)}
+            onChangeText={onTaskNameChange}
+            hideModal={closeEditTaskModal}
             btnTitle="Save"
+            loader={editItemPending}
+            formErrorText={editItemFormErrorText}
             onBtnPress={onEditItem}
           />
         }
@@ -144,7 +140,7 @@ export default function EditRoutine(props) {
         onDismiss={() => setPermissionModal(false)}
         content={
           <PermissionModal
-            {...props}
+            loader={deleteLoader}
             heading={alertHeading}
             text={alertText}
             isCancelBtn={
@@ -171,18 +167,24 @@ EditRoutine.propTypes = {
   heading: PropTypes.string.isRequired,
   createTaskFields: PropTypes.arrayOf(PropTypes.any).isRequired,
   createItemModal: PropTypes.bool.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
+  closeCreateTaskModal: PropTypes.func.isRequired,
   editTaskModal: PropTypes.bool.isRequired,
-  setEditTaskModal: PropTypes.func.isRequired,
+  closeEditTaskModal: PropTypes.func.isRequired,
   permissionModal: PropTypes.bool.isRequired,
   setPermissionModal: PropTypes.func.isRequired,
   onRoutineTaskHandler: PropTypes.func.isRequired,
-  itemName: PropTypes.string.isRequired,
-  setItemName: PropTypes.func.isRequired,
+  onTaskNameChange: PropTypes.func.isRequired,
   onCreateItem: PropTypes.func.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   setCheck: PropTypes.func.isRequired,
   onEditItem: PropTypes.func.isRequired,
+  onOpenCreateTaskModal: PropTypes.func.isRequired,
+  onOpenEditTaskModal: PropTypes.func.isRequired,
+  createItemFormErrorText: PropTypes.string.isRequired,
+  editItemFormErrorText: PropTypes.string.isRequired,
+  createItemPending: PropTypes.bool.isRequired,
+  editItemPending: PropTypes.bool.isRequired,
+  deleteLoader: PropTypes.bool.isRequired,
 };

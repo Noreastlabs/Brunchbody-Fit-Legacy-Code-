@@ -21,10 +21,20 @@ export default function AddSingleExercise(props) {
     amount,
     setAmount,
     btnLoader,
+    submitDisabled,
     isDeleteBtn,
     onDeleteBtnPress,
     myExercises,
+    fieldErrors,
+    formErrorText,
   } = props;
+
+  const renderErrorText = text =>
+    text ? (
+      <Text style={[styles.supportingText, styles.supportingTextError]}>
+        {text}
+      </Text>
+    ) : null;
 
   return (
     <View style={styles.contentContainer}>
@@ -39,6 +49,7 @@ export default function AddSingleExercise(props) {
         style={styles.selectCompStyle}
         onPress={() => onDropdownSelect(myExercises, 'Exercise')}
       />
+      {renderErrorText(fieldErrors.exercise)}
 
       <SelectComp
         title="Number of Sets"
@@ -46,6 +57,7 @@ export default function AddSingleExercise(props) {
         style={styles.selectCompStyle}
         onPress={() => onDropdownSelect(wheelPickerItems.sets, 'Sets')}
       />
+      {renderErrorText(fieldErrors.numberOfSets)}
 
       <View style={styles.flexRowView2}>
         <View style={{flex: 0.3}}>
@@ -58,20 +70,30 @@ export default function AddSingleExercise(props) {
             style={styles.textInputStyle}
             onChangeText={text => setAmount(text)}
           />
+          {renderErrorText(fieldErrors.amount)}
         </View>
-        <SelectComp
-          title="Select Unit"
-          type={unit || 'Unit'}
-          style={styles.selectCompStyle2}
-          pickerViewStyle={{width: '80%'}}
-          onPress={() =>
-            onDropdownSelect(wheelPickerItems.exerciseUnits, 'Unit')
-          }
-        />
+        <View style={styles.supportingTextContainer}>
+          <SelectComp
+            title="Select Unit"
+            type={unit || 'Unit'}
+            style={styles.selectCompStyle2}
+            pickerViewStyle={{width: '80%'}}
+            onPress={() =>
+              onDropdownSelect(wheelPickerItems.exerciseUnits, 'Unit')
+            }
+          />
+          {renderErrorText(fieldErrors.unit)}
+        </View>
       </View>
+      {renderErrorText(formErrorText)}
 
       <View style={styles.btnView2}>
-        <Button loader={btnLoader} title={btnTitle} onPress={onBtnPress} />
+        <Button
+          loader={btnLoader}
+          disabled={submitDisabled}
+          title={btnTitle}
+          onPress={onBtnPress}
+        />
       </View>
 
       {isDeleteBtn ? (
@@ -83,7 +105,12 @@ export default function AddSingleExercise(props) {
   );
 }
 
-AddSingleExercise.defaultProps = {};
+AddSingleExercise.defaultProps = {
+  btnLoader: false,
+  submitDisabled: false,
+  fieldErrors: {},
+  formErrorText: '',
+};
 
 AddSingleExercise.propTypes = {
   hideModal: PropTypes.func.isRequired,
@@ -96,8 +123,11 @@ AddSingleExercise.propTypes = {
   onDropdownSelect: PropTypes.func.isRequired,
   amount: PropTypes.string.isRequired,
   setAmount: PropTypes.func.isRequired,
-  btnLoader: PropTypes.bool.isRequired,
+  btnLoader: PropTypes.bool,
+  submitDisabled: PropTypes.bool,
   isDeleteBtn: PropTypes.bool.isRequired,
   onDeleteBtnPress: PropTypes.func.isRequired,
   myExercises: PropTypes.arrayOf(PropTypes.any).isRequired,
+  fieldErrors: PropTypes.objectOf(PropTypes.any),
+  formErrorText: PropTypes.string,
 };

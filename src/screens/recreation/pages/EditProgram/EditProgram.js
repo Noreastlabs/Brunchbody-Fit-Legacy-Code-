@@ -2,47 +2,86 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable eqeqeq */
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { EditProgram } from '../../components';
-import { wheelPickerItems } from '../../../../resources';
-import { addWeekPlan, editWeekPlan } from '../../../../redux/actions';
+import {connect} from 'react-redux';
+import {EditProgram} from '../../components';
+import {wheelPickerItems} from '../../../../resources';
+import {addWeekPlan, editWeekPlan} from '../../../../redux/actions';
 
 const addExerciseOptions = [
-  { id: 1, option: 'SINGLE EXERCISE' },
-  { id: 2, option: 'SUPERSET' },
-  { id: 3, option: 'CARDIO' },
-  { id: 4, option: 'SPORT' },
-  { id: 5, option: 'NOTE' },
+  {id: 1, option: 'SINGLE EXERCISE'},
+  {id: 2, option: 'SUPERSET'},
+  {id: 3, option: 'CARDIO'},
+  {id: 4, option: 'SPORT'},
+  {id: 5, option: 'NOTE'},
 ];
 
-const addNoteFields = [
+const getNoteFields = note => [
   {
     id: 1,
-    value: '',
+    value: note,
     state: 'note',
     fieldName: 'Notes',
     placeholder: 'Notes',
     textArea: true,
+    helperText: 'Add an optional note for this day.',
   },
 ];
 
+const isFiniteDecimal = value => {
+  if (value.trim() === '') {
+    return false;
+  }
+
+  return Number.isFinite(Number(value));
+};
+
+const createSupersetDraft = (count, existingOptions = []) =>
+  Array.from({length: Number(count) || 0}, (_, index) => {
+    const option = existingOptions[index] || {};
+
+    return {
+      exercise: option.exercise || '',
+      amount:
+        option.amount === undefined || option.amount === null
+          ? ''
+          : `${option.amount}`,
+      unit: option.unit || '',
+      met: option.met || 0,
+      rpm: option.rpm || 0,
+      mph: option.mph || 0,
+      cal: option.cal,
+    };
+  });
+
+const clonePlanEntry = item => ({
+  ...item,
+  amount:
+    item?.amount === undefined || item?.amount === null
+      ? item?.amount
+      : `${item.amount}`,
+  supersetOptions: item?.supersetOptions?.map(option => ({
+    ...option,
+    amount:
+      option?.amount === undefined || option?.amount === null
+        ? option?.amount
+        : `${option.amount}`,
+  })),
+});
+
 export default function EditProgramPage(props) {
-  const { route, onAddWeekPlan, onEditWeekPlan, myWeekPlan, user } = props;
-  // console.log('myWeekPlan: ', myWeekPlan);
-  const { selectedProgram, selectedDay } = route.params;
+  const {route, onAddWeekPlan, onEditWeekPlan, myWeekPlan, user} = props;
+  const {selectedProgram, selectedDay} = route.params;
   const [btnTitle, setBtnTitle] = useState('');
   const [heading, setHeading] = useState('');
   const [pickerItems, setPickerItems] = useState(wheelPickerItems.weeks);
   const [pickerType, setPickerType] = useState('');
   const [wheelPickerModal, setWheelPickerModal] = useState(false);
   const [supersetWheelPicker, setSupersetWheelPicker] = useState(false);
-  const [showDeleteBtn, setShowDeleteBtn] = useState(true);
   const [addExerciseModal, setAddExerciseModal] = useState(false);
   const [selectedExerciseOption, setSelectedExerciseOption] =
     useState('SINGLE EXERCISE');
-  const [createItemFields, setCreateItemFields] = useState([]);
   const [createExerciseModal, setCreateExerciseModal] = useState(false);
   const [singleExerciseModal, setSingleExerciseModal] = useState(false);
   const [supersetModal, setSupersetModal] = useState(false);
@@ -68,84 +107,292 @@ export default function EditProgramPage(props) {
   const [met, setMet] = useState(0);
   const [rpm, setRpm] = useState(0);
   const [mph, setMph] = useState(0);
+  const [singleExerciseFieldErrors, setSingleExerciseFieldErrors] =
+    useState({});
+  const [singleExerciseFormErrorText, setSingleExerciseFormErrorText] =
+    useState('');
+  const [singleExercisePending, setSingleExercisePending] = useState(false);
+  const [cardioFieldErrors, setCardioFieldErrors] = useState({});
+  const [cardioFormErrorText, setCardioFormErrorText] = useState('');
+  const [cardioPending, setCardioPending] = useState(false);
+  const [supersetSetupFieldErrors, setSupersetSetupFieldErrors] = useState({});
+  const [supersetSetupFormErrorText, setSupersetSetupFormErrorText] =
+    useState('');
+  const [supersetSetupPending, setSupersetSetupPending] = useState(false);
+  const [supersetFieldErrors, setSupersetFieldErrors] = useState([]);
+  const [supersetItemsFormErrorText, setSupersetItemsFormErrorText] =
+    useState('');
+  const [supersetItemsPending, setSupersetItemsPending] = useState(false);
+  const entryActionLockRef = useRef(false);
+  const createItemFields = getNoteFields(note);
 
   useEffect(() => {
-    addNoteFields[0].value = '';
+    setAllDayPlan((selectedDay?.plan || []).map(clonePlanEntry));
+    setSupersetOptions([]);
+    setNote(selectedDay.note || '');
+  }, [selectedDay]);
 
-    if (selectedDay?.plan?.length > 0) {
-      const supersetExe = selectedDay.plan.find(a => a.exercise === 'Superset');
-      setSupersetOptions(supersetExe?.supersetOptions || []);
-      setAllDayPlan([...selectedDay.plan] || []);
-      setNote(selectedDay.note);
-      addNoteFields[0].value = selectedDay.note;
+  const getCurrentDayData = () => {
+    const tempWeekData = myWeekPlan?.weekDays || [];
+    const index = tempWeekData.findIndex(item => item.day == selectedDay.day);
+
+    return {
+      tempWeekData,
+      index,
+      data: index >= 0 ? tempWeekData[index] : undefined,
+    };
+  };
+
+  const getPersistedNote = () => getCurrentDayData().data?.note || selectedDay.note || '';
+
+  const showMessage = (headingText, text) => {
+    setAlertHeading(headingText);
+    setAlertText(text);
+    setIsPermissionModal(true);
+  };
+
+  const clearEntryActionLock = () => {
+    entryActionLockRef.current = false;
+  };
+
+  const resetExerciseDraft = () => {
+    setExercise('');
+    setNumberOfSets('');
+    setAmount('');
+    setUnit('');
+    setMet(0);
+    setRpm(0);
+    setMph(0);
+  };
+
+  const resetSingleExerciseValidation = (clearLock = true) => {
+    if (clearLock) {
+      clearEntryActionLock();
     }
-  }, []);
+    setSingleExercisePending(false);
+    setSingleExerciseFieldErrors({});
+    setSingleExerciseFormErrorText('');
+  };
 
-  const onChangeText = text => {
-    setNote(text);
-    addNoteFields[0].value = text;
+  const resetCardioValidation = (clearLock = true) => {
+    if (clearLock) {
+      clearEntryActionLock();
+    }
+    setCardioPending(false);
+    setCardioFieldErrors({});
+    setCardioFormErrorText('');
+  };
+
+  const resetSupersetSetupValidation = () => {
+    clearEntryActionLock();
+    setSupersetSetupPending(false);
+    setSupersetSetupFieldErrors({});
+    setSupersetSetupFormErrorText('');
+  };
+
+  const resetSupersetItemsValidation = (clearLock = true) => {
+    if (clearLock) {
+      clearEntryActionLock();
+    }
+    setSupersetItemsPending(false);
+    setSupersetFieldErrors([]);
+    setSupersetItemsFormErrorText('');
+  };
+
+  const closeSingleExerciseModal = () => {
+    resetSingleExerciseValidation();
+    setSingleExerciseModal(false);
+    resetExerciseDraft();
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const closeCardioExerciseModal = () => {
+    resetCardioValidation();
+    setCardioExeModal(false);
+    resetExerciseDraft();
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const closeSupersetSetupModal = () => {
+    resetSupersetSetupValidation();
+    setSupersetModal(false);
+    setNumberOfExercises('');
+    setNumberOfSets('');
+  };
+
+  const closeSupersetItemsModal = () => {
+    resetSupersetItemsValidation();
+    setIsAddSupersetExercise(false);
+    setSupersetWheelPicker(false);
+    setSupersetExeIndex(null);
+    setSupersetOptions([]);
+    setNumberOfExercises('');
+    setNumberOfSets('');
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const onCloseCreateNoteModal = () => {
+    setCreateExerciseModal(false);
+    setNote(getPersistedNote());
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const closePermissionModal = () => {
+    if (deleteLoader) {
+      return;
+    }
+
+    setCheck('');
+    setIsPermissionModal(false);
+    setTimeout(() => {
+      setAlertText('');
+      setAlertHeading('');
+    }, 500);
+  };
+
+  const clearSingleExerciseError = fieldName => {
+    setSingleExerciseFieldErrors(currentErrors => ({
+      ...currentErrors,
+      [fieldName]: '',
+    }));
+    setSingleExerciseFormErrorText('');
+  };
+
+  const clearCardioError = fieldName => {
+    setCardioFieldErrors(currentErrors => ({
+      ...currentErrors,
+      [fieldName]: '',
+    }));
+    setCardioFormErrorText('');
+  };
+
+  const clearSupersetSetupError = fieldName => {
+    setSupersetSetupFieldErrors(currentErrors => ({
+      ...currentErrors,
+      [fieldName]: '',
+    }));
+    setSupersetSetupFormErrorText('');
+  };
+
+  const clearSupersetRowError = (index, fieldName) => {
+    setSupersetFieldErrors(currentErrors => {
+      const nextErrors = [...currentErrors];
+      nextErrors[index] = {
+        ...(nextErrors[index] || {}),
+        [fieldName]: '',
+      };
+      return nextErrors;
+    });
+    setSupersetItemsFormErrorText('');
+  };
+
+  const onSingleAmountChange = text => {
+    setAmount(text);
+    clearSingleExerciseError('amount');
+  };
+
+  const onCardioAmountChange = text => {
+    setAmount(text);
+    clearCardioError('amount');
+  };
+
+  const onAddBtnPress = () => {
+    resetSingleExerciseValidation();
+    resetCardioValidation();
+    resetSupersetSetupValidation();
+    resetSupersetItemsValidation();
+    resetExerciseDraft();
+    setSelectedExerciseOption('SINGLE EXERCISE');
+    setHeading('');
+    setBtnTitle('');
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+    setSupersetOptions([]);
+    setNumberOfExercises('');
+    setNumberOfSets('');
+    setAddExerciseModal(true);
   };
 
   const onNextBtnPress = () => {
     setIsDeleteBtn(false);
     setAddExerciseModal(false);
+
     if (selectedExerciseOption === 'SINGLE EXERCISE') {
-      setSingleExerciseModal(true);
+      resetExerciseDraft();
+      resetSingleExerciseValidation();
       setHeading('Add Exercise');
       setBtnTitle('Add');
+      setSingleExerciseModal(true);
     } else if (selectedExerciseOption === 'SUPERSET') {
-      setSupersetModal(true);
+      resetSupersetSetupValidation();
+      setNumberOfExercises('');
+      setNumberOfSets('');
       setHeading('Add Superset');
       setBtnTitle('Next');
+      setSupersetModal(true);
     } else if (selectedExerciseOption === 'CARDIO') {
-      setCardioExeModal(true);
+      resetExerciseDraft();
+      resetCardioValidation();
       setHeading('Add Cardio');
       setBtnTitle('Add');
-    } else if (selectedExerciseOption === 'SPORT') {
       setCardioExeModal(true);
+    } else if (selectedExerciseOption === 'SPORT') {
+      resetExerciseDraft();
+      resetCardioValidation();
       setHeading('Add Sport');
       setBtnTitle('Add');
+      setCardioExeModal(true);
     } else {
-      setCreateExerciseModal(true);
       setHeading('Add Note');
       setBtnTitle('Add');
-      setCreateItemFields(addNoteFields);
+      setCreateExerciseModal(true);
     }
   };
 
   const onEditExercise = (exerciseType, exerciseIndex) => {
-    setExeIndex(exerciseIndex);
+    const currentEntry = allDayPlan[exerciseIndex];
+
+    setExeIndex(exerciseIndex ?? null);
     setBtnTitle('Save');
     setIsDeleteBtn(true);
 
-    const tempWeekData = myWeekPlan?.weekDays;
-    const index = tempWeekData?.findIndex(a => a.day == selectedDay.day);
-    const data = tempWeekData?.[index];
-    const exeData = data?.plan[exerciseIndex];
-
     if (exerciseType === 'SINGLE EXERCISE') {
-      setExercise(exeData?.exercise || allDayPlan[exerciseIndex].exercise); // When data gets from redux || when data is in the state
-      setNumberOfSets(exeData?.set || allDayPlan[exerciseIndex].set);
-      setAmount((exeData?.rtd || allDayPlan[exerciseIndex].rtd).split(' ')[0]);
-      setUnit((exeData?.rtd || allDayPlan[exerciseIndex].rtd).split(' ')[1]);
-      setMet(exeData?.met || allDayPlan[exerciseIndex].met);
-      setRpm(exeData?.rpm || allDayPlan[exerciseIndex].rpm);
-      setMph(exeData?.mph || allDayPlan[exerciseIndex].mph);
+      resetSingleExerciseValidation();
+      setExercise(currentEntry?.exercise || '');
+      setNumberOfSets(`${currentEntry?.set || ''}`);
+      setAmount((currentEntry?.rtd || '').split(' ')[0] || '');
+      setUnit((currentEntry?.rtd || '').split(' ')[1] || '');
+      setMet(currentEntry?.met || 0);
+      setRpm(currentEntry?.rpm || 0);
+      setMph(currentEntry?.mph || 0);
       setHeading('Edit Exercise');
       setSingleExerciseModal(true);
     } else if (exerciseType === 'SUPERSET') {
+      resetSupersetItemsValidation();
+      const nextSupersetOptions = createSupersetDraft(
+        currentEntry?.supersetOptions?.length || 0,
+        currentEntry?.supersetOptions || [],
+      );
       setHeading('Edit Exercises');
+      setNumberOfExercises(`${nextSupersetOptions.length}`);
+      setNumberOfSets(`${currentEntry?.set || ''}`);
+      setSupersetOptions(nextSupersetOptions);
       setIsAddSupersetExercise(true);
     } else if (
       exerciseType === 'CARDIO EXERCISE' ||
       exerciseType === 'SPORT EXERCISE'
     ) {
-      setExercise(exeData?.exercise || allDayPlan[exerciseIndex].exercise);
-      setAmount((exeData?.rtd || allDayPlan[exerciseIndex].rtd).split(' ')[0]);
-      setUnit((exeData?.rtd || allDayPlan[exerciseIndex].rtd).split(' ')[1]);
-      setMet(exeData?.met || allDayPlan[exerciseIndex].met);
-      setRpm(exeData?.rpm || allDayPlan[exerciseIndex].rpm);
-      setMph(exeData?.mph || allDayPlan[exerciseIndex].mph);
+      resetCardioValidation();
+      setExercise(currentEntry?.exercise || '');
+      setAmount((currentEntry?.rtd || '').split(' ')[0] || '');
+      setUnit((currentEntry?.rtd || '').split(' ')[1] || '');
+      setMet(currentEntry?.met || 0);
+      setRpm(currentEntry?.rpm || 0);
+      setMph(currentEntry?.mph || 0);
       setHeading(
         exerciseType === 'SPORT EXERCISE' ? 'Edit Sport' : 'Edit Cardio',
       );
@@ -154,105 +401,97 @@ export default function EditProgramPage(props) {
       );
       setCardioExeModal(true);
     } else {
-      setNote(data?.note || note);
-      addNoteFields[0].value = data?.note || note;
       setHeading('Edit Note');
-      setCreateItemFields(addNoteFields);
+      setNote(getPersistedNote());
       setCreateExerciseModal(true);
     }
   };
 
   const onPickerItemSelect = index => {
+    const selectedPickerItem = pickerItems[index - 1];
+
+    if (!selectedPickerItem) {
+      return;
+    }
+
     if (pickerType === 'Exercise') {
-      setExercise(pickerItems[index - 1].name);
-      setMet(pickerItems[index - 1].met);
-      setRpm(pickerItems[index - 1].rpm);
-      setMph(pickerItems[index - 1].mph);
-    } else if (pickerType === 'Sets') {
-      setNumberOfSets(pickerItems[index - 1].value);
-    } else if (pickerType === 'Number of Exercises') {
-      setNumberOfExercises(pickerItems[index - 1].value);
-    } else {
-      setUnit(pickerItems[index - 1].unit);
-    }
-  };
+      setExercise(selectedPickerItem.name);
+      setMet(selectedPickerItem.met);
+      setRpm(selectedPickerItem.rpm);
+      setMph(selectedPickerItem.mph);
 
-  const onSupersetPickerSelect = async index => {
-    if (supersetOptions.length >= 0) {
-      if (pickerType === 'Exercise') {
-        supersetOptions[supersetExeIndex] = {
-          ...supersetOptions[supersetExeIndex],
-          exercise: pickerItems[index - 1].name,
-          met: pickerItems[index - 1].met,
-          rpm: pickerItems[index - 1].rpm,
-          mph: pickerItems[index - 1].mph,
-        };
-      } else {
-        supersetOptions[supersetExeIndex] = {
-          ...supersetOptions[supersetExeIndex],
-          unit: pickerItems[index - 1].unit,
-        };
+      if (singleExerciseModal) {
+        clearSingleExerciseError('exercise');
+      } else if (cardioExeModal) {
+        clearCardioError('exercise');
       }
-    } else if (pickerType === 'Exercise') {
-      supersetOptions.push({
-        exercise: pickerItems[index - 1].name,
-        met: pickerItems[index - 1].met,
-        rpm: pickerItems[index - 1].rpm,
-        mph: pickerItems[index - 1].mph,
-      });
+    } else if (pickerType === 'Sets') {
+      setNumberOfSets(selectedPickerItem.value);
+
+      if (singleExerciseModal) {
+        clearSingleExerciseError('numberOfSets');
+      } else {
+        clearSupersetSetupError('numberOfSets');
+      }
+    } else if (pickerType === 'Number of Exercises') {
+      setNumberOfExercises(selectedPickerItem.value);
+      clearSupersetSetupError('numberOfExercises');
     } else {
-      supersetOptions.push({
-        unit: pickerItems[index - 1].unit,
-      });
+      setUnit(selectedPickerItem.unit);
+
+      if (singleExerciseModal) {
+        clearSingleExerciseError('unit');
+      } else if (cardioExeModal) {
+        clearCardioError('unit');
+      }
     }
   };
 
-  const supersetExeAmount = async (text, index) => {
-    if (supersetOptions.length >= 0) {
-      supersetOptions[index].amount = text;
-    } else {
-      supersetOptions.push({ amount: text });
+  const onSupersetPickerSelect = index => {
+    const selectedPickerItem = pickerItems[index - 1];
+
+    if (!selectedPickerItem || supersetExeIndex === null) {
+      return;
     }
+
+    setSupersetOptions(currentOptions => {
+      const nextOptions = [...currentOptions];
+      const currentOption = nextOptions[supersetExeIndex] || {};
+
+      nextOptions[supersetExeIndex] =
+        pickerType === 'Exercise'
+          ? {
+              ...currentOption,
+              exercise: selectedPickerItem.name,
+              met: selectedPickerItem.met,
+              rpm: selectedPickerItem.rpm,
+              mph: selectedPickerItem.mph,
+            }
+          : {
+              ...currentOption,
+              unit: selectedPickerItem.unit,
+            };
+
+      return nextOptions;
+    });
+
+    clearSupersetRowError(
+      supersetExeIndex,
+      pickerType === 'Exercise' ? 'exercise' : 'unit',
+    );
   };
 
-  const showMessage = (headingText, text) => {
-    setAlertHeading(headingText);
-    setAlertText(text);
-    setIsPermissionModal(true);
-  };
+  const supersetExeAmount = (text, index) => {
+    setSupersetOptions(currentOptions => {
+      const nextOptions = [...currentOptions];
+      nextOptions[index] = {
+        ...(nextOptions[index] || {}),
+        amount: text,
+      };
+      return nextOptions;
+    });
 
-  const onAddBtnPress = () => {
-    setUnit('');
-    setAmount('');
-    setExercise('');
-    setNumberOfSets('');
-    setExeIndex(null);
-    addNoteFields[0].value = '';
-    setAddExerciseModal(true);
-  };
-
-  const onSupersetModalBtnPress = () => {
-    if (numberOfExercises && numberOfSets) {
-      setBtnTitle('Add');
-      setHeading('Add Exercises');
-      setSupersetModal(false);
-      setIsAddSupersetExercise(true);
-    } else {
-      showMessage('Error!', 'All fields are required.');
-    }
-  };
-
-  const onAddNote = () => {
-    setCreateExerciseModal(false);
-  };
-
-  const onCloseCreateNoteModal = () => {
-    const tempWeekData = myWeekPlan?.weekDays;
-    const index = tempWeekData?.findIndex(a => a.day == selectedDay.day);
-    const data = tempWeekData?.[index];
-    setNote(data?.note || note);
-    addNoteFields[0].value = data?.note || note;
-    setCreateExerciseModal(false);
+    clearSupersetRowError(index, 'amount');
   };
 
   const calorieCalculationHandler = item => {
@@ -313,157 +552,305 @@ export default function EditProgramPage(props) {
     return `${calories}`;
   };
 
-  const onAddCardioExe = async () => {
-    if (exercise.trim() && amount.trim() && unit.trim()) {
-      const calories = await calorieCalculationHandler();
-      const type =
-        selectedExerciseOption === 'SPORT'
-          ? 'SPORT EXERCISE'
-          : 'CARDIO EXERCISE';
+  const validateSingleExerciseForm = () => {
+    const errors = {};
 
-      if (calories) {
-        if (btnTitle === 'Save') {
-          allDayPlan[exeIndex] = {
-            type,
-            exercise,
-            met,
-            rpm,
-            mph,
-            unit,
-            amount,
-            rtd: `${amount} ${unit}`,
-            cal: await calorieCalculationHandler(),
-          };
-        } else {
-          allDayPlan.push({
-            type,
-            exercise,
-            met,
-            rpm,
-            mph,
-            unit,
-            amount,
-            rtd: `${amount} ${unit}`,
-            cal: await calorieCalculationHandler(),
-          });
-        }
-
-        setRpm(0);
-        setMph(0);
-        setMet(0);
-        setCardioExeModal(false);
-      } else {
-        showMessage(
-          'Error!',
-          'Please select appropriate unit for the selected exercise.',
-        );
-      }
-    } else {
-      showMessage('Error!', 'All fields are required.');
+    if (!exercise.trim()) {
+      errors.exercise = 'Select an exercise.';
     }
+    if (!numberOfSets.trim()) {
+      errors.numberOfSets = 'Select the number of sets.';
+    }
+    if (!amount.trim()) {
+      errors.amount = 'Enter an amount.';
+    } else if (!isFiniteDecimal(amount)) {
+      errors.amount = 'Amount must be a number.';
+    }
+    if (!unit.trim()) {
+      errors.unit = 'Select a unit.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setSingleExerciseFieldErrors(errors);
+      setSingleExerciseFormErrorText(
+        'Check the highlighted exercise fields before saving.',
+      );
+      return null;
+    }
+
+    const calories = calorieCalculationHandler();
+
+    if (!calories) {
+      setSingleExerciseFieldErrors({
+        unit: 'Select a unit that matches the chosen exercise.',
+      });
+      setSingleExerciseFormErrorText(
+        'Check the highlighted exercise fields before saving.',
+      );
+      return null;
+    }
+
+    return calories;
   };
 
-  const onAddSingleExercise = async () => {
-    if (
-      exercise.trim() &&
-      numberOfSets.trim() &&
-      amount.trim() &&
-      unit.trim()
-    ) {
-      const calories = await calorieCalculationHandler();
+  const validateCardioForm = () => {
+    const errors = {};
 
-      if (calories) {
-        if (btnTitle === 'Save') {
-          allDayPlan[exeIndex] = {
-            type: 'SINGLE EXERCISE',
-            exercise,
-            met,
-            rpm,
-            mph,
-            unit,
-            amount,
-            set: numberOfSets,
-            rtd: `${amount} ${unit}`,
-            cal: calories,
-          };
-        } else {
-          allDayPlan.push({
-            type: 'SINGLE EXERCISE',
-            exercise,
-            met,
-            rpm,
-            mph,
-            unit,
-            amount,
-            set: numberOfSets,
-            rtd: `${amount} ${unit}`,
-            cal: calories,
-          });
-        }
-
-        setRpm(0);
-        setMph(0);
-        setMet(0);
-        setSingleExerciseModal(false);
-      } else {
-        showMessage(
-          'Error!',
-          'Please select appropriate unit for the selected exercise.',
-        );
-      }
-    } else {
-      showMessage('Error!', 'All fields are required.');
+    if (!exercise.trim()) {
+      errors.exercise = 'Select an exercise.';
     }
+    if (!amount.trim()) {
+      errors.amount = 'Enter an amount.';
+    } else if (!isFiniteDecimal(amount)) {
+      errors.amount = 'Amount must be a number.';
+    }
+    if (!unit.trim()) {
+      errors.unit = 'Select a unit.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setCardioFieldErrors(errors);
+      setCardioFormErrorText(
+        'Check the highlighted exercise fields before saving.',
+      );
+      return null;
+    }
+
+    const calories = calorieCalculationHandler();
+
+    if (!calories) {
+      setCardioFieldErrors({
+        unit: 'Select a unit that matches the chosen exercise.',
+      });
+      setCardioFormErrorText(
+        'Check the highlighted exercise fields before saving.',
+      );
+      return null;
+    }
+
+    return calories;
   };
 
-  const onAddSupersetExercises = async () => {
-    const temp = supersetOptions.filter(i => i.exercise && i.unit && i.amount);
+  const validateSupersetSetup = () => {
+    const errors = {};
 
-    if (
-      (btnTitle === 'Save' && supersetOptions.length == temp.length) ||
-      (supersetOptions.length && temp.length) == numberOfExercises
-    ) {
-      let checker = true;
+    if (!numberOfExercises.trim()) {
+      errors.numberOfExercises = 'Select the number of exercises.';
+    }
+    if (!numberOfSets.trim()) {
+      errors.numberOfSets = 'Select the number of sets.';
+    }
 
-      await supersetOptions.map(async (item, index) => {
-        const calories = await calorieCalculationHandler(item);
+    setSupersetSetupFieldErrors(errors);
+    setSupersetSetupFormErrorText(
+      Object.keys(errors).length > 0
+        ? 'Check the highlighted superset fields before continuing.'
+        : '',
+    );
 
-        if (calories) {
-          supersetOptions[index] = {
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateSupersetItems = () => {
+    const totalExercises = Number(numberOfExercises || supersetOptions.length);
+    const nextRowErrors = Array.from({length: totalExercises}, () => ({}));
+    const finalizedOptions = createSupersetDraft(totalExercises, supersetOptions);
+    let hasErrors = false;
+
+    finalizedOptions.forEach((item, index) => {
+      if (!item.exercise) {
+        nextRowErrors[index].exercise = 'Select an exercise.';
+        hasErrors = true;
+      }
+      if (!`${item.amount || ''}`.trim()) {
+        nextRowErrors[index].amount = 'Enter an amount.';
+        hasErrors = true;
+      } else if (!isFiniteDecimal(`${item.amount}`)) {
+        nextRowErrors[index].amount = 'Amount must be a number.';
+        hasErrors = true;
+      }
+      if (!item.unit) {
+        nextRowErrors[index].unit = 'Select a unit.';
+        hasErrors = true;
+      }
+    });
+
+    if (!hasErrors) {
+      finalizedOptions.forEach((item, index) => {
+        const calories = calorieCalculationHandler(item);
+
+        if (!calories) {
+          nextRowErrors[index].unit =
+            'Select a unit that matches the chosen exercise.';
+          hasErrors = true;
+        } else {
+          finalizedOptions[index] = {
             ...item,
             cal: calories,
           };
-        } else {
-          checker = false;
-          showMessage(
-            'Error!',
-            'Please select appropriate unit for the selected exercise.',
-          );
         }
       });
-
-      if (checker) {
-        if (btnTitle === 'Save') {
-          allDayPlan[exeIndex] = {
-            type: 'SUPERSET',
-            exercise: 'Superset',
-            set: numberOfSets,
-            supersetOptions,
-          };
-        } else {
-          allDayPlan.push({
-            type: 'SUPERSET',
-            exercise: 'Superset',
-            set: numberOfSets,
-            supersetOptions,
-          });
-        }
-
-        setIsAddSupersetExercise(false);
-      }
-    } else {
-      showMessage('Error!', 'All fields are required.');
     }
+
+    setSupersetFieldErrors(nextRowErrors);
+    setSupersetItemsFormErrorText(
+      hasErrors
+        ? 'Check the highlighted superset exercise fields before saving.'
+        : '',
+    );
+
+    return hasErrors ? null : finalizedOptions;
+  };
+
+  const updateAllDayPlan = nextEntry => {
+    setAllDayPlan(currentPlan => {
+      const nextPlan = [...currentPlan];
+
+      if (btnTitle === 'Save' && exeIndex !== null) {
+        nextPlan[exeIndex] = nextEntry;
+      } else {
+        nextPlan.push(nextEntry);
+      }
+
+      return nextPlan;
+    });
+  };
+
+  const onAddCardioExe = async () => {
+    if (entryActionLockRef.current || cardioPending) {
+      return;
+    }
+
+    const calories = validateCardioForm();
+
+    if (!calories) {
+      return;
+    }
+
+    entryActionLockRef.current = true;
+    setCardioPending(true);
+
+    const type =
+      selectedExerciseOption === 'SPORT' ? 'SPORT EXERCISE' : 'CARDIO EXERCISE';
+
+    updateAllDayPlan({
+      type,
+      exercise,
+      met,
+      rpm,
+      mph,
+      unit,
+      amount,
+      rtd: `${amount} ${unit}`,
+      cal: calories,
+    });
+
+    resetCardioValidation(false);
+    setCardioExeModal(false);
+    resetExerciseDraft();
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const onAddSingleExercise = async () => {
+    if (entryActionLockRef.current || singleExercisePending) {
+      return;
+    }
+
+    const calories = validateSingleExerciseForm();
+
+    if (!calories) {
+      return;
+    }
+
+    entryActionLockRef.current = true;
+    setSingleExercisePending(true);
+
+    updateAllDayPlan({
+      type: 'SINGLE EXERCISE',
+      exercise,
+      met,
+      rpm,
+      mph,
+      unit,
+      amount,
+      set: numberOfSets,
+      rtd: `${amount} ${unit}`,
+      cal: calories,
+    });
+
+    resetSingleExerciseValidation(false);
+    setSingleExerciseModal(false);
+    resetExerciseDraft();
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const onSupersetModalBtnPress = () => {
+    if (entryActionLockRef.current || supersetSetupPending) {
+      return;
+    }
+
+    if (!validateSupersetSetup()) {
+      return;
+    }
+
+    entryActionLockRef.current = true;
+    setSupersetSetupPending(true);
+    setBtnTitle('Add');
+    setHeading('Add Exercises');
+    setSupersetOptions(createSupersetDraft(numberOfExercises));
+    setSupersetModal(false);
+    setIsAddSupersetExercise(true);
+    resetSupersetSetupValidation();
+  };
+
+  const onAddSupersetExercises = async () => {
+    if (entryActionLockRef.current || supersetItemsPending) {
+      return;
+    }
+
+    const finalizedOptions = validateSupersetItems();
+
+    if (!finalizedOptions) {
+      return;
+    }
+
+    entryActionLockRef.current = true;
+    setSupersetItemsPending(true);
+
+    updateAllDayPlan({
+      type: 'SUPERSET',
+      exercise: 'Superset',
+      set: numberOfSets,
+      supersetOptions: finalizedOptions,
+    });
+
+    resetSupersetItemsValidation(false);
+    setIsAddSupersetExercise(false);
+    setSupersetWheelPicker(false);
+    setSupersetExeIndex(null);
+    setSupersetOptions([]);
+    setNumberOfExercises('');
+    setNumberOfSets('');
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const onAddNote = () => {
+    setCreateExerciseModal(false);
+    setIsDeleteBtn(false);
+    setExeIndex(null);
+  };
+
+  const onRequestDeleteEntry = () => {
+    setCheck('deleteEntry');
+    setIsPermissionModal(true);
+  };
+
+  const onRequestDeleteNote = () => {
+    setCheck('deleteNote');
+    setIsPermissionModal(true);
   };
 
   const onSaveHandler = async () => {
@@ -471,12 +858,15 @@ export default function EditProgramPage(props) {
     let response = null;
 
     if (myWeekPlan?.id) {
-      const tempWeekData = myWeekPlan?.weekDays;
+      const tempWeekData = [...(myWeekPlan?.weekDays || [])];
       const index = tempWeekData.findIndex(a => a.day == selectedDay.day);
 
       if (index >= 0) {
-        tempWeekData[index].plan = allDayPlan;
-        if (note) tempWeekData[index].note = note;
+        tempWeekData[index] = {
+          ...tempWeekData[index],
+          plan: allDayPlan,
+          note,
+        };
       }
 
       response = await onEditWeekPlan(selectedProgram.id, myWeekPlan.id, {
@@ -485,7 +875,7 @@ export default function EditProgramPage(props) {
           index >= 0
             ? tempWeekData
             : [
-                ...myWeekPlan.weekDays,
+                ...tempWeekData,
                 {
                   day: selectedDay.day,
                   note,
@@ -522,58 +912,71 @@ export default function EditProgramPage(props) {
   };
 
   const onDonePermissionModal = async () => {
-    if (check === 'delete') {
-      setDeleteLoader(true);
-      if (exeIndex !== null) allDayPlan.splice(exeIndex, 1);
+    if (check !== 'deleteEntry' && check !== 'deleteNote') {
+      closePermissionModal();
+      return;
+    }
 
-      const tempWeekData = myWeekPlan?.weekDays;
-      const index = tempWeekData?.findIndex(a => a.day == selectedDay.day);
+    if (deleteLoader) {
+      return;
+    }
 
-      if (tempWeekData && tempWeekData[index]?.plan) {
-        tempWeekData[index].plan = allDayPlan;
-        tempWeekData[index].note = note;
+    const {tempWeekData, index, data} = getCurrentDayData();
+    const nextPlan =
+      check === 'deleteEntry'
+        ? allDayPlan.filter((_, indexValue) => indexValue !== exeIndex)
+        : allDayPlan;
+    const nextNote = check === 'deleteNote' ? '' : note;
 
-        const response = await onEditWeekPlan(
-          selectedProgram.id,
-          myWeekPlan.id,
-          {
-            week: myWeekPlan.week,
-            weekDays: tempWeekData,
-          },
-        );
+    setDeleteLoader(true);
 
-        if (response === true) {
-          setCheck('');
-          setDeleteLoader(false);
-          setSingleExerciseModal(false);
-          setIsAddSupersetExercise(false);
-          setCreateExerciseModal(false);
-          setCardioExeModal(false);
-          showMessage(
-            'Success!',
-            `Week ${myWeekPlan.week} day ${selectedDay.day} updated successfully.`,
-          );
-        } else {
-          setCheck('');
-          setDeleteLoader(false);
-          showMessage('Error!', response);
-        }
+    let response = true;
+
+    if (tempWeekData.length > 0 && index >= 0 && data) {
+      const nextWeekData = [...tempWeekData];
+      nextWeekData[index] = {
+        ...data,
+        plan: nextPlan,
+        note: nextNote,
+      };
+
+      response = await onEditWeekPlan(selectedProgram.id, myWeekPlan.id, {
+        week: myWeekPlan.week,
+        weekDays: nextWeekData,
+      });
+    }
+
+    setDeleteLoader(false);
+
+    if (response === true) {
+      if (check === 'deleteEntry') {
+        setAllDayPlan(nextPlan);
       } else {
-        setCheck('');
-        setDeleteLoader(false);
-        setSingleExerciseModal(false);
-        setIsAddSupersetExercise(false);
-        setCreateExerciseModal(false);
-        setCardioExeModal(false);
-        setIsPermissionModal(false);
+        setNote('');
       }
-    } else {
+
       setCheck('');
       setIsPermissionModal(false);
-      setTimeout(() => {
-        setAlertText('');
-        setAlertHeading('');
-      }, 500);
+      setSingleExerciseModal(false);
+      setIsAddSupersetExercise(false);
+      setCreateExerciseModal(false);
+      setCardioExeModal(false);
+      setIsDeleteBtn(false);
+      setExeIndex(null);
+      resetSingleExerciseValidation();
+      resetCardioValidation();
+      resetSupersetItemsValidation();
+
+      if (tempWeekData.length > 0 && index >= 0 && data) {
+        showMessage(
+          'Success!',
+          `Week ${myWeekPlan.week || selectedDay.week} day ${
+            selectedDay.day
+          } updated successfully.`,
+        );
+      }
+    } else {
+      showMessage('Error!', response);
     }
   };
 
@@ -587,8 +990,6 @@ export default function EditProgramPage(props) {
       btnTitle={btnTitle}
       wheelPickerModal={wheelPickerModal}
       setWheelPickerModal={setWheelPickerModal}
-      showDeleteBtn={showDeleteBtn}
-      setShowDeleteBtn={setShowDeleteBtn}
       addExerciseOptions={addExerciseOptions}
       addExerciseModal={addExerciseModal}
       setAddExerciseModal={setAddExerciseModal}
@@ -596,54 +997,64 @@ export default function EditProgramPage(props) {
       setSelectedExerciseOption={setSelectedExerciseOption}
       onNextBtnPress={onNextBtnPress}
       createExerciseModal={createExerciseModal}
-      setCreateExerciseModal={setCreateExerciseModal}
       createItemFields={createItemFields}
-      setCreateItemFields={setCreateItemFields}
       isAddSupersetExercise={isAddSupersetExercise}
-      setIsAddSupersetExercise={setIsAddSupersetExercise}
       onEditExercise={onEditExercise}
       isDeleteBtn={isDeleteBtn}
       isPermissionModal={isPermissionModal}
-      setIsPermissionModal={setIsPermissionModal}
-      onAddCardioExe={onAddCardioExe}
       onPickerItemSelect={onPickerItemSelect}
       allDayPlan={allDayPlan}
       note={note}
-      setNote={setNote}
       unit={unit}
       exercise={exercise}
       numberOfSets={numberOfSets}
       amount={amount}
-      setAmount={setAmount}
       singleExerciseModal={singleExerciseModal}
-      setSingleExerciseModal={setSingleExerciseModal}
       alertHeading={alertHeading}
       alertText={alertText}
       btnLoader={btnLoader}
       onAddSingleExercise={onAddSingleExercise}
+      onAddCardioExe={onAddCardioExe}
       supersetModal={supersetModal}
-      setSupersetModal={setSupersetModal}
       numberOfExercises={numberOfExercises}
       onSupersetModalBtnPress={onSupersetModalBtnPress}
       onAddBtnPress={onAddBtnPress}
       onSaveHandler={onSaveHandler}
       onDonePermissionModal={onDonePermissionModal}
-      setCheck={setCheck}
       deleteLoader={deleteLoader}
-      onChangeText={onChangeText}
+      onChangeText={text => setNote(text)}
       onAddNote={onAddNote}
-      setExeIndex={setExeIndex}
       onCloseCreateNoteModal={onCloseCreateNoteModal}
       cardioExeModal={cardioExeModal}
-      setCardioExeModal={setCardioExeModal}
-      setSupersetExeIndex={setSupersetExeIndex}
       supersetOptions={supersetOptions}
       supersetWheelPicker={supersetWheelPicker}
       setSupersetWheelPicker={setSupersetWheelPicker}
       onSupersetPickerSelect={onSupersetPickerSelect}
-      supersetExeAmount={supersetExeAmount}
+      onSupersetAmountChange={supersetExeAmount}
       onAddSupersetExercises={onAddSupersetExercises}
       pickerContent={pickerType}
+      singleExerciseFieldErrors={singleExerciseFieldErrors}
+      singleExerciseFormErrorText={singleExerciseFormErrorText}
+      singleExercisePending={singleExercisePending}
+      onSingleAmountChange={onSingleAmountChange}
+      closeSingleExerciseModal={closeSingleExerciseModal}
+      cardioFieldErrors={cardioFieldErrors}
+      cardioFormErrorText={cardioFormErrorText}
+      cardioPending={cardioPending}
+      onCardioAmountChange={onCardioAmountChange}
+      closeCardioExerciseModal={closeCardioExerciseModal}
+      supersetSetupFieldErrors={supersetSetupFieldErrors}
+      supersetSetupFormErrorText={supersetSetupFormErrorText}
+      supersetSetupPending={supersetSetupPending}
+      closeSupersetSetupModal={closeSupersetSetupModal}
+      supersetFieldErrors={supersetFieldErrors}
+      supersetItemsFormErrorText={supersetItemsFormErrorText}
+      supersetItemsPending={supersetItemsPending}
+      closeSupersetItemsModal={closeSupersetItemsModal}
+      onRequestDeleteEntry={onRequestDeleteEntry}
+      onRequestDeleteNote={onRequestDeleteNote}
+      closePermissionModal={closePermissionModal}
+      setSupersetExeIndex={setSupersetExeIndex}
     />
   );
 }

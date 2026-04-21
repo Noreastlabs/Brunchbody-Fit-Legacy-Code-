@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { connect, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import moment from 'moment';
@@ -48,20 +48,36 @@ const programMenuOptions = [
   { id: 2, option: 'CREATE A PLAN' },
 ];
 
-const createProgramFields = [
-  {
-    id: 1,
-    fieldName: 'Program Name',
-    placeholder: 'Enter Name',
-  },
-  {
-    id: 2,
-    fieldName: 'Number of Weeks (30 Max)',
-    picker: true,
-    pickerLabel: 'Weeks',
-    pickerContent: wheelPickerItems.weeks,
-  },
-];
+const getCreateItemFields = ({ program, title, week, fieldErrors }) => {
+  const isCustomProgram = program === 'Custom Program';
+  const itemName = isCustomProgram ? 'Program' : 'Routine';
+
+  return [
+    {
+      id: 1,
+      value: title,
+      state: 'title',
+      fieldName: `${itemName} Name`,
+      placeholder: 'Enter Name',
+      helperText: `Enter a clear ${itemName.toLowerCase()} name.`,
+      errorText: fieldErrors.title,
+    },
+    ...(isCustomProgram
+      ? [
+          {
+            id: 2,
+            fieldName: 'Number of Weeks (30 Max)',
+            picker: true,
+            pickerLabel: 'Weeks',
+            pickerContent: wheelPickerItems.weeks,
+            value: week,
+            helperText: 'Select the number of weeks for this program.',
+            errorText: fieldErrors.week,
+          },
+        ]
+      : []),
+  ];
+};
 
 let yearsList = [];
 
@@ -118,7 +134,6 @@ export default function RecreationPage(props) {
   const [btnTitle, setBtnTitle] = useState('');
   const [program, setProgram] = useState('');
   const [selectedSequence, setSelectedSequence] = useState('SINGLE WORKOUT');
-  const [createItemFields, setCreateItemFields] = useState([]);
   const [pickerItems, setPickerItems] = useState([]);
   const [isVisible, setIsVisible] = useState(false);
   const [createItemModal, setCreateItemModal] = useState(false);
@@ -143,13 +158,23 @@ export default function RecreationPage(props) {
   const [pickerType, setPickerType] = useState('');
   const [week, setWeek] = useState('');
   const [day, setDay] = useState('');
+  const [createItemFieldErrors, setCreateItemFieldErrors] = useState({});
+  const [createItemErrorText, setCreateItemErrorText] = useState('');
+  const [createItemPending, setCreateItemPending] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
   const [daysInMonth, setDaysInMonth] = useState(0);
   const [check, setCheck] = useState('');
   const [workouts, setWorkouts] = useState([]);
+  const createItemLockRef = useRef(false);
 
   const dispatch = useDispatch();
+  const createItemFields = getCreateItemFields({
+    program,
+    title,
+    week,
+    fieldErrors: createItemFieldErrors,
+  });
 
   const onNavigate = async () => {
     if (screen) {
@@ -213,6 +238,73 @@ export default function RecreationPage(props) {
     setAlertHeading(headingText);
     setAlertText(text);
     setPermissionModal(true);
+  };
+
+  const resetCreateItemState = () => {
+    createItemLockRef.current = false;
+    setCreateItemPending(false);
+    setCreateItemModal(false);
+    setWheelPickerModal(false);
+    setTitle('');
+    setProgram('');
+    setWeek('');
+    setPickerType('');
+    setCreateItemFieldErrors({});
+    setCreateItemErrorText('');
+  };
+
+  const openCreateItemModal = nextProgram => {
+    createItemLockRef.current = false;
+    setCreateItemPending(false);
+    setCreateItemFieldErrors({});
+    setCreateItemErrorText('');
+    setTitle('');
+    setWeek('');
+    setPickerType('');
+    setProgram(nextProgram);
+    setHeading(nextProgram === 'Custom Program' ? 'Create Program' : 'Create Routine');
+    setBtnTitle('Create');
+    setSubText('');
+    setCreateItemModal(true);
+  };
+
+  const closeCreateItemModal = () => {
+    resetCreateItemState();
+  };
+
+  const onCreateItemTitleChange = text => {
+    setTitle(text);
+    setCreateItemFieldErrors(currentErrors => ({
+      ...currentErrors,
+      title: '',
+    }));
+    setCreateItemErrorText('');
+  };
+
+  const validateCreateItem = () => {
+    const errors = {};
+
+    if (!title.trim()) {
+      errors.title =
+        program === 'Custom Program'
+          ? 'Enter a program name.'
+          : 'Enter a routine name.';
+    }
+
+    if (program === 'Custom Program' && !week.trim()) {
+      errors.week = 'Select the number of weeks.';
+    }
+
+    setCreateItemFieldErrors(errors);
+    setCreateItemErrorText(
+      Object.keys(errors).length > 0
+        ? program === 'Custom Program'
+          ? 'Check the highlighted program fields before creating it.'
+          : 'Check the highlighted routine fields before creating it.'
+        : '',
+    );
+
+    return Object.keys(errors).length === 0;
   };
 
   const getDaysInMonth = currentMonth => {
@@ -536,11 +628,7 @@ export default function RecreationPage(props) {
       navigation.navigate(RECREATION_ROUTES.MY_EXERCISES);
     } else {
       setProgramMenuModal(false);
-      setCreateItemModal(true);
-      setHeading('Create Program');
-      setBtnTitle('Create');
-      setProgram('Custom Program');
-      setCreateItemFields(createProgramFields);
+      openCreateItemModal('Custom Program');
     }
   };
 
@@ -550,6 +638,11 @@ export default function RecreationPage(props) {
     }
     if (pickerType === 'Weeks') {
       setWeek(pickerItems[index - 1].value);
+      setCreateItemFieldErrors(currentErrors => ({
+        ...currentErrors,
+        week: '',
+      }));
+      setCreateItemErrorText('');
     }
   };
 
@@ -565,36 +658,37 @@ export default function RecreationPage(props) {
   };
 
   const onCreateItem = async () => {
-    setLoader(true);
+    if (createItemLockRef.current || createItemPending) {
+      return;
+    }
+
+    if (!validateCreateItem()) {
+      return;
+    }
+
+    createItemLockRef.current = true;
+    setCreateItemPending(true);
 
     let response;
-    if (title.trim()) {
-      if (program === 'Custom Program') {
-        response = await onAddCustomPlan({
-          name: title,
-          numOfWeeks: week,
-        });
-      } else {
-        response = await onAddRoutine({
-          name: title,
-        });
-      }
 
-      if (response === true) {
-        setTitle('');
-        setProgram('');
-        setDay('');
-        setWeek('');
-        setPickerType('');
-        setLoader(false);
-        setCreateItemModal(false);
-      } else {
-        setLoader(false);
-        showMessage('Error!', response);
-      }
+    if (program === 'Custom Program') {
+      response = await onAddCustomPlan({
+        name: title.trim(),
+        numOfWeeks: week,
+      });
     } else {
-      setLoader(false);
-      showMessage('Error!', 'All fields are required.');
+      response = await onAddRoutine({
+        name: title.trim(),
+      });
+    }
+
+    createItemLockRef.current = false;
+    setCreateItemPending(false);
+
+    if (response === true) {
+      closeCreateItemModal();
+    } else {
+      showMessage('Error!', response);
     }
   };
 
@@ -759,9 +853,8 @@ export default function RecreationPage(props) {
       btnTitle={btnTitle}
       setBtnTitle={setBtnTitle}
       createItemFields={createItemFields}
-      setCreateItemFields={setCreateItemFields}
       createItemModal={createItemModal}
-      setCreateItemModal={setCreateItemModal}
+      closeCreateItemModal={closeCreateItemModal}
       pickerItems={pickerItems}
       setPickerItems={setPickerItems}
       wheelPickerModal={wheelPickerModal}
@@ -807,12 +900,15 @@ export default function RecreationPage(props) {
       onProgramMenuSelect={onProgramMenuSelect}
       onCreateItem={onCreateItem}
       title={title}
-      setTitle={setTitle}
+      onCreateItemTitleChange={onCreateItemTitleChange}
       week={week}
       day={day}
       setPickerType={setPickerType}
       onPickerItemSelect={onPickerItemSelect}
       onCancelWheelPicker={onCancelWheelPicker}
+      createItemPending={createItemPending}
+      createItemErrorText={createItemErrorText}
+      openCreateRoutineModal={() => openCreateItemModal('Routine Program')}
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}

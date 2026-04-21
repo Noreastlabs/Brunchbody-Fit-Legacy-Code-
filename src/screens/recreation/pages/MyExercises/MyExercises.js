@@ -1,8 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { wheelPickerItems } from '../../../../resources';
 import { MyExercises } from '../../components';
 import {
   addExercise,
@@ -10,18 +9,29 @@ import {
   editExercise,
 } from '../../../../redux/actions';
 
-const createExerciseFields = [
+const getCreateExerciseFields = ({
+  exerciseName,
+  equivalentExercise,
+  exerciseType,
+  fieldErrors,
+}) => [
   {
     id: 1,
+    value: exerciseName,
+    state: 'exerciseName',
     fieldName: 'Exercise Name',
     placeholder: 'Enter Name',
+    helperText: 'Use a clear label for this exercise.',
+    errorText: fieldErrors.exerciseName,
   },
   {
     id: 2,
+    value: equivalentExercise?.name || '',
     fieldName: 'Select Exercise Equivalent',
     picker: true,
     pickerLabel: 'Exercise',
-    pickerContent: wheelPickerItems.exercises,
+    helperText: `Choose the ${exerciseType.toLowerCase()} equivalent for this entry.`,
+    errorText: fieldErrors.equivalentExercise,
   },
 ];
 
@@ -39,7 +49,6 @@ export default function MyExercisesPage(props) {
     onUpdateExercise,
     allExercises,
   } = props;
-  const [btnLoader, setBtnLoader] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
   const [exeTypeModal, setExeTypeModal] = useState(false);
@@ -51,9 +60,30 @@ export default function MyExercisesPage(props) {
   const [exerciseType, setExerciseType] = useState('EXERCISE');
   const [exerciseId, setExerciseId] = useState(null);
   const [equivalentExercise, setEquivalentExercise] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [createItemFormErrorText, setCreateItemFormErrorText] = useState('');
+  const [editItemFormErrorText, setEditItemFormErrorText] = useState('');
+  const [submitPending, setSubmitPending] = useState(false);
+  const [deleteLoader, setDeleteLoader] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
   const [check, setCheck] = useState('');
+  const submitLockRef = useRef(false);
+  const deleteLockRef = useRef(false);
+  const normalizedExerciseType = exerciseType.toLowerCase();
+  const availableEquivalentExercises = useMemo(
+    () =>
+      allExercises.filter(
+        item => item?.type?.toLowerCase() === normalizedExerciseType,
+      ),
+    [allExercises, normalizedExerciseType],
+  );
+  const createExerciseFields = getCreateExerciseFields({
+    exerciseName,
+    equivalentExercise,
+    exerciseType,
+    fieldErrors,
+  });
 
   const showMessage = (headingText, text) => {
     setAlertHeading(headingText);
@@ -61,9 +91,136 @@ export default function MyExercisesPage(props) {
     setPermissionModal(true);
   };
 
+  const resetExerciseForm = () => {
+    setExerciseName('');
+    setExerciseType('EXERCISE');
+    setExerciseId(null);
+    setEquivalentExercise({});
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+  };
+
+  const closeCreateItemModal = () => {
+    submitLockRef.current = false;
+    setSubmitPending(false);
+    setCreateItemModal(false);
+    setWheelPickerModal(false);
+    resetExerciseForm();
+  };
+
+  const closeEditExerciseModal = () => {
+    submitLockRef.current = false;
+    setSubmitPending(false);
+    setEditExerciseModal(false);
+    setWheelPickerModal(false);
+    resetExerciseForm();
+  };
+
+  const onOpenCreateExerciseTypeModal = () => {
+    submitLockRef.current = false;
+    setSubmitPending(false);
+    setExeTypeModal(true);
+    resetExerciseForm();
+  };
+
+  const onOpenExerciseActions = item => {
+    setHeading(item.name);
+    setExerciseId(item.id);
+    setExerciseName(item.name || '');
+    setEquivalentExercise(
+      allExercises.find(a => a.name === item.equivalentExercise) || item,
+    );
+    setExerciseType((item.type || 'EXERCISE').toUpperCase());
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+    setIsVisible(true);
+  };
+
+  const onOpenEditExerciseModal = () => {
+    if (!exerciseId) {
+      return;
+    }
+
+    submitLockRef.current = false;
+    setSubmitPending(false);
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+    setIsVisible(false);
+    setEditExerciseModal(true);
+  };
+
+  const onExerciseNameChange = text => {
+    setExerciseName(text);
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      exerciseName: '',
+    }));
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+  };
+
+  const openEquivalentExercisePicker = () => {
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      equivalentExercise: '',
+    }));
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+    setWheelPickerModal(true);
+  };
+
+  const onEquivalentExerciseSelect = index => {
+    const selectedExercise = availableEquivalentExercises[index - 1];
+
+    if (!selectedExercise) {
+      return;
+    }
+
+    setEquivalentExercise(selectedExercise);
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      equivalentExercise: '',
+    }));
+    setCreateItemFormErrorText('');
+    setEditItemFormErrorText('');
+  };
+
+  const validateExerciseForm = mode => {
+    const errors = {};
+
+    if (!exerciseName.trim()) {
+      errors.exerciseName = 'Enter an exercise name.';
+    }
+
+    if (!equivalentExercise?.name) {
+      errors.equivalentExercise = 'Select an equivalent exercise.';
+    }
+
+    setFieldErrors(errors);
+
+    const formErrorText =
+      Object.keys(errors).length > 0
+        ? 'Check the highlighted exercise fields before saving.'
+        : '';
+
+    if (mode === 'create') {
+      setCreateItemFormErrorText(formErrorText);
+    } else {
+      setEditItemFormErrorText(formErrorText);
+    }
+
+    return Object.keys(errors).length === 0;
+  };
+
   const onNextBtnPress = () => {
     if (exerciseType) {
       setExeTypeModal(false);
+      setFieldErrors({});
+      setCreateItemFormErrorText('');
+      setEditItemFormErrorText('');
       setCreateItemModal(true);
     } else {
       showMessage('Error!', 'Please select exercise type.');
@@ -71,73 +228,88 @@ export default function MyExercisesPage(props) {
   };
 
   const onAddExercise = async () => {
-    if (exerciseName.trim() && equivalentExercise !== '') {
-      setBtnLoader(true);
+    if (submitLockRef.current || submitPending) {
+      return;
+    }
 
-      const response = await onCreateExercise({
-        name: exerciseName,
-        equivalentExercise: equivalentExercise.name,
-        met: equivalentExercise.met,
-        rpm: equivalentExercise.rpm || 0,
-        mph: equivalentExercise.mph || 0,
-        type: exerciseType.toLowerCase(),
-      });
+    if (!validateExerciseForm('create')) {
+      return;
+    }
 
-      if (response === true) {
-        setExerciseName('');
-        setEquivalentExercise('');
-        setBtnLoader(false);
-        setCreateItemModal(false);
-      } else {
-        setBtnLoader(false);
-        showMessage('Error!', response);
-      }
+    submitLockRef.current = true;
+    setSubmitPending(true);
+
+    const response = await onCreateExercise({
+      name: exerciseName.trim(),
+      equivalentExercise: equivalentExercise.name,
+      met: equivalentExercise.met,
+      rpm: equivalentExercise.rpm || 0,
+      mph: equivalentExercise.mph || 0,
+      type: normalizedExerciseType,
+    });
+
+    submitLockRef.current = false;
+    setSubmitPending(false);
+
+    if (response === true) {
+      closeCreateItemModal();
     } else {
-      showMessage('Error!', 'All fields are required.');
+      showMessage('Error!', response);
     }
   };
 
   const onEditExercise = async () => {
-    if (exerciseName.trim() && equivalentExercise !== '') {
-      setBtnLoader(true);
+    if (submitLockRef.current || submitPending || !exerciseId) {
+      return;
+    }
 
-      const response = await onUpdateExercise(exerciseId, {
-        name: exerciseName,
-        equivalentExercise: equivalentExercise.name,
-        met: equivalentExercise.met,
-        rpm: equivalentExercise.rpm || 0,
-        mph: equivalentExercise.mph || 0,
-        type: exerciseType.toLowerCase(),
-      });
+    if (!validateExerciseForm('edit')) {
+      return;
+    }
 
-      if (response === true) {
-        setExerciseName('');
-        setEquivalentExercise('');
-        setBtnLoader(false);
-        setEditExerciseModal(false);
-      } else {
-        setBtnLoader(false);
-        showMessage('Error!', response);
-      }
+    submitLockRef.current = true;
+    setSubmitPending(true);
+
+    const response = await onUpdateExercise(exerciseId, {
+      name: exerciseName.trim(),
+      equivalentExercise: equivalentExercise.name,
+      met: equivalentExercise.met,
+      rpm: equivalentExercise.rpm || 0,
+      mph: equivalentExercise.mph || 0,
+      type: normalizedExerciseType,
+    });
+
+    submitLockRef.current = false;
+    setSubmitPending(false);
+
+    if (response === true) {
+      closeEditExerciseModal();
     } else {
-      showMessage('Error!', 'All fields are required.');
+      showMessage('Error!', response);
     }
   };
 
   const onDonePermissionModal = async () => {
     if (check === 'delete') {
-      setBtnLoader(true);
+      if (deleteLockRef.current || !exerciseId) {
+        return;
+      }
+
+      deleteLockRef.current = true;
+      setDeleteLoader(true);
 
       const response = await onDeleteExercise(exerciseId);
 
+      deleteLockRef.current = false;
+      setDeleteLoader(false);
+
       if (response === true) {
         setCheck('');
-        setBtnLoader(false);
         setIsVisible(false);
         setPermissionModal(false);
+        resetExerciseForm();
       } else {
         setCheck('');
-        setBtnLoader(false);
         showMessage('Error!', response);
       }
     } else {
@@ -161,21 +333,20 @@ export default function MyExercisesPage(props) {
       permissionModal={permissionModal}
       setPermissionModal={setPermissionModal}
       createItemModal={createItemModal}
-      setCreateItemModal={setCreateItemModal}
+      closeCreateItemModal={closeCreateItemModal}
       editExerciseModal={editExerciseModal}
-      setEditExerciseModal={setEditExerciseModal}
+      closeEditExerciseModal={closeEditExerciseModal}
       createExerciseFields={createExerciseFields}
       wheelPickerModal={wheelPickerModal}
       setWheelPickerModal={setWheelPickerModal}
       exerciseName={exerciseName}
-      setExerciseName={setExerciseName}
+      onExerciseNameChange={onExerciseNameChange}
       onAddExercise={onAddExercise}
       onEditExercise={onEditExercise}
-      setExerciseId={setExerciseId}
       onDonePermissionModal={onDonePermissionModal}
       equivalentExercise={equivalentExercise}
-      setEquivalentExercise={setEquivalentExercise}
-      btnLoader={btnLoader}
+      submitPending={submitPending}
+      deleteLoader={deleteLoader}
       alertHeading={alertHeading}
       alertText={alertText}
       setCheck={setCheck}
@@ -185,6 +356,14 @@ export default function MyExercisesPage(props) {
       setExeTypeModal={setExeTypeModal}
       exerciseTypeOptions={exerciseTypeOptions}
       onNextBtnPress={onNextBtnPress}
+      onOpenCreateExerciseTypeModal={onOpenCreateExerciseTypeModal}
+      onOpenExerciseActions={onOpenExerciseActions}
+      onOpenEditExerciseModal={onOpenEditExerciseModal}
+      openEquivalentExercisePicker={openEquivalentExercisePicker}
+      onEquivalentExerciseSelect={onEquivalentExerciseSelect}
+      availableEquivalentExercises={availableEquivalentExercises}
+      createItemFormErrorText={createItemFormErrorText}
+      editItemFormErrorText={editItemFormErrorText}
     />
   );
 }
