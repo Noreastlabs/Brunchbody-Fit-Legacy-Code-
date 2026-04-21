@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import PropTypes from 'prop-types';
 import { ScrollView, Text, View } from 'react-native';
 import {
@@ -25,24 +24,27 @@ export default function NewDay(props) {
     btnTitle,
     visibilityEditEvent,
     setvisibilityEditEvent,
+    onCloseEditEvent,
     visibleColorPicker,
     setvisibleColorPicker,
-    setIsTimePickerModal,
     theme,
     onAddThemeItinerary,
     onEditThemeItinerary,
+    onDeletePress,
     onDonePermissionModal,
     fromTimePickerModal,
     setFromTimePickerModal,
     toTimePickerModal,
     setToTimePickerModal,
     permissionModal,
-    setPermissionModal,
     alertText,
     alertHeading,
     btnLoader,
-    deleteLoader,
+    permissionLoader,
     isDeleteBtn,
+    taskErrorText,
+    formErrorText,
+    actionDisabled,
     toHours,
     toMinutes,
     setToHours,
@@ -59,8 +61,6 @@ export default function NewDay(props) {
     setNote,
     task,
     setTask,
-    setCheck,
-    setEditTask,
     onCancelPermissionModal,
   } = props;
 
@@ -90,17 +90,17 @@ export default function NewDay(props) {
         visibilityEditEvent={visibilityEditEvent}
         colorTheme={newColor}
         showColorPicker={() => setvisibleColorPicker(true)}
-        hideEditEvent={() => {
-          setEditTask(false);
-          setvisibilityEditEvent(false);
-        }}
+        hideEditEvent={onCloseEditEvent}
         modalHeading={modalHeading}
         btnTitle={btnTitle}
-        setIsTimePickerModal={setIsTimePickerModal}
         isDeleteBtn={isDeleteBtn}
         btnLoader={btnLoader}
+        taskErrorText={taskErrorText}
+        formErrorText={formErrorText}
+        actionDisabled={actionDisabled}
         onAddThemeItinerary={onAddThemeItinerary}
         onEditThemeItinerary={onEditThemeItinerary}
+        onDeletePress={onDeletePress}
         setToTimePickerModal={setToTimePickerModal}
         setFromTimePickerModal={setFromTimePickerModal}
         note={note}
@@ -113,8 +113,6 @@ export default function NewDay(props) {
         toHours={toHours}
         toMinutes={toMinutes}
         toTimeFormat={toTimeFormat}
-        setPermissionModal={setPermissionModal}
-        setCheck={setCheck}
       />
 
       <Picker
@@ -164,10 +162,14 @@ export default function NewDay(props) {
 
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() => setPermissionModal(false)}
+        onDismiss={
+          alertHeading === 'Success!'
+            ? onDonePermissionModal
+            : onCancelPermissionModal
+        }
         content={
           <PermissionModal
-            loader={deleteLoader}
+            loader={permissionLoader}
             heading={alertHeading}
             text={alertText}
             isCancelBtn={
@@ -190,24 +192,27 @@ NewDay.propTypes = {
   btnTitle: PropTypes.string.isRequired,
   visibilityEditEvent: PropTypes.bool.isRequired,
   setvisibilityEditEvent: PropTypes.func.isRequired,
+  onCloseEditEvent: PropTypes.func.isRequired,
   visibleColorPicker: PropTypes.bool.isRequired,
   setvisibleColorPicker: PropTypes.func.isRequired,
-  setIsTimePickerModal: PropTypes.func.isRequired,
   theme: PropTypes.objectOf(PropTypes.any).isRequired,
   onAddThemeItinerary: PropTypes.func.isRequired,
   onEditThemeItinerary: PropTypes.func.isRequired,
+  onDeletePress: PropTypes.func.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
   fromTimePickerModal: PropTypes.bool.isRequired,
   setFromTimePickerModal: PropTypes.func.isRequired,
   toTimePickerModal: PropTypes.bool.isRequired,
   setToTimePickerModal: PropTypes.func.isRequired,
   permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
   alertText: PropTypes.string.isRequired,
   alertHeading: PropTypes.string.isRequired,
   btnLoader: PropTypes.bool.isRequired,
-  deleteLoader: PropTypes.bool.isRequired,
+  permissionLoader: PropTypes.bool.isRequired,
   isDeleteBtn: PropTypes.bool.isRequired,
+  taskErrorText: PropTypes.string.isRequired,
+  formErrorText: PropTypes.string.isRequired,
+  actionDisabled: PropTypes.bool.isRequired,
   toHours: PropTypes.string.isRequired,
   toMinutes: PropTypes.string.isRequired,
   setToHours: PropTypes.func.isRequired,
@@ -224,7 +229,5 @@ NewDay.propTypes = {
   setNote: PropTypes.func.isRequired,
   task: PropTypes.string.isRequired,
   setTask: PropTypes.func.isRequired,
-  setCheck: PropTypes.func.isRequired,
-  setEditTask: PropTypes.bool.isRequired,
   onCancelPermissionModal: PropTypes.func.isRequired,
 };

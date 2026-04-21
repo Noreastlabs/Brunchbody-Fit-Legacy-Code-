@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  StyleSheet,
   View,
   TouchableOpacity,
   TextInput,
@@ -13,6 +14,21 @@ import CloseIcon from '../../calendar/components/CloseIcon';
 import ModalButton from '../../calendar/components/ModalButton';
 import { strings, colors } from '../../../resources';
 import { TextButton } from '../../../components';
+
+const TASK_HELPER_TEXT = 'Use a clear label for this itinerary item.';
+
+const inlineStyles = StyleSheet.create({
+  supportingText: {
+    fontSize: 13,
+    marginTop: 8,
+  },
+  supportingTextInfo: {
+    color: colors.textGrey,
+  },
+  supportingTextError: {
+    color: colors.qccentError,
+  },
+});
 
 const EditEvent = ({
   visibilityEditEvent,
@@ -34,107 +50,131 @@ const EditEvent = ({
   toTimeFormat,
   task,
   setTask,
+  taskErrorText,
+  formErrorText,
+  actionDisabled,
   onAddThemeItinerary,
   onEditThemeItinerary,
   isDeleteBtn,
-  setPermissionModal,
-  setCheck,
-}) => (
-  <Modal
-    visible={visibilityEditEvent}
-    onDismiss={hideEditEvent}
-    contentContainerStyle={styles.editModalContainer}
-  >
-    <ScrollView
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ flexGrow: 1, paddingVertical: 10 }}
-    >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Headline style={styles.headline}>{modalHeading}</Headline>
-        <CloseIcon onPress={hideEditEvent} />
-      </View>
-      <Headline style={styles.editTitle}>{strings.editTodo.enterTask}</Headline>
-      <TextInput
-        value={task}
-        placeholder="Enter Task"
-        placeholderTextColor={colors.grey}
-        onChangeText={text => setTask(text)}
-        style={styles.input}
-      />
-      <Headline style={styles.editTitle}>
-        {strings.createEvent.traitColor}
-      </Headline>
+  onDeletePress,
+}) => {
+  const renderSupportingText = (text, tone = 'info') => {
+    if (!text) {
+      return null;
+    }
 
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={styles.modalTaskText}>{colorTheme}</Text>
-        <TouchableOpacity onPress={showColorPicker}>
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              backgroundColor: colorTheme,
-              marginLeft: 10,
-              borderWidth: 2,
-              borderColor: colors.black,
-            }}
-          />
-        </TouchableOpacity>
-      </View>
-      <Headline style={styles.editTitle}>
-        {strings.createEvent.eventTime}
-      </Headline>
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={styles.modalText}>{strings.createEvent.starts}</Text>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={() => setFromTimePickerModal(true)}
-        >
-          <Text style={{ color: colors.tertiary, fontSize: 16, margin: 5 }}>
-            {fromHours}:{fromMinutes} {fromTimeFormat}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <View style={{ flexDirection: 'row' }}>
-        <Text style={styles.modalText}>{strings.createEvent.ends}</Text>
-        <TouchableOpacity
-          activeOpacity={0.5}
-          onPress={() => setToTimePickerModal(true)}
-        >
-          <Text style={{ color: colors.tertiary, fontSize: 16, margin: 5 }}>
-            {toHours}:{toMinutes} {toTimeFormat}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      <Headline style={styles.editTitle}>{strings.editTodo.notes}</Headline>
-      <TextInput
-        multiline
-        value={note}
-        placeholder="Notes"
-        placeholderTextColor={colors.grey}
-        onChangeText={text => setNote(text)}
-        style={styles.notesInput}
-      />
-      <ModalButton
-        label={btnTitle}
-        loader={btnLoader}
-        onPress={
-          btnTitle === 'Save' ? onEditThemeItinerary : onAddThemeItinerary
-        }
-      />
-      {isDeleteBtn ? (
-        <View style={styles.bottomTextView2}>
-          <TextButton
-            title="Delete"
-            onPress={() => {
-              setCheck('delete');
-              setPermissionModal(true);
-            }}
-          />
+    return (
+      <Text
+        style={[
+          inlineStyles.supportingText,
+          tone === 'error'
+            ? inlineStyles.supportingTextError
+            : inlineStyles.supportingTextInfo,
+        ]}
+      >
+        {text}
+      </Text>
+    );
+  };
+
+  return (
+    <Modal
+      visible={visibilityEditEvent}
+      onDismiss={hideEditEvent}
+      contentContainerStyle={styles.editModalContainer}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, paddingVertical: 10 }}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Headline style={styles.headline}>{modalHeading}</Headline>
+          <CloseIcon onPress={hideEditEvent} />
         </View>
-      ) : null}
-    </ScrollView>
-  </Modal>
-);
+        <Headline style={styles.editTitle}>{strings.editTodo.enterTask}</Headline>
+        <TextInput
+          value={task}
+          placeholder="Enter Task"
+          placeholderTextColor={colors.grey}
+          onChangeText={text => setTask(text)}
+          style={styles.input}
+        />
+        {renderSupportingText(TASK_HELPER_TEXT)}
+        {renderSupportingText(taskErrorText, 'error')}
+        <Headline style={styles.editTitle}>
+          {strings.createEvent.traitColor}
+        </Headline>
+
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={styles.modalTaskText}>{colorTheme}</Text>
+          <TouchableOpacity onPress={showColorPicker}>
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                backgroundColor: colorTheme,
+                marginLeft: 10,
+                borderWidth: 2,
+                borderColor: colors.black,
+              }}
+            />
+          </TouchableOpacity>
+        </View>
+        <Headline style={styles.editTitle}>
+          {strings.createEvent.eventTime}
+        </Headline>
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={styles.modalText}>{strings.createEvent.starts}</Text>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => setFromTimePickerModal(true)}
+          >
+            <Text style={{ color: colors.tertiary, fontSize: 16, margin: 5 }}>
+              {fromHours}:{fromMinutes} {fromTimeFormat}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flexDirection: 'row' }}>
+          <Text style={styles.modalText}>{strings.createEvent.ends}</Text>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={() => setToTimePickerModal(true)}
+          >
+            <Text style={{ color: colors.tertiary, fontSize: 16, margin: 5 }}>
+              {toHours}:{toMinutes} {toTimeFormat}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Headline style={styles.editTitle}>{strings.editTodo.notes}</Headline>
+        <TextInput
+          multiline
+          value={note}
+          placeholder="Notes"
+          placeholderTextColor={colors.grey}
+          onChangeText={text => setNote(text)}
+          style={styles.notesInput}
+        />
+        {renderSupportingText(formErrorText, 'error')}
+        <ModalButton
+          label={btnTitle}
+          loader={btnLoader}
+          onPress={
+            btnTitle === 'Save' ? onEditThemeItinerary : onAddThemeItinerary
+          }
+        />
+        {isDeleteBtn ? (
+          <View style={styles.bottomTextView2}>
+            <TextButton
+              title="Delete"
+              disabled={actionDisabled}
+              onPress={onDeletePress}
+            />
+          </View>
+        ) : null}
+      </ScrollView>
+    </Modal>
+  );
+};
 
 EditEvent.defaultProps = {
   fromHours: '',
@@ -156,6 +196,9 @@ EditEvent.propTypes = {
   setNote: PropTypes.func.isRequired,
   task: PropTypes.string.isRequired,
   setTask: PropTypes.func.isRequired,
+  taskErrorText: PropTypes.string.isRequired,
+  formErrorText: PropTypes.string.isRequired,
+  actionDisabled: PropTypes.bool.isRequired,
   fromTimeFormat: PropTypes.string.isRequired,
   fromHours: PropTypes.string,
   fromMinutes: PropTypes.string,
@@ -166,8 +209,7 @@ EditEvent.propTypes = {
   btnLoader: PropTypes.bool.isRequired,
   onEditThemeItinerary: PropTypes.func.isRequired,
   isDeleteBtn: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
-  setCheck: PropTypes.func.isRequired,
+  onDeletePress: PropTypes.func.isRequired,
 };
 
 export default EditEvent;
