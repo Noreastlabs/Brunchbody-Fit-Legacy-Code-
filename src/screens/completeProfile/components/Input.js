@@ -24,6 +24,7 @@ Input.defaultProps = {
 };
 
 Input.propTypes = {
+  text: PropTypes.string.isRequired,
   placeholder: PropTypes.string.isRequired,
   onChangeText: PropTypes.func.isRequired,
   keyboardType: PropTypes.string,

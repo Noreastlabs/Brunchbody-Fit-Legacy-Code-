@@ -1,19 +1,17 @@
 import React from 'react';
 import {View, SafeAreaView, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
-import {
-  CustomModal,
-  LogoHeader,
-  DatePickerModal,
-  PermissionModal,
-} from '../../../components';
+import {CustomModal, LogoHeader, DatePickerModal} from '../../../components';
 import {strings} from '../../../resources';
-import {setOnboardingDraftValue} from '../../../redux/actions/onboardingStorage';
 import NextButton from './NextButton';
 import BackButton from './BackButton';
 import Label from './Label';
+import SupportingText from './SupportingText';
 import style from './style';
 import InputModal from './DateInputModal';
+
+const formatVisibleDob = ({date, month, year}) =>
+  `${month}/${date}/${year}`;
 
 const DateOfBirth = props => {
   const {
@@ -25,12 +23,8 @@ const DateOfBirth = props => {
     toggleDatePicker,
     setDatePickerVisibility,
     isDateSelected,
-    setIsDateSelected,
-    permissionModal,
-    setPermissionModal,
-    alertText,
-    alertHeading,
-    onDonePermissionModal,
+    onConfirmDate,
+    errorText,
   } = props;
 
   return (
@@ -47,13 +41,13 @@ const DateOfBirth = props => {
           <Label text={strings.completeProfile.labels.DOB} />
           <View style={style.dropdownContainer}>
             <InputModal
-              placeholder={
-                isDateSelected ? `${month}/${date}/${year}` : 'MM/DD/YYYY'
-              }
-              isDatePickerVisible={isDatePickerVisible}
+              value={isDateSelected ? formatVisibleDob({date, month, year}) : ''}
+              placeholder={strings.completeProfile.placeholders.dob}
               toggleDatePicker={toggleDatePicker}
             />
           </View>
+          <SupportingText text={strings.completeProfile.helperText.dob} />
+          <SupportingText text={errorText} tone="error" />
         </View>
 
         <NextButton
@@ -68,34 +62,22 @@ const DateOfBirth = props => {
         content={
           <DatePickerModal
             {...props}
-            onConfirm={() => {
-              setIsDateSelected(true);
+            onConfirm={selectedDate => {
+              onConfirmDate(selectedDate);
               setDatePickerVisibility(false);
-              setOnboardingDraftValue('dob', `${date}/${month}/${year}`);
             }}
             onCancel={() => {
-              // setIsDateSelected(false);
               setDatePickerVisibility(false);
-              // AsyncStorage.removeItem('dob');
             }}
-          />
-        }
-      />
-
-      <CustomModal
-        isVisible={permissionModal}
-        onDismiss={() => setPermissionModal(false)}
-        content={
-          <PermissionModal
-            heading={alertHeading}
-            text={alertText}
-            onDone={onDonePermissionModal}
-            onCancel={() => setPermissionModal(false)}
           />
         }
       />
     </SafeAreaView>
   );
+};
+
+DateOfBirth.defaultProps = {
+  errorText: '',
 };
 
 DateOfBirth.propTypes = {
@@ -107,12 +89,8 @@ DateOfBirth.propTypes = {
   toggleDatePicker: PropTypes.func.isRequired,
   setDatePickerVisibility: PropTypes.func.isRequired,
   isDateSelected: PropTypes.bool.isRequired,
-  setIsDateSelected: PropTypes.func.isRequired,
-  permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
-  alertText: PropTypes.string.isRequired,
-  alertHeading: PropTypes.string.isRequired,
-  onDonePermissionModal: PropTypes.func.isRequired,
+  onConfirmDate: PropTypes.func.isRequired,
+  errorText: PropTypes.string,
 };
 
 export default DateOfBirth;

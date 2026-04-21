@@ -6,11 +6,12 @@ import PropTypes from 'prop-types';
 import style from './style';
 import {colors} from '../../../resources';
 
-const InputModal = ({toggleDatePicker, placeholder}) => (
+const InputModal = ({toggleDatePicker, placeholder, value}) => (
   <View style={style.dropdownInput}>
     <TouchableOpacity onPress={toggleDatePicker}>
       <TextInput
         style={style.input}
+        value={value}
         placeholder={placeholder}
         placeholderTextColor={colors.grey}
         underlineColorAndroid="transparent"
@@ -32,6 +33,7 @@ const InputModal = ({toggleDatePicker, placeholder}) => (
 InputModal.propTypes = {
   toggleDatePicker: PropTypes.func.isRequired,
   placeholder: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
 };
 
 export default InputModal;

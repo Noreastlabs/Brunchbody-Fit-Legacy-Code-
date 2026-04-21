@@ -4,6 +4,7 @@ import Height from './Height';
 import Welcome from './Welcome';
 import DateOfBirth from './DateOfBirth';
 import Weight from './Weight';
+import SupportingText from './SupportingText';
 
 import ChooseInput from './ChooseInput';
 import ChooseButton from './ChooseButton';
@@ -16,6 +17,7 @@ export {
   Welcome,
   DateOfBirth,
   Weight,
+  SupportingText,
   ChooseButton,
   ChooseInput,
   ChooseLabel,

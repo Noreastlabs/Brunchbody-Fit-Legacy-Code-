@@ -4,10 +4,10 @@ import PropTypes from 'prop-types';
 import {colors, strings} from '../../../resources';
 import style from './style';
 
-const NextButton = ({nextScreen, currentScreen, loader, label}) => (
+const NextButton = ({nextScreen, currentScreen, loader, label, disabled}) => (
   <TouchableOpacity
-    disabled={loader}
-    style={style.accBtn}
+    disabled={loader || disabled}
+    style={[style.accBtn, disabled ? style.disabledButton : null]}
     onPress={() => {
       currentScreen(nextScreen);
     }}>
@@ -24,6 +24,7 @@ const NextButton = ({nextScreen, currentScreen, loader, label}) => (
 NextButton.defaultProps = {
   loader: false,
   label: '',
+  disabled: false,
 };
 
 NextButton.propTypes = {
@@ -31,6 +32,7 @@ NextButton.propTypes = {
   nextScreen: PropTypes.string.isRequired,
   currentScreen: PropTypes.func.isRequired,
   label: PropTypes.string,
+  disabled: PropTypes.bool,
 };
 
 export default NextButton;

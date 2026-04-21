@@ -1,19 +1,16 @@
 import React from 'react';
 import {View, SafeAreaView, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
-import {
-  CustomModal,
-  LogoHeader,
-  HeightPickerModal,
-  PermissionModal,
-} from '../../../components';
+import {CustomModal, LogoHeader, HeightPickerModal} from '../../../components';
 import InputModal from './DateInputModal';
 import NextButton from './NextButton';
 import BackButton from './BackButton';
 import Label from './Label';
+import SupportingText from './SupportingText';
 import {strings} from '../../../resources';
-import {setOnboardingDraftValue} from '../../../redux/actions/onboardingStorage';
 import style from './style';
+
+const formatVisibleHeight = ({feet, inches}) => `${feet} ft ${inches} in`;
 
 const Height = props => {
   const {
@@ -23,12 +20,8 @@ const Height = props => {
     feet,
     inches,
     isHeightSelected,
-    setIsHeightSelected,
-    permissionModal,
-    setPermissionModal,
-    alertText,
-    alertHeading,
-    onDonePermissionModal,
+    onConfirmHeight,
+    errorText,
   } = props;
 
   return (
@@ -45,11 +38,13 @@ const Height = props => {
           <Label text={strings.completeProfile.labels.height} />
           <View style={style.dropdownContainer}>
             <InputModal
-              placeholder={isHeightSelected ? `${feet}'${inches}''` : 'Height'}
-              isDatePickerVisible={modalVisible}
+              value={isHeightSelected ? formatVisibleHeight({feet, inches}) : ''}
+              placeholder={strings.completeProfile.placeholders.height}
               toggleDatePicker={() => setModalVisible(true)}
             />
           </View>
+          <SupportingText text={strings.completeProfile.helperText.height} />
+          <SupportingText text={errorText} tone="error" />
         </View>
         <NextButton
           nextScreen={strings.completeProfile.screen.Weight}
@@ -64,33 +59,21 @@ const Height = props => {
           <HeightPickerModal
             {...props}
             onConfirm={() => {
-              setIsHeightSelected(true);
+              onConfirmHeight();
               setModalVisible(false);
-              setOnboardingDraftValue('height', `${feet}.${inches}`);
             }}
             onCancel={() => {
-              // setIsHeightSelected(false);
               setModalVisible(false);
-              // AsyncStorage.removeItem('height');
             }}
-          />
-        }
-      />
-
-      <CustomModal
-        isVisible={permissionModal}
-        onDismiss={() => setPermissionModal(false)}
-        content={
-          <PermissionModal
-            heading={alertHeading}
-            text={alertText}
-            onDone={onDonePermissionModal}
-            onCancel={() => setPermissionModal(false)}
           />
         }
       />
     </SafeAreaView>
   );
+};
+
+Height.defaultProps = {
+  errorText: '',
 };
 
 Height.propTypes = {
@@ -100,12 +83,8 @@ Height.propTypes = {
   feet: PropTypes.number.isRequired,
   inches: PropTypes.number.isRequired,
   isHeightSelected: PropTypes.bool.isRequired,
-  setIsHeightSelected: PropTypes.func.isRequired,
-  permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
-  alertText: PropTypes.string.isRequired,
-  alertHeading: PropTypes.string.isRequired,
-  onDonePermissionModal: PropTypes.func.isRequired,
+  onConfirmHeight: PropTypes.func.isRequired,
+  errorText: PropTypes.string,
 };
 
 export default Height;

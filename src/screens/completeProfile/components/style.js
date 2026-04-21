@@ -71,17 +71,28 @@ export default StyleSheet.create({
     marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: 8,
   },
 
   genderText: {
     fontSize: RFValue(12),
     color: colors.white,
-    marginRight: 20,
   },
 
   heightDropdownContainer: {
     marginHorizontal: 120,
     justifyContent: 'center',
+  },
+
+  dropdownContainer: {
+    width: '100%',
+    alignItems: 'center',
   },
 
   dataSelectionNote: {
@@ -231,6 +242,25 @@ export default StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: colors.secondary,
   },
+  disabledButton: {
+    opacity: 0.55,
+  },
+  disabledBackButton: {
+    opacity: 0.4,
+  },
+  supportingText: {
+    marginTop: 12,
+    fontSize: RFValue(12),
+    lineHeight: RFValue(17),
+    textAlign: 'center',
+  },
+  supportingTextInfo: {
+    color: colors.grey,
+  },
+  supportingTextError: {
+    color: colors.red,
+    fontWeight: '700',
+  },
 
   testText: {
     color: 'white',
@@ -243,5 +273,8 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingBottom: 10,
+  },
+  backIcon: {
+    tintColor: colors.white,
   },
 });
