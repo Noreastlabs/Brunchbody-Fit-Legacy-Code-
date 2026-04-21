@@ -1,5 +1,3 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable no-shadow */
 import React from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import PropTypes from 'prop-types';
@@ -26,7 +24,28 @@ export default function CreateItemContent(props) {
     onChangeText,
     selectedPickerItem,
     loader,
+    submitDisabled,
+    formHelperText,
+    formErrorText,
   } = props;
+
+  const renderSupportingText = (text, tone = 'info') => {
+    if (!text) {
+      return null;
+    }
+
+    return (
+      <Text
+        style={[
+          styles.supportingText,
+          tone === 'error'
+            ? styles.supportingTextError
+            : styles.supportingTextInfo,
+        ]}>
+        {text}
+      </Text>
+    );
+  };
 
   return (
     <View style={styles.contentContainer}>
@@ -38,38 +57,48 @@ export default function CreateItemContent(props) {
       {createItemFields.map(item => (
         <View key={item.id} style={styles.setMargin}>
           {item.picker ? (
-            <SelectComp
-              title={item.fieldName}
-              type={selectedPickerItem || item.value || item.pickerLabel}
-              onPress={() =>
-                onDropdownSelect(item.pickerContent, item.pickerLabel)
-              }
-              style={styles.selectCompStyle}
-            />
+            <>
+              <SelectComp
+                title={item.fieldName}
+                type={selectedPickerItem || item.value || item.pickerLabel}
+                onPress={() =>
+                  onDropdownSelect(item.pickerContent, item.pickerLabel)
+                }
+                style={styles.selectCompStyle}
+              />
+              {renderSupportingText(item.helperText)}
+              {renderSupportingText(item.errorText, 'error')}
+            </>
           ) : item.amountnUnit ? ( // For amount and unit fields in Project Manager screen when creating exercise.
             <View style={styles.flexRowView2}>
               {item.amountnUnit.map(i =>
                 i.picker ? (
-                  <SelectComp
-                    title={i.fieldName}
-                    type={selectedPickerItem || i.value || i.pickerLabel}
-                    onPress={() =>
-                      onDropdownSelect(i.pickerContent, item.pickerLabel)
-                    }
-                    style={styles.selectCompStyle2}
-                    pickerViewStyle={{width: '80%'}}
-                  />
+                  <View key={`${item.id}-${i.fieldName}`} style={styles.supportingTextContainer}>
+                    <SelectComp
+                      title={i.fieldName}
+                      type={selectedPickerItem || i.value || i.pickerLabel}
+                      onPress={() =>
+                        onDropdownSelect(i.pickerContent, item.pickerLabel)
+                      }
+                      style={styles.selectCompStyle2}
+                      pickerViewStyle={{width: '80%'}}
+                    />
+                    {renderSupportingText(i.helperText)}
+                    {renderSupportingText(i.errorText, 'error')}
+                  </View>
                 ) : (
-                  <View style={{flex: 0.3}}>
+                  <View key={`${item.id}-${i.fieldName}`} style={styles.amountFieldView}>
                     <Text style={styles.subHeading}>{i.fieldName}</Text>
                     <TextInput
-                      value={item.value}
+                      value={i.value || item.value}
                       placeholder={i.placeholder}
                       placeholderTextColor={colors.grey}
                       style={styles.textInputStyle}
                       keyboardType={i.keyboardType ? i.keyboardType : 'default'}
                       onChangeText={text => onChangeText(text, i.state || '')}
                     />
+                    {renderSupportingText(i.helperText)}
+                    {renderSupportingText(i.errorText, 'error')}
                   </View>
                 ),
               )}
@@ -78,36 +107,52 @@ export default function CreateItemContent(props) {
             <View style={styles.setMargin1}>
               <Text style={styles.subHeading}>{item.fieldName}</Text>
               {item.colorPicker ? (
-                <View style={[styles.flexRowView, styles.setMargin1]}>
-                  <Text style={styles.miniText}>{color}</Text>
-                  <TouchableOpacity
-                    activeOpacity={0.5}
-                    onPress={openColorPicker}
-                    style={[styles.colorPicker, {backgroundColor: color}]}
-                  />
-                </View>
+                <>
+                  <View style={[styles.flexRowView, styles.setMargin1]}>
+                    <Text style={styles.miniText}>{color}</Text>
+                    <TouchableOpacity
+                      activeOpacity={0.5}
+                      onPress={openColorPicker}
+                      style={[styles.colorPicker, {backgroundColor: color}]}
+                    />
+                  </View>
+                  {renderSupportingText(item.helperText)}
+                  {renderSupportingText(item.errorText, 'error')}
+                </>
               ) : (
-                <TextInput
-                  value={item.value || value}
-                  multiline={item.textArea}
-                  placeholder={item.placeholder}
-                  placeholderTextColor={colors.grey}
-                  onChangeText={text => onChangeText(text, item.state || '')}
-                  keyboardType={
-                    item.keyboardType ? item.keyboardType : 'default'
-                  }
-                  style={
-                    item.textArea ? styles.textArea : styles.textInputStyle
-                  }
-                />
+                <>
+                  <TextInput
+                    value={item.value || value}
+                    multiline={item.textArea}
+                    placeholder={item.placeholder}
+                    placeholderTextColor={colors.grey}
+                    onChangeText={text => onChangeText(text, item.state || '')}
+                    keyboardType={
+                      item.keyboardType ? item.keyboardType : 'default'
+                    }
+                    style={
+                      item.textArea ? styles.textArea : styles.textInputStyle
+                    }
+                  />
+                  {renderSupportingText(item.helperText)}
+                  {renderSupportingText(item.errorText, 'error')}
+                </>
               )}
             </View>
           )}
         </View>
       ))}
 
+      {renderSupportingText(formHelperText)}
+      {renderSupportingText(formErrorText, 'error')}
+
       <View style={styles.btnView2}>
-        <Button loader={loader} title={btnTitle} onPress={onBtnPress} />
+        <Button
+          loader={loader}
+          disabled={submitDisabled}
+          title={btnTitle}
+          onPress={onBtnPress}
+        />
       </View>
 
       {isDeleteBtn ? (
@@ -130,6 +175,9 @@ CreateItemContent.defaultProps = {
   onChangeText: () => {},
   selectedPickerItem: '',
   loader: false,
+  submitDisabled: false,
+  formHelperText: '',
+  formErrorText: '',
 };
 
 CreateItemContent.propTypes = {
@@ -147,4 +195,7 @@ CreateItemContent.propTypes = {
   onChangeText: PropTypes.func,
   selectedPickerItem: PropTypes.string,
   loader: PropTypes.bool,
+  submitDisabled: PropTypes.bool,
+  formHelperText: PropTypes.string,
+  formErrorText: PropTypes.string,
 };

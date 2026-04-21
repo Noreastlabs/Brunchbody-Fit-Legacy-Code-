@@ -151,6 +151,16 @@ export default StyleSheet.create({
     fontSize: RFValue(13),
     color: colors.white,
   },
+  supportingText: {
+    fontSize: RFValue(13),
+    marginTop: RFValue(8),
+  },
+  supportingTextInfo: {
+    color: colors.textGrey,
+  },
+  supportingTextError: {
+    color: colors.qccentError,
+  },
   mediumText: {
     fontSize: RFValue(18),
     color: colors.white,
@@ -194,6 +204,12 @@ export default StyleSheet.create({
     color: colors.mainFont,
     paddingHorizontal: RFValue(15),
     backgroundColor: colors.nonEditableOverlays,
+  },
+  amountFieldView: {
+    flex: 0.3,
+  },
+  supportingTextContainer: {
+    flex: 0.58,
   },
 
   btnView: {

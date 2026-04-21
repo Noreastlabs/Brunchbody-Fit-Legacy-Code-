@@ -118,6 +118,16 @@ export default StyleSheet.create({
     color: colors.white,
     textAlign: 'center',
   },
+  supportingText: {
+    fontSize: RFValue(13),
+    marginTop: RFValue(10),
+    color: colors.textGrey,
+  },
+  supportingTextError: {
+    fontSize: RFValue(13),
+    marginTop: RFValue(8),
+    color: colors.qccentError,
+  },
 
   textInputStyle: {
     width: '100%',

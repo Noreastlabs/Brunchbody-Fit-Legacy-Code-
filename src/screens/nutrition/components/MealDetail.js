@@ -37,7 +37,11 @@ export default function MealDetail(props) {
     alertHeading,
     alertText,
     quantity,
-    // itemUnit,
+    itemUnit,
+    entryHelperText,
+    entryErrorText,
+    addDisabled,
+    onClearForm,
   } = props;
   const {meal} = route.params;
 
@@ -61,11 +65,15 @@ export default function MealDetail(props) {
             onChangeText={text => setAmount(text)}
           />
           <SelectComp
-            title="Select Unit"
+            title="Unit"
             type={unit || 'Unit'}
             onPress={() => setWheelPickerModal(true)}
             style={styles.selectCompStyle}
           />
+          <Text style={styles.supportingText}>{entryHelperText}</Text>
+          {entryErrorText ? (
+            <Text style={styles.supportingTextError}>{entryErrorText}</Text>
+          ) : null}
         </View>
 
         <View style={styles.btnView}>
@@ -92,8 +100,7 @@ export default function MealDetail(props) {
             </View>
             <View>
               <Text style={styles.subHeading3}>UNT</Text>
-              {/* <Text style={styles.miniText}>{itemUnit}</Text> */}
-              <Text style={styles.miniText}>{unit}</Text>
+              <Text style={styles.miniText}>{itemUnit}</Text>
             </View>
           </View>
         </View>
@@ -118,11 +125,16 @@ export default function MealDetail(props) {
         </View>
 
         <View style={styles.btnView}>
-          <Button title="Add to Meal" loader={loader} onPress={onAddMeal} />
+          <Button
+            title="Add to Meal"
+            loader={loader}
+            disabled={addDisabled}
+            onPress={onAddMeal}
+          />
         </View>
 
         <View style={styles.bottomTextView}>
-          <TextButton title="Clear" onPress={() => setPermissionModal(true)} />
+          <TextButton title="Clear" onPress={onClearForm} />
         </View>
       </ScrollView>
 
@@ -167,10 +179,10 @@ MealDetail.defaultProps = {
 MealDetail.propTypes = {
   route: PropTypes.objectOf(PropTypes.any),
   loader: PropTypes.bool.isRequired,
-  fat: PropTypes.string.isRequired,
-  prt: PropTypes.string.isRequired,
-  cho: PropTypes.string.isRequired,
-  cal: PropTypes.string.isRequired,
+  fat: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  prt: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  cho: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  cal: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   amount: PropTypes.string.isRequired,
   setAmount: PropTypes.func.isRequired,
   unit: PropTypes.string.isRequired,
@@ -185,5 +197,9 @@ MealDetail.propTypes = {
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   quantity: PropTypes.string.isRequired,
-  // itemUnit: PropTypes.string.isRequired,
+  itemUnit: PropTypes.string.isRequired,
+  entryHelperText: PropTypes.string.isRequired,
+  entryErrorText: PropTypes.string.isRequired,
+  addDisabled: PropTypes.bool.isRequired,
+  onClearForm: PropTypes.func.isRequired,
 };

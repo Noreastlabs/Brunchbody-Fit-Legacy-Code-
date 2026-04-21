@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import PropTypes from 'prop-types';
 import { ScrollView, Text, View } from 'react-native';
 import {
@@ -18,12 +17,13 @@ export default function Supplement(props) {
     route,
     createItemFields,
     createItemModal,
-    setCreateItemModal,
+    closeCreateItemModal,
+    createItemFormErrorText,
     wheelPickerModal,
     setWheelPickerModal,
     pickerItems,
     permissionModal,
-    setPermissionModal,
+    closePermissionModal,
     showDeleteBtn,
     heading,
     btnTitle,
@@ -37,8 +37,8 @@ export default function Supplement(props) {
     itemUnit,
     mySupplementItems,
     onEditItem,
+    onRequestDelete,
     deleteLoader,
-    setCheck,
   } = props;
   const { supplement } = route.params;
 
@@ -67,23 +67,21 @@ export default function Supplement(props) {
 
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() => setCreateItemModal(false)}
+        onDismiss={closeCreateItemModal}
         content={
           <CreateItemContent
             {...props}
             heading={heading}
             createItemFields={createItemFields}
+            formErrorText={createItemFormErrorText}
             onChangeText={onChangeText}
             selectedPickerItem={itemUnit}
-            hideModal={() => setCreateItemModal(false)}
+            hideModal={closeCreateItemModal}
             btnTitle={btnTitle}
             onBtnPress={onCreateItem}
             onDropdownSelect={() => setWheelPickerModal(true)}
             isDeleteBtn={showDeleteBtn}
-            onDeleteBtnPress={() => {
-              setPermissionModal(true);
-              setCheck('delete');
-            }}
+            onDeleteBtnPress={onRequestDelete}
           />
         }
       />
@@ -103,7 +101,7 @@ export default function Supplement(props) {
 
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() => setPermissionModal(false)}
+        onDismiss={closePermissionModal}
         content={
           <PermissionModal
             loader={deleteLoader}
@@ -113,7 +111,7 @@ export default function Supplement(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() => setPermissionModal(false)}
+            onCancel={closePermissionModal}
           />
         }
       />
@@ -128,13 +126,14 @@ Supplement.defaultProps = {
 Supplement.propTypes = {
   route: PropTypes.objectOf(PropTypes.any),
   createItemModal: PropTypes.bool.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
+  closeCreateItemModal: PropTypes.func.isRequired,
   createItemFields: PropTypes.arrayOf(PropTypes.any).isRequired,
+  createItemFormErrorText: PropTypes.string.isRequired,
   wheelPickerModal: PropTypes.bool.isRequired,
   setWheelPickerModal: PropTypes.func.isRequired,
   pickerItems: PropTypes.arrayOf(PropTypes.any).isRequired,
   permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
+  closePermissionModal: PropTypes.func.isRequired,
   showDeleteBtn: PropTypes.bool.isRequired,
   heading: PropTypes.string.isRequired,
   btnTitle: PropTypes.string.isRequired,
@@ -148,6 +147,6 @@ Supplement.propTypes = {
   itemUnit: PropTypes.string.isRequired,
   mySupplementItems: PropTypes.arrayOf(PropTypes.any).isRequired,
   onEditItem: PropTypes.func.isRequired,
+  onRequestDelete: PropTypes.func.isRequired,
   deleteLoader: PropTypes.bool.isRequired,
-  setCheck: PropTypes.func.isRequired,
 };

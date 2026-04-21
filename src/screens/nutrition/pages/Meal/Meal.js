@@ -1,5 +1,4 @@
-/* eslint-disable react/jsx-props-no-spreading */
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Meal } from '../../components';
@@ -15,37 +14,66 @@ const selectOptions = [
   { id: 2, option: 'CUSTOM ITEM' },
 ];
 
-const createItemFields = [
+const initialFormValues = {
+  itemName: '',
+  itemFat: '',
+  itemProtein: '',
+  itemCarbs: '',
+};
+
+const macroLabels = {
+  itemFat: 'fat',
+  itemProtein: 'protein',
+  itemCarbs: 'carbs',
+};
+
+const isFiniteDecimal = value => {
+  if (value.trim() === '') {
+    return false;
+  }
+
+  return Number.isFinite(Number(value));
+};
+
+const getCreateItemFields = ({ formValues, fieldErrors }) => [
   {
     id: 1,
-    value: '',
+    value: formValues.itemName,
     state: 'itemName',
-    fieldName: 'Item Name',
-    placeholder: 'Enter Name',
+    fieldName: 'Meal Item Name',
+    placeholder: 'Enter meal item name',
+    helperText: 'Use a clear label for this meal item.',
+    errorText: fieldErrors.itemName,
   },
   {
     id: 2,
-    value: '',
+    value: formValues.itemFat,
     state: 'itemFat',
-    fieldName: 'Enter Fat (Grams)',
-    placeholder: 'Amount Fat (g)',
+    fieldName: 'Fat (g)',
+    placeholder: 'Enter fat in grams',
     keyboardType: 'decimal-pad',
+    helperText: 'Numbers can include decimals. Enter grams per item.',
+    errorText: fieldErrors.itemFat,
   },
   {
     id: 3,
-    value: '',
+    value: formValues.itemProtein,
     state: 'itemProtein',
-    fieldName: 'Enter Protein (Grams)',
-    placeholder: 'Amount Protein (g)',
+    fieldName: 'Protein (g)',
+    placeholder: 'Enter protein in grams',
     keyboardType: 'decimal-pad',
+    helperText: 'Numbers can include decimals. Enter grams per item.',
+    errorText: fieldErrors.itemProtein,
   },
   {
     id: 4,
-    value: '',
+    value: formValues.itemCarbs,
     state: 'itemCarbs',
-    fieldName: 'Enter Carbs (Grams)',
-    placeholder: 'Amount Carbs (g)',
+    fieldName: 'Carbs (g)',
+    placeholder: 'Enter carbs in grams',
     keyboardType: 'decimal-pad',
+    helperText: 'Numbers can include decimals. Enter grams per item.',
+    errorText: fieldErrors.itemCarbs,
   },
 ];
 
@@ -67,32 +95,70 @@ export default function MealPage(props) {
   const [showDeleteBtn, setShowDeleteBtn] = useState(true);
   const [heading, setHeading] = useState('Add Item');
   const [btnTitle, setBtnTitle] = useState('Add');
-  const [itemName, setItemName] = useState('');
-  const [itemFat, setItemFat] = useState('');
-  const [itemProtein, setItemProtein] = useState('');
-  const [itemCarbs, setItemCarbs] = useState('');
+  const [formValues, setFormValues] = useState(initialFormValues);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [createItemFormErrorText, setCreateItemFormErrorText] = useState('');
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
   const [check, setCheck] = useState('');
+  const submitLockRef = useRef(false);
+  const deleteLockRef = useRef(false);
+
+  const createItemFields = getCreateItemFields({ formValues, fieldErrors });
+
+  const resetFormState = () => {
+    setFormValues(initialFormValues);
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setSelectedItem(null);
+  };
+
+  const closeCreateItemModal = () => {
+    submitLockRef.current = false;
+    setLoader(false);
+    setCreateItemModal(false);
+    resetFormState();
+  };
 
   const onChangeText = (text, itemState) => {
-    if (itemState === 'itemName') {
-      setItemName(text);
-      createItemFields[0].value = text;
+    setFormValues(currentValues => ({
+      ...currentValues,
+      [itemState]: text,
+    }));
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      [itemState]: '',
+    }));
+    setCreateItemFormErrorText('');
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formValues.itemName.trim()) {
+      errors.itemName = 'Enter a meal item name.';
     }
-    if (itemState === 'itemFat') {
-      setItemFat(text);
-      createItemFields[1].value = text;
-    }
-    if (itemState === 'itemProtein') {
-      setItemProtein(text);
-      createItemFields[2].value = text;
-    }
-    if (itemState === 'itemCarbs') {
-      setItemCarbs(text);
-      createItemFields[3].value = text;
-    }
+
+    Object.keys(macroLabels).forEach(fieldName => {
+      const value = formValues[fieldName].trim();
+      const label = macroLabels[fieldName];
+
+      if (!value) {
+        errors[fieldName] = `Enter ${label} in grams.`;
+      } else if (!isFiniteDecimal(value)) {
+        errors[fieldName] = `${label[0].toUpperCase()}${label.slice(1)} must be a number.`;
+      }
+    });
+
+    setFieldErrors(errors);
+    setCreateItemFormErrorText(
+      Object.keys(errors).length > 0
+        ? 'Check the highlighted meal item fields before saving.'
+        : '',
+    );
+
+    return Object.keys(errors).length === 0;
   };
 
   const onChooseOption = () => {
@@ -104,16 +170,9 @@ export default function MealPage(props) {
     } else {
       setBtnTitle('Add');
       setHeading('Add Item');
-      setCreateItemModal(true);
       setShowDeleteBtn(false);
-      setItemName('');
-      setItemFat('');
-      setItemProtein('');
-      setItemCarbs('');
-      createItemFields[0].value = '';
-      createItemFields[1].value = '';
-      createItemFields[2].value = '';
-      createItemFields[3].value = '';
+      setCreateItemModal(true);
+      resetFormState();
     }
   };
 
@@ -123,14 +182,14 @@ export default function MealPage(props) {
     setHeading('Edit Item');
     setCreateItemModal(true);
     setShowDeleteBtn(true);
-    setItemName(item.name);
-    setItemFat(item.fat);
-    setItemProtein(item.prt);
-    setItemCarbs(item.cho);
-    createItemFields[0].value = item.name;
-    createItemFields[1].value = item.fat;
-    createItemFields[2].value = item.prt;
-    createItemFields[3].value = item.cho;
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setFormValues({
+      itemName: item.name || '',
+      itemFat: `${item.fat ?? ''}`,
+      itemProtein: `${item.prt ?? ''}`,
+      itemCarbs: `${item.cho ?? ''}`,
+    });
   };
 
   const showMessage = (headingText, text) => {
@@ -139,56 +198,82 @@ export default function MealPage(props) {
     setPermissionModal(true);
   };
 
-  const onCreateItem = async () => {
-    setLoader(true);
-
-    if (
-      itemName.trim() &&
-      itemFat.trim() &&
-      itemProtein.trim() &&
-      itemCarbs.trim()
-    ) {
-      const data = {
-        name: itemName,
-        fat: itemFat,
-        prt: itemProtein,
-        cho: itemCarbs,
-        cal: `${itemFat * 9 + itemProtein * 4 + itemCarbs * 4}`,
-      };
-      let response = null;
-
-      if (btnTitle === 'Add') {
-        response = await onAddMealItems(meal.id, data);
-
-        if (response === true) {
-          setCreateItemModal(false);
-          showMessage('Success!', `Item added successfully.`);
-        } else {
-          showMessage('Error!', response);
-        }
-      } else {
-        response = await onEditMealItem({
-          data,
-          meal_id: meal.id,
-          item_id: selectedItem.id,
-        });
-
-        if (response === true) {
-          setCreateItemModal(false);
-          showMessage('Success!', `Item edited successfully.`);
-        } else {
-          showMessage('Error!', response);
-        }
-      }
-    } else {
-      showMessage('Error!', 'All fields are required.');
+  const closePermissionModal = () => {
+    if (deleteLoader) {
+      return;
     }
 
+    setCheck('');
+    setPermissionModal(false);
+    setTimeout(() => {
+      setAlertText('');
+      setAlertHeading('');
+    }, 500);
+  };
+
+  const onRequestDelete = () => {
+    if (deleteLockRef.current) {
+      return;
+    }
+
+    setPermissionModal(true);
+    setCheck('delete');
+  };
+
+  const onCreateItem = async () => {
+    if (submitLockRef.current || loader) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    submitLockRef.current = true;
+    setLoader(true);
+
+    const data = {
+      name: formValues.itemName.trim(),
+      fat: formValues.itemFat.trim(),
+      prt: formValues.itemProtein.trim(),
+      cho: formValues.itemCarbs.trim(),
+      cal: `${formValues.itemFat * 9 + formValues.itemProtein * 4 + formValues.itemCarbs * 4}`,
+    };
+
+    let response = null;
+
+    if (btnTitle === 'Add') {
+      response = await onAddMealItems(meal.id, data);
+    } else {
+      response = await onEditMealItem({
+        data,
+        meal_id: meal.id,
+        item_id: selectedItem.id,
+      });
+    }
+
+    submitLockRef.current = false;
     setLoader(false);
+
+    if (response === true) {
+      setCreateItemModal(false);
+      resetFormState();
+      showMessage(
+        'Success!',
+        btnTitle === 'Add' ? 'Item added successfully.' : 'Item edited successfully.',
+      );
+    } else {
+      showMessage('Error!', response);
+    }
   };
 
   const onDonePermissionModal = async () => {
     if (check === 'delete') {
+      if (deleteLockRef.current || !selectedItem) {
+        return;
+      }
+
+      deleteLockRef.current = true;
       setDeleteLoader(true);
 
       const response = await onDeleteMealItem({
@@ -196,15 +281,17 @@ export default function MealPage(props) {
         item_id: selectedItem.id,
       });
 
+      deleteLockRef.current = false;
+      setDeleteLoader(false);
+
       if (response === true) {
         setCheck('');
         setIsVisible(false);
-        setDeleteLoader(false);
         setCreateItemModal(false);
         setPermissionModal(false);
+        resetFormState();
       } else {
         setCheck('');
-        setDeleteLoader(false);
         showMessage('Error!', response);
       }
     } else {
@@ -229,20 +316,21 @@ export default function MealPage(props) {
       setSelectedOption={setSelectedOption}
       onChooseOption={onChooseOption}
       createItemModal={createItemModal}
-      setCreateItemModal={setCreateItemModal}
+      closeCreateItemModal={closeCreateItemModal}
       createItemFields={createItemFields}
+      createItemFormErrorText={createItemFormErrorText}
       permissionModal={permissionModal}
-      setPermissionModal={setPermissionModal}
+      closePermissionModal={closePermissionModal}
       showDeleteBtn={showDeleteBtn}
       heading={heading}
       btnTitle={btnTitle}
       onEditItem={onEditItem}
       onChangeText={onChangeText}
       onCreateItem={onCreateItem}
+      onRequestDelete={onRequestDelete}
       alertHeading={alertHeading}
       alertText={alertText}
       onDonePermissionModal={onDonePermissionModal}
-      setCheck={setCheck}
     />
   );
 }

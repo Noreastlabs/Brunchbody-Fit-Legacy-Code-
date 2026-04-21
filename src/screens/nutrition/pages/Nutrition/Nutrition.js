@@ -1,6 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -23,33 +20,28 @@ import {
 } from '../../../../redux/actions';
 import { NUTRITION_ROUTES } from '../../../../navigation/routeNames';
 
-const createMealFields = [
-  {
-    id: 1,
-    value: '',
-    fieldName: 'New Meal Name',
-    placeholder: 'Enter Name',
-  },
-  {
-    id: 2,
-    fieldName: 'Meal Color',
-    colorPicker: true,
-  },
-];
+const getCreateItemFieldConfig = ({ type, title, color, errorText }) => {
+  const isMeal = type !== 'supplement';
+  const itemName = isMeal ? 'Meal' : 'Supplement Stack';
 
-const createSupplementFields = [
-  {
-    id: 1,
-    value: '',
-    fieldName: 'New Stack Name',
-    placeholder: 'Enter Name',
-  },
-  {
-    id: 2,
-    fieldName: 'Stack Color',
-    colorPicker: true,
-  },
-];
+  return [
+    {
+      id: 1,
+      value: title,
+      fieldName: `${itemName} Name`,
+      placeholder: `Enter ${itemName.toLowerCase()} name`,
+      helperText: `Give this ${itemName.toLowerCase()} a clear name.`,
+      errorText,
+    },
+    {
+      id: 2,
+      fieldName: isMeal ? 'Meal Color' : 'Stack Color',
+      colorPicker: true,
+      helperText: `Pick the color that should represent this ${itemName.toLowerCase()}.`,
+      value: color,
+    },
+  ];
+};
 
 const initialState = {
   tab: 1,
@@ -61,12 +53,13 @@ const initialState = {
   supplementModal: false,
   permissionModal: false,
   createItemModal: false,
-  createItemFields: createMealFields,
   modalHeading: '',
   colorPickerModal: false,
   color: colors.darkBlue2,
   type: '',
   title: '',
+  createItemErrorText: '',
+  createItemPending: false,
   targetCalories: '',
   alertHeading: '',
   alertText: '',
@@ -82,6 +75,7 @@ export default class NutritionPage extends Component {
   constructor(props) {
     super(props);
     this.state = initialState;
+    this.createItemLocked = false;
   }
 
   componentDidMount() {
@@ -110,18 +104,15 @@ export default class NutritionPage extends Component {
   };
 
   onChangeTitle = data => {
-    const { type } = this.state;
     const { name, value } = data;
     this.setState({
       [name]: value,
+      createItemErrorText: '',
     });
-
-    if (type === 'meal') createMealFields[0].value = value;
-    else createSupplementFields[0].value = value;
   };
 
   toggleMealModal = async item => {
-    const { onGetMealItems, onSetMealItems, myMeals } = this.props;
+    const { onSetMealItems, myMeals } = this.props;
 
     this.setState({
       meal: item,
@@ -149,8 +140,7 @@ export default class NutritionPage extends Component {
   };
 
   openSupplementModal = async item => {
-    const { onGetSupplementItems, onSetSupplementItems, mySupplements } =
-      this.props;
+    const { onSetSupplementItems, mySupplements } = this.props;
 
     this.setState({
       loader: true,
@@ -216,62 +206,90 @@ export default class NutritionPage extends Component {
     });
   };
 
+  closePermissionModal = () => {
+    this.setState({
+      permissionModal: false,
+      type: '',
+      alertHeading: '',
+      alertText: '',
+    });
+  };
+
+  closeCreateItemModal = () => {
+    this.createItemLocked = false;
+    this.setState({
+      createItemModal: false,
+      modalHeading: '',
+      title: '',
+      type: '',
+      createItemErrorText: '',
+      createItemPending: false,
+    });
+  };
+
   onAddBtnPress = (type, heading) => {
+    this.createItemLocked = false;
     this.setState({
       type,
       createItemModal: true,
       modalHeading: heading,
+      title: '',
+      createItemErrorText: '',
+      createItemPending: false,
     });
-    if (type === 'meal') {
-      createMealFields[0].value = '';
-      this.setState({
-        title: '',
-        createItemFields: createMealFields,
-      });
-    } else {
-      createSupplementFields[0].value = '';
-      this.setState({
-        title: '',
-        createItemFields: createSupplementFields,
-      });
-    }
   };
 
   onCreateItem = async () => {
-    const { title, color, type } = this.state;
+    const { title, color, type, createItemPending } = this.state;
     const { onAddMeal, onAddSupplement } = this.props;
     let response = null;
 
-    if (title.trim()) {
-      this.setState({ loader: true });
+    if (this.createItemLocked || createItemPending) {
+      return;
+    }
 
-      if (type === 'meal') {
-        response = await onAddMeal({
-          name: title,
-          color,
-        });
-      } else {
-        response = await onAddSupplement({
-          name: title,
-          color,
-        });
-      }
+    if (!title.trim()) {
+      this.setState({
+        createItemErrorText:
+          type === 'supplement'
+            ? 'Enter a supplement stack name before creating it.'
+            : 'Enter a meal name before creating it.',
+      });
+      return;
+    }
 
-      if (response === true) {
-        this.setState({
-          title: '',
-          type: '',
-          loader: false,
-          createItemModal: false,
-        });
-        this.showMessage('Success!', `Item added successfully.`);
-      } else {
-        this.setState({ loader: false, type: '' });
-        this.showMessage('Error!', response);
-      }
+    this.createItemLocked = true;
+    this.setState({ createItemPending: true });
+
+    if (type === 'meal') {
+      response = await onAddMeal({
+        name: title.trim(),
+        color,
+      });
     } else {
-      this.setState({ type: '' });
-      this.showMessage('Error!', `All fields are required.`);
+      response = await onAddSupplement({
+        name: title.trim(),
+        color,
+      });
+    }
+
+    this.createItemLocked = false;
+
+    if (response === true) {
+      this.setState({
+        title: '',
+        createItemPending: false,
+        createItemErrorText: '',
+        createItemModal: false,
+        modalHeading: '',
+        type: '',
+      });
+      this.showMessage('Success!', `Item added successfully.`);
+    } else {
+      this.setState({
+        createItemPending: false,
+      });
+      this.showMessage('Error!', response);
     }
   };
 
@@ -372,10 +390,17 @@ export default class NutritionPage extends Component {
 
   render() {
     const { myMeals, mySupplements } = this.props;
+    const { type, title, color, createItemErrorText } = this.state;
 
     return (
       <Nutrition
         {...this.state}
+        createItemFields={getCreateItemFieldConfig({
+          type,
+          title,
+          color,
+          errorText: createItemErrorText,
+        })}
         myMeals={myMeals}
         supplements={mySupplements}
         onNavigate={this.onNavigate}
@@ -386,6 +411,8 @@ export default class NutritionPage extends Component {
         closeMealModal={this.closeMealModal}
         toggleCalModal={this.toggleCalModal}
         onChangeHandler={this.onChangeHandler}
+        closeCreateItemModal={this.closeCreateItemModal}
+        closePermissionModal={this.closePermissionModal}
         openSupplementModal={this.openSupplementModal}
         closeSupplementModal={this.closeSupplementModal}
         onDonePermissionModal={this.onDonePermissionModal}

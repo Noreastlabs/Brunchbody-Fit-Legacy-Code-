@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import {Text, View, ScrollView} from 'react-native';
 import PropTypes from 'prop-types';
@@ -23,21 +22,22 @@ export default function Meal(props) {
     setSelectedOption,
     onChooseOption,
     createItemModal,
-    setCreateItemModal,
+    closeCreateItemModal,
     createItemFields,
+    createItemFormErrorText,
     permissionModal,
-    setPermissionModal,
+    closePermissionModal,
     showDeleteBtn,
     heading,
     btnTitle,
     onEditItem,
     onCreateItem,
+    onRequestDelete,
     alertHeading,
     alertText,
     onDonePermissionModal,
     onChangeText,
     myMealItems,
-    setCheck,
     deleteLoader,
   } = props;
   const {meal} = route.params;
@@ -81,28 +81,26 @@ export default function Meal(props) {
 
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() => setCreateItemModal(false)}
+        onDismiss={closeCreateItemModal}
         content={
           <CreateItemContent
             {...props}
             heading={heading}
             createItemFields={createItemFields}
+            formErrorText={createItemFormErrorText}
             onChangeText={onChangeText}
-            hideModal={() => setCreateItemModal(false)}
+            hideModal={closeCreateItemModal}
             btnTitle={btnTitle}
             onBtnPress={onCreateItem}
             isDeleteBtn={showDeleteBtn}
-            onDeleteBtnPress={() => {
-              setPermissionModal(true);
-              setCheck('delete');
-            }}
+            onDeleteBtnPress={onRequestDelete}
           />
         }
       />
 
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() => setPermissionModal(false)}
+        onDismiss={closePermissionModal}
         content={
           <PermissionModal
             loader={deleteLoader}
@@ -112,7 +110,7 @@ export default function Meal(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() => setPermissionModal(false)}
+            onCancel={closePermissionModal}
           />
         }
       />
@@ -133,20 +131,21 @@ Meal.propTypes = {
   setSelectedOption: PropTypes.func.isRequired,
   onChooseOption: PropTypes.func.isRequired,
   createItemModal: PropTypes.bool.isRequired,
-  setCreateItemModal: PropTypes.func.isRequired,
+  closeCreateItemModal: PropTypes.func.isRequired,
   createItemFields: PropTypes.arrayOf(PropTypes.any).isRequired,
+  createItemFormErrorText: PropTypes.string.isRequired,
   permissionModal: PropTypes.bool.isRequired,
-  setPermissionModal: PropTypes.func.isRequired,
+  closePermissionModal: PropTypes.func.isRequired,
   showDeleteBtn: PropTypes.bool.isRequired,
   heading: PropTypes.string.isRequired,
   btnTitle: PropTypes.string.isRequired,
   onEditItem: PropTypes.func.isRequired,
   onCreateItem: PropTypes.func.isRequired,
+  onRequestDelete: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
   onChangeText: PropTypes.func.isRequired,
   myMealItems: PropTypes.arrayOf(PropTypes.any).isRequired,
-  setCheck: PropTypes.func.isRequired,
   deleteLoader: PropTypes.bool.isRequired,
 };

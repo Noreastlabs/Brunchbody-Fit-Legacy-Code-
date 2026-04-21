@@ -1,6 +1,5 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { connect } from 'react-redux';
 import {
   addSupplementItems,
@@ -10,29 +9,49 @@ import {
 import { wheelPickerItems } from '../../../../resources';
 import { Supplement } from '../../components';
 
-const createItemFields = [
+const initialFormValues = {
+  itemName: '',
+  itemAmount: '',
+  itemUnit: '',
+};
+
+const isFiniteDecimal = value => {
+  if (value.trim() === '') {
+    return false;
+  }
+
+  return Number.isFinite(Number(value));
+};
+
+const getCreateItemFields = ({ formValues, fieldErrors }) => [
   {
     id: 1,
-    value: '',
-    fieldName: 'Item Name',
-    placeholder: 'Enter Name',
+    value: formValues.itemName,
+    fieldName: 'Supplement Item Name',
+    placeholder: 'Enter supplement item name',
     state: 'itemName',
+    helperText: 'Use a clear label for this supplement item.',
+    errorText: fieldErrors.itemName,
   },
   {
     id: 2,
-    value: '',
+    value: formValues.itemAmount,
     fieldName: 'Amount',
-    placeholder: 'Amount',
+    placeholder: 'Enter amount',
     keyboardType: 'decimal-pad',
     state: 'itemAmount',
+    helperText: 'Numbers can include decimals.',
+    errorText: fieldErrors.itemAmount,
   },
   {
     id: 3,
-    value: '',
-    fieldName: 'Select Unit',
+    value: formValues.itemUnit,
+    fieldName: 'Unit',
     picker: true,
-    pickerLabel: 'Unit',
+    pickerLabel: 'Choose unit',
     state: 'itemUnit',
+    helperText: 'Select the unit used for this supplement item.',
+    errorText: fieldErrors.itemUnit,
   },
 ];
 
@@ -52,23 +71,82 @@ export default function SupplementPage(props) {
   const [showDeleteBtn, setShowDeleteBtn] = useState(true);
   const [heading, setHeading] = useState('Add Supplement');
   const [btnTitle, setBtnTitle] = useState('Create');
-  const [itemName, setItemName] = useState('');
-  const [itemAmount, setItemAmount] = useState('');
-  const [itemUnit, setItemUnit] = useState('');
+  const [formValues, setFormValues] = useState(initialFormValues);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [createItemFormErrorText, setCreateItemFormErrorText] = useState('');
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
   const [check, setCheck] = useState('');
+  const submitLockRef = useRef(false);
+  const deleteLockRef = useRef(false);
+
+  const createItemFields = getCreateItemFields({ formValues, fieldErrors });
+
+  const resetFormState = () => {
+    setFormValues(initialFormValues);
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setSelectedItem(null);
+    setWheelPickerModal(false);
+  };
+
+  const closeCreateItemModal = () => {
+    submitLockRef.current = false;
+    setLoader(false);
+    setCreateItemModal(false);
+    resetFormState();
+  };
 
   const onChangeText = (text, itemState) => {
-    if (itemState === 'itemName') {
-      setItemName(text);
-      createItemFields[0].value = text;
+    setFormValues(currentValues => ({
+      ...currentValues,
+      [itemState]: text,
+    }));
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      [itemState]: '',
+    }));
+    setCreateItemFormErrorText('');
+  };
+
+  const onItemUnitChange = value => {
+    setFormValues(currentValues => ({
+      ...currentValues,
+      itemUnit: value,
+    }));
+    setFieldErrors(currentErrors => ({
+      ...currentErrors,
+      itemUnit: '',
+    }));
+    setCreateItemFormErrorText('');
+  };
+
+  const validateForm = () => {
+    const errors = {};
+
+    if (!formValues.itemName.trim()) {
+      errors.itemName = 'Enter a supplement item name.';
     }
-    if (itemState === 'itemAmount') {
-      setItemAmount(text);
-      createItemFields[1].value = text;
+
+    if (!formValues.itemAmount.trim()) {
+      errors.itemAmount = 'Enter an amount.';
+    } else if (!isFiniteDecimal(formValues.itemAmount)) {
+      errors.itemAmount = 'Amount must be a number.';
     }
+
+    if (!formValues.itemUnit.trim()) {
+      errors.itemUnit = 'Choose a unit.';
+    }
+
+    setFieldErrors(errors);
+    setCreateItemFormErrorText(
+      Object.keys(errors).length > 0
+        ? 'Check the highlighted supplement fields before saving.'
+        : '',
+    );
+
+    return Object.keys(errors).length === 0;
   };
 
   const onOpenModal = () => {
@@ -76,12 +154,7 @@ export default function SupplementPage(props) {
     setHeading('Add Supplement');
     setBtnTitle('Create');
     setShowDeleteBtn(false);
-    setItemName('');
-    setItemAmount('');
-    setItemUnit('');
-    createItemFields[0].value = '';
-    createItemFields[1].value = '';
-    createItemFields[2].value = '';
+    resetFormState();
   };
 
   const onEditItem = item => {
@@ -90,12 +163,13 @@ export default function SupplementPage(props) {
     setHeading('Edit Supplement');
     setBtnTitle('Save');
     setShowDeleteBtn(true);
-    setItemName(item.name);
-    setItemAmount(item.qty);
-    setItemUnit(item.unt);
-    createItemFields[0].value = item.name;
-    createItemFields[1].value = item.qty;
-    createItemFields[2].value = item.unt;
+    setFieldErrors({});
+    setCreateItemFormErrorText('');
+    setFormValues({
+      itemName: item.name || '',
+      itemAmount: `${item.qty ?? ''}`,
+      itemUnit: item.unt || '',
+    });
   };
 
   const showMessage = (headingText, text) => {
@@ -104,49 +178,80 @@ export default function SupplementPage(props) {
     setPermissionModal(true);
   };
 
-  const onCreateItem = async () => {
-    setLoader(true);
-
-    if (itemName.trim() && itemAmount.trim() && itemUnit.trim()) {
-      const data = {
-        name: itemName,
-        qty: itemAmount,
-        unt: itemUnit,
-      };
-      let response = null;
-
-      if (btnTitle === 'Create') {
-        response = await onAddSupplementItems(supplement.id, data);
-
-        if (response === true) {
-          setCreateItemModal(false);
-          showMessage('Success!', `Item added successfully.`);
-        } else {
-          showMessage('Error!', response);
-        }
-      } else {
-        response = await onEditSupplementItem({
-          data,
-          supplement_id: supplement.id,
-          item_id: selectedItem.id,
-        });
-
-        if (response === true) {
-          setCreateItemModal(false);
-          showMessage('Success!', `Item edited successfully.`);
-        } else {
-          showMessage('Error!', response);
-        }
-      }
-    } else {
-      showMessage('Error!', 'All fields are required.');
+  const closePermissionModal = () => {
+    if (deleteLoader) {
+      return;
     }
 
+    setCheck('');
+    setPermissionModal(false);
+    setTimeout(() => {
+      setAlertText('');
+      setAlertHeading('');
+    }, 500);
+  };
+
+  const onRequestDelete = () => {
+    if (deleteLockRef.current) {
+      return;
+    }
+
+    setPermissionModal(true);
+    setCheck('delete');
+  };
+
+  const onCreateItem = async () => {
+    if (submitLockRef.current || loader) {
+      return;
+    }
+
+    if (!validateForm()) {
+      return;
+    }
+
+    submitLockRef.current = true;
+    setLoader(true);
+
+    const data = {
+      name: formValues.itemName.trim(),
+      qty: formValues.itemAmount.trim(),
+      unt: formValues.itemUnit.trim(),
+    };
+
+    let response = null;
+
+    if (btnTitle === 'Create') {
+      response = await onAddSupplementItems(supplement.id, data);
+    } else {
+      response = await onEditSupplementItem({
+        data,
+        supplement_id: supplement.id,
+        item_id: selectedItem.id,
+      });
+    }
+
+    submitLockRef.current = false;
     setLoader(false);
+
+    if (response === true) {
+      setCreateItemModal(false);
+      resetFormState();
+      showMessage(
+        'Success!',
+        btnTitle === 'Create' ? 'Item added successfully.' : 'Item edited successfully.',
+      );
+    } else {
+      showMessage('Error!', response);
+    }
   };
 
   const onDonePermissionModal = async () => {
     if (check === 'delete') {
+      if (deleteLockRef.current || !selectedItem) {
+        return;
+      }
+
+      deleteLockRef.current = true;
       setDeleteLoader(true);
 
       const response = await onDeleteSupplementItem({
@@ -154,18 +259,20 @@ export default function SupplementPage(props) {
         item_id: selectedItem.id,
       });
 
+      deleteLockRef.current = false;
+      setDeleteLoader(false);
+
       if (response === true) {
         setCheck('');
         setCreateItemModal(false);
-        setDeleteLoader(false);
-        setCreateItemModal(false);
         setPermissionModal(false);
+        resetFormState();
       } else {
         setCheck('');
-        setDeleteLoader(false);
         showMessage('Error!', response);
       }
     } else {
+      setCheck('');
       setPermissionModal(false);
       setTimeout(() => {
         setAlertText('');
@@ -181,12 +288,13 @@ export default function SupplementPage(props) {
       deleteLoader={deleteLoader}
       createItemFields={createItemFields}
       createItemModal={createItemModal}
-      setCreateItemModal={setCreateItemModal}
+      closeCreateItemModal={closeCreateItemModal}
+      createItemFormErrorText={createItemFormErrorText}
       wheelPickerModal={wheelPickerModal}
       setWheelPickerModal={setWheelPickerModal}
       pickerItems={wheelPickerItems.units}
       permissionModal={permissionModal}
-      setPermissionModal={setPermissionModal}
+      closePermissionModal={closePermissionModal}
       showDeleteBtn={showDeleteBtn}
       heading={heading}
       btnTitle={btnTitle}
@@ -194,12 +302,12 @@ export default function SupplementPage(props) {
       onChangeText={onChangeText}
       alertHeading={alertHeading}
       alertText={alertText}
-      setItemUnit={setItemUnit}
+      setItemUnit={onItemUnitChange}
       onDonePermissionModal={onDonePermissionModal}
       onCreateItem={onCreateItem}
-      itemUnit={itemUnit}
+      itemUnit={formValues.itemUnit}
       onEditItem={onEditItem}
-      setCheck={setCheck}
+      onRequestDelete={onRequestDelete}
     />
   );
 }

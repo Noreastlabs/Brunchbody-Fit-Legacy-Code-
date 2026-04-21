@@ -1,5 +1,3 @@
-/* eslint-disable no-nested-ternary */
-/* eslint-disable react/jsx-props-no-spreading */
 import { useNavigation } from '@react-navigation/native';
 import PropTypes from 'prop-types';
 import { ScrollView, Text, View } from 'react-native';
@@ -50,13 +48,17 @@ export default function Nutrition(props) {
     colorPickerModal,
     color,
     onCreateItem,
+    createItemPending,
+    createItemErrorText,
     alertHeading,
     alertText,
     onDonePermissionModal,
+    closePermissionModal,
     loader,
     mealItems,
     onChangeTitle,
     deleteLoader,
+    closeCreateItemModal,
   } = props;
   const tabs = [
     {
@@ -209,12 +211,10 @@ export default function Nutrition(props) {
       {/* Create Meal/Supplement Modal */}
       <CustomModal
         isVisible={createItemModal}
-        onDismiss={() =>
-          onChangeHandler({ name: 'createItemModal', value: false })
-        }
+        onDismiss={closeCreateItemModal}
         content={
           <CreateItemContent
-            loader={loader}
+            loader={createItemPending}
             color={color}
             heading={modalHeading}
             createItemFields={createItemFields}
@@ -222,10 +222,9 @@ export default function Nutrition(props) {
             openColorPicker={() =>
               onChangeHandler({ name: 'colorPickerModal', value: true })
             }
-            hideModal={() =>
-              onChangeHandler({ name: 'createItemModal', value: false })
-            }
+            hideModal={closeCreateItemModal}
             btnTitle="Create"
+            formErrorText={createItemErrorText}
             onBtnPress={onCreateItem}
           />
         }
@@ -257,9 +256,7 @@ export default function Nutrition(props) {
       {/* Permission Modal */}
       <CustomModal
         isVisible={permissionModal}
-        onDismiss={() =>
-          onChangeHandler({ name: 'permissionModal', value: false })
-        }
+        onDismiss={closePermissionModal}
         content={
           <PermissionModal
             loader={deleteLoader}
@@ -269,9 +266,7 @@ export default function Nutrition(props) {
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
             onDone={onDonePermissionModal}
-            onCancel={() =>
-              onChangeHandler({ name: 'permissionModal', value: false })
-            }
+            onCancel={closePermissionModal}
           />
         }
       />
@@ -304,11 +299,15 @@ Nutrition.propTypes = {
   colorPickerModal: PropTypes.bool.isRequired,
   color: PropTypes.string.isRequired,
   onCreateItem: PropTypes.func.isRequired,
+  createItemPending: PropTypes.bool.isRequired,
+  createItemErrorText: PropTypes.string.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
   onDonePermissionModal: PropTypes.func.isRequired,
+  closePermissionModal: PropTypes.func.isRequired,
   loader: PropTypes.bool.isRequired,
   mealItems: PropTypes.arrayOf(PropTypes.any).isRequired,
   onChangeTitle: PropTypes.func.isRequired,
   deleteLoader: PropTypes.bool.isRequired,
+  closeCreateItemModal: PropTypes.func.isRequired,
 };
