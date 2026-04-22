@@ -1,5 +1,4 @@
 /* eslint-disable react/jsx-props-no-spreading */
-/* eslint-disable no-unused-expressions */
 import React from 'react';
 import {
   ScrollView,
@@ -20,32 +19,49 @@ import {
   PermissionModal,
   SafeAreaWrapper,
 } from '../../../../components';
-import {colors} from '../../../../resources';
+import {colors, strings} from '../../../../resources';
+
+const renderSupportingText = (text, style) => {
+  if (!text) {
+    return null;
+  }
+
+  return <Text style={style}>{text}</Text>;
+};
 
 export default function MyVitals(props) {
   const {
-    isEnabled,
-    toggleSwitch,
     datePickerModal,
-    setDatePickerModal,
     heightPickerModal,
-    setHeightPickerModal,
-    date,
-    month,
-    year,
-    isDateSelected,
-    setIsDateSelected,
-    feet,
-    inches,
-    isHeightSelected,
-    setIsHeightSelected,
-    setName,
-    user,
+    tempDate,
+    setTempDate,
+    tempMonth,
+    setTempMonth,
+    tempYear,
+    setTempYear,
+    tempFeet,
+    setTempFeet,
+    tempInches,
+    setTempInches,
+    draftDobText,
+    draftHeightText,
+    draftName,
+    setDraftName,
+    draftGender,
+    onSelectGender,
+    onOpenDatePicker,
+    onConfirmDatePicker,
+    onCancelDatePicker,
+    onOpenHeightPicker,
+    onConfirmHeightPicker,
+    onCancelHeightPicker,
+    dobErrorText,
+    heightErrorText,
+    formErrorText,
     onUpdateHandler,
     loader,
-    name,
     isPermissionModal,
-    setIsPermissionModal,
+    closePermissionModal,
     alertHeading,
     alertText,
   } = props;
@@ -61,17 +77,17 @@ export default function MyVitals(props) {
         <View>
           <View style={styles.listView}>
             <Text style={styles.textStyle1}>Nickname (optional)</Text>
-            <TouchableOpacity activeOpacity={0.5} style={styles.linkView}>
+            <View style={styles.linkView}>
               <View style={{flex: 1}}>
                 <TextInput
-                  value={name}
-                  onChangeText={text => setName(text)}
+                  value={draftName}
+                  onChangeText={text => setDraftName(text)}
                   style={styles.TextInput}
                   placeholder="Enter a nickname"
                   placeholderTextColor={colors.grey}
                 />
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
         </View>
         <View>
@@ -80,36 +96,44 @@ export default function MyVitals(props) {
             <TouchableOpacity
               activeOpacity={0.5}
               style={styles.linkView}
-              onPress={() => setDatePickerModal(true)}>
+              onPress={onOpenDatePicker}>
               <View style={styles.TextView}>
-                <Text style={styles.TextInput}>
-                  {isDateSelected
-                    ? `${month}/${date}/${year}`
-                    : `${user?.dob.split('/')[1]}/${user?.dob.split('/')[0]}/${
-                        user?.dob.split('/')[2]
-                      }`}
-                </Text>
+                <Text style={styles.TextInput}>{draftDobText}</Text>
               </View>
             </TouchableOpacity>
+            {renderSupportingText(
+              strings.completeProfile.helperText.dob,
+              [styles.supportingText, styles.supportingTextInfo],
+            )}
+            {renderSupportingText(
+              dobErrorText,
+              [styles.supportingText, styles.supportingTextError],
+            )}
           </View>
         </View>
         <View>
           <View style={styles.listView}>
             <Text style={styles.textStyle1}>Gender</Text>
-            <View activeOpacity={0.5} style={styles.linkView}>
+            <View style={styles.linkView}>
               <View style={styles.genderStyle}>
                 <TouchableOpacity
                   style={styles.genderSelectionStyle}
-                  onPress={() => toggleSwitch('male')}>
+                  onPress={() => onSelectGender('male')}>
                   <View
                     style={[
                       styles.radioOuterStyle,
-                      {borderColor: !isEnabled ? '#56ccf2' : 'grey'},
+                      {
+                        borderColor:
+                          draftGender === 'male' ? '#56ccf2' : colors.grey,
+                      },
                     ]}>
                     <View
                       style={[
                         styles.radioInnerStyle,
-                        {backgroundColor: !isEnabled ? '#56ccf2' : null},
+                        {
+                          backgroundColor:
+                            draftGender === 'male' ? '#56ccf2' : null,
+                        },
                       ]}
                     />
                   </View>
@@ -121,16 +145,22 @@ export default function MyVitals(props) {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.genderSelectionStyle, {marginLeft: 20}]}
-                  onPress={() => toggleSwitch('female')}>
+                  onPress={() => onSelectGender('female')}>
                   <View
                     style={[
                       styles.radioOuterStyle,
-                      {borderColor: isEnabled ? '#56ccf2' : 'grey'},
+                      {
+                        borderColor:
+                          draftGender === 'female' ? '#56ccf2' : colors.grey,
+                      },
                     ]}>
                     <View
                       style={[
                         styles.radioInnerStyle,
-                        {backgroundColor: isEnabled ? '#56ccf2' : null},
+                        {
+                          backgroundColor:
+                            draftGender === 'female' ? '#56ccf2' : null,
+                        },
                       ]}
                     />
                   </View>
@@ -142,6 +172,10 @@ export default function MyVitals(props) {
                 </TouchableOpacity>
               </View>
             </View>
+            {renderSupportingText(
+              strings.completeProfile.helperText.gender,
+              [styles.supportingText, styles.supportingTextInfo],
+            )}
           </View>
         </View>
         <View>
@@ -150,64 +184,70 @@ export default function MyVitals(props) {
             <TouchableOpacity
               activeOpacity={0.5}
               style={styles.linkView}
-              onPress={() => setHeightPickerModal(true)}>
+              onPress={onOpenHeightPicker}>
               <View style={styles.TextView}>
-                <Text style={styles.TextInput}>
-                  {isHeightSelected
-                    ? `${feet}'${inches}''`
-                    : `${user.height.split('.')[0]}'${
-                        user.height.split('.')[1]
-                      }''`}
-                </Text>
+                <Text style={styles.TextInput}>{draftHeightText}</Text>
               </View>
             </TouchableOpacity>
+            {renderSupportingText(
+              strings.completeProfile.helperText.height,
+              [styles.supportingText, styles.supportingTextInfo],
+            )}
+            {renderSupportingText(
+              heightErrorText,
+              [styles.supportingText, styles.supportingTextError],
+            )}
           </View>
         </View>
 
         <View style={{margin: 40}}>
           <Button loader={loader} title="Save" onPress={onUpdateHandler} />
+          {renderSupportingText(
+            formErrorText,
+            [
+              styles.supportingText,
+              styles.supportingTextError,
+              {textAlign: 'center'},
+            ],
+          )}
         </View>
       </ScrollView>
 
       <CustomModal
         isVisible={datePickerModal}
-        onDismiss={() => setDatePickerModal(false)}
+        onDismiss={onCancelDatePicker}
         content={
           <DatePickerModal
-            {...props}
-            onConfirm={() => {
-              setIsDateSelected(true);
-              setDatePickerModal(false);
-            }}
-            onCancel={() => {
-              setIsDateSelected(false);
-              setDatePickerModal(false);
-            }}
+            date={tempDate}
+            month={tempMonth}
+            year={tempYear}
+            setDate={setTempDate}
+            setMonth={setTempMonth}
+            setYear={setTempYear}
+            onConfirm={onConfirmDatePicker}
+            onCancel={onCancelDatePicker}
           />
         }
       />
 
       <CustomModal
         isVisible={heightPickerModal}
-        onDismiss={() => setHeightPickerModal(false)}
+        onDismiss={onCancelHeightPicker}
         content={
           <HeightPickerModal
-            {...props}
-            onConfirm={() => {
-              setIsHeightSelected(true);
-              setHeightPickerModal(false);
-            }}
-            onCancel={() => {
-              setIsHeightSelected(false);
-              setHeightPickerModal(false);
-            }}
+            feet={tempFeet}
+            setFeet={setTempFeet}
+            inches={tempInches}
+            setInches={setTempInches}
+            onConfirm={onConfirmHeightPicker}
+            onCancel={onCancelHeightPicker}
           />
         }
       />
 
       <CustomModal
         isVisible={isPermissionModal}
-        onDismiss={() => setIsPermissionModal(false)}
+        onDismiss={closePermissionModal}
         content={
           <PermissionModal
             heading={alertHeading}
@@ -215,8 +255,8 @@ export default function MyVitals(props) {
             isCancelBtn={
               alertHeading !== 'Success!' && alertHeading !== 'Error!'
             }
-            onDone={() => setIsPermissionModal(false)}
-            onCancel={() => setIsPermissionModal(false)}
+            onDone={closePermissionModal}
+            onCancel={closePermissionModal}
           />
         }
       />
@@ -225,28 +265,37 @@ export default function MyVitals(props) {
 }
 
 MyVitals.propTypes = {
-  toggleSwitch: PropTypes.func.isRequired,
-  isEnabled: PropTypes.bool.isRequired,
   datePickerModal: PropTypes.bool.isRequired,
-  setDatePickerModal: PropTypes.func.isRequired,
   heightPickerModal: PropTypes.bool.isRequired,
-  setHeightPickerModal: PropTypes.func.isRequired,
-  date: PropTypes.number.isRequired,
-  month: PropTypes.number.isRequired,
-  year: PropTypes.number.isRequired,
-  isDateSelected: PropTypes.bool.isRequired,
-  setIsDateSelected: PropTypes.func.isRequired,
-  feet: PropTypes.number.isRequired,
-  inches: PropTypes.number.isRequired,
-  isHeightSelected: PropTypes.bool.isRequired,
-  setIsHeightSelected: PropTypes.func.isRequired,
-  setName: PropTypes.func.isRequired,
-  user: PropTypes.objectOf(PropTypes.any).isRequired,
+  tempDate: PropTypes.number.isRequired,
+  setTempDate: PropTypes.func.isRequired,
+  tempMonth: PropTypes.number.isRequired,
+  setTempMonth: PropTypes.func.isRequired,
+  tempYear: PropTypes.number.isRequired,
+  setTempYear: PropTypes.func.isRequired,
+  tempFeet: PropTypes.number.isRequired,
+  setTempFeet: PropTypes.func.isRequired,
+  tempInches: PropTypes.number.isRequired,
+  setTempInches: PropTypes.func.isRequired,
+  draftDobText: PropTypes.string.isRequired,
+  draftHeightText: PropTypes.string.isRequired,
+  draftName: PropTypes.string.isRequired,
+  setDraftName: PropTypes.func.isRequired,
+  draftGender: PropTypes.string.isRequired,
+  onSelectGender: PropTypes.func.isRequired,
+  onOpenDatePicker: PropTypes.func.isRequired,
+  onConfirmDatePicker: PropTypes.func.isRequired,
+  onCancelDatePicker: PropTypes.func.isRequired,
+  onOpenHeightPicker: PropTypes.func.isRequired,
+  onConfirmHeightPicker: PropTypes.func.isRequired,
+  onCancelHeightPicker: PropTypes.func.isRequired,
+  dobErrorText: PropTypes.string.isRequired,
+  heightErrorText: PropTypes.string.isRequired,
+  formErrorText: PropTypes.string.isRequired,
   onUpdateHandler: PropTypes.func.isRequired,
   loader: PropTypes.bool.isRequired,
-  name: PropTypes.string.isRequired,
   isPermissionModal: PropTypes.bool.isRequired,
-  setIsPermissionModal: PropTypes.func.isRequired,
+  closePermissionModal: PropTypes.func.isRequired,
   alertHeading: PropTypes.string.isRequired,
   alertText: PropTypes.string.isRequired,
 };

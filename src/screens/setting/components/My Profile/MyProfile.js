@@ -1,7 +1,4 @@
 /* eslint-disable consistent-return */
-/* eslint-disable default-case */
-/* eslint-disable no-nested-ternary */
-/* eslint-disable no-unused-expressions */
 import React from 'react';
 import {
   ScrollView,
@@ -15,13 +12,22 @@ import styles from './style';
 import {colors} from '../../../../resources';
 import {CustomHeader, SafeAreaWrapper} from '../../../../components';
 
+const BMI_BADGE_STYLES = {
+  danger: {backgroundColor: colors.danger},
+  normal: {backgroundColor: colors.green},
+  obese: {backgroundColor: colors.orange},
+  overweight: {backgroundColor: colors.yellowish},
+  underweight: {},
+};
+
 export default function MyProfile(props) {
-  const {navigation, listData, user} = props;
-  const nickname = user?.name?.trim();
+  const {navigation, listData} = props;
 
   return (
     <SafeAreaWrapper>
-      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}>
         <CustomHeader />
         <View style={styles.headingView}>
           <Text style={styles.headingText1}>Profile</Text>
@@ -37,108 +43,44 @@ export default function MyProfile(props) {
                   activeOpacity={0.5}
                   style={styles.linkView}
                   onPress={() => {
-                    option.screen ? navigation.navigate(option.screen) : {};
+                    if (option.screen) {
+                      navigation.navigate(option.screen);
+                    }
                   }}>
                   {option.list?.length ? (
-                    (user.targetCalories || option.list).map(opt => (
+                    option.list.map(opt => (
                       <View
                         key={opt.id}
                         style={{
                           flex: 1,
                         }}>
                         <Text style={styles.textStyle2}>
-                          {opt.name.toUpperCase()}
+                          {opt.name}
                         </Text>
                         <Text style={styles.textStyle2}>{opt.value}</Text>
                       </View>
                     ))
-                  ) : item.title === 'BMI' ? (
+                  ) : option.badgeText ? (
                     <View
                       style={{
                         flex: 1,
                         flexDirection: 'row',
                         alignItems: 'center',
                       }}>
-                      <Text style={styles.textStyle2}>{user.bmi}</Text>
-                      {(() => {
-                        switch (true) {
-                          case user.bmi < 18.5:
-                            return (
-                              <Text style={styles.BMIBadge}>Underweight</Text>
-                            );
-                          case user.bmi >= 18.5 && user.bmi <= 24.9:
-                            return (
-                              <Text
-                                style={[
-                                  styles.BMIBadge,
-                                  {backgroundColor: colors.green},
-                                ]}>
-                                Normal
-                              </Text>
-                            );
-                          case user.bmi >= 25.0 && user.bmi <= 29.9:
-                            return (
-                              <Text
-                                style={[
-                                  styles.BMIBadge,
-                                  {backgroundColor: colors.yellowish},
-                                ]}>
-                                Overweight
-                              </Text>
-                            );
-                          case user.bmi >= 30.0 && user.bmi <= 34.9:
-                            return (
-                              <Text
-                                style={[
-                                  styles.BMIBadge,
-                                  {backgroundColor: colors.orange},
-                                ]}>
-                                Obese
-                              </Text>
-                            );
-                          case user.bmi > 35:
-                            return (
-                              <Text
-                                style={[
-                                  styles.BMIBadge,
-                                  {backgroundColor: colors.danger},
-                                ]}>
-                                Danger
-                              </Text>
-                            );
-                        }
-                      })()}
-                      <AntDesign
-                        name="right"
-                        size={15}
+                      <Text style={styles.textStyle2}>{option.displayValue}</Text>
+                      <Text
                         style={[
-                          styles.iconStyle,
-                          {display: option.screen !== '' ? 'flex' : 'none'},
-                        ]}
-                      />
-                    </View>
-                  ) : item.title === 'BMR' ? (
-                    <View
-                      style={{
-                        flex: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}>
-                      <Text style={styles.textStyle2}>
-                        {item.title === 'BMR' ? (
-                          <Text style={styles.textStyle2}>
-                            {user.bmr} CALORIES
-                          </Text>
-                        ) : (
-                          option.name
-                        )}
+                          styles.BMIBadge,
+                          BMI_BADGE_STYLES[option.badgeTone] || {},
+                        ]}>
+                        {option.badgeText}
                       </Text>
                       <AntDesign
                         name="right"
                         size={15}
                         style={[
                           styles.iconStyle,
-                          {display: option.screen !== '' ? 'flex' : 'none'},
+                          {display: option.screen ? 'flex' : 'none'},
                         ]}
                       />
                     </View>
@@ -150,18 +92,14 @@ export default function MyProfile(props) {
                         alignItems: 'center',
                       }}>
                       <Text style={styles.textStyle2}>
-                        {item.title === 'Profile'
-                          ? nickname || 'No nickname set'
-                          : item.title === 'Current Weight'
-                          ? `${user.weight} LBS`
-                          : option.name}
+                        {option.displayValue || option.name || '--'}
                       </Text>
                       <AntDesign
                         name="right"
                         size={15}
                         style={[
                           styles.iconStyle,
-                          {display: option.screen !== '' ? 'flex' : 'none'},
+                          {display: option.screen ? 'flex' : 'none'},
                         ]}
                       />
                     </View>
@@ -179,5 +117,4 @@ export default function MyProfile(props) {
 MyProfile.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
   listData: PropTypes.arrayOf(PropTypes.objectOf(PropTypes.any)).isRequired,
-  user: PropTypes.objectOf(PropTypes.any).isRequired,
 };

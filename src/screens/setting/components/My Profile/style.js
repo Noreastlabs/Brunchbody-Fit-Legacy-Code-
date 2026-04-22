@@ -120,6 +120,18 @@ export default StyleSheet.create({
     fontSize: RFValue(18),
     color: colors.qccentError,
   },
+  supportingText: {
+    fontSize: RFValue(13),
+    lineHeight: RFValue(18),
+    marginTop: RFValue(8),
+  },
+  supportingTextInfo: {
+    color: colors.grey,
+  },
+  supportingTextError: {
+    color: colors.qccentError,
+    fontWeight: '700',
+  },
 
   iconStyle: {
     color: colors.white,
