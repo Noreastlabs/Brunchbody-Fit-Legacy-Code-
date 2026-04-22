@@ -1,6 +1,6 @@
 import moment from 'moment';
 import PropTypes from 'prop-types';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { connect, useDispatch } from 'react-redux';
 import { CustomModal, DatePickerModal, PermissionModal, SafeAreaWrapper, WheelPickerContent } from '../../../../components';
@@ -48,6 +48,44 @@ let yearsList = [];
 let totalDays = 0;
 let currentMonthTimeStamp = new Date().getTime();
 
+const TODO_ADD_HEADING = 'Add To Do';
+const TODO_EDIT_HEADING = 'Edit To Do';
+const TASK_REQUIRED_ERROR = 'Enter a task name.';
+const DAY_REQUIRED_ERROR = 'Choose Someday or confirm a day.';
+const TODO_FORM_ERROR = 'Check the highlighted todo fields before saving.';
+const STALE_TODO_ERROR =
+  'This todo is no longer available. Please reopen it and try again.';
+
+const getTodayDateParts = () => {
+  const today = new Date();
+
+  return {
+    date: today.getDate(),
+    month: today.getMonth() + 1,
+    year: today.getFullYear(),
+  };
+};
+
+const formatTodoDayLabel = ({ date, month, year }) => `${month}/${date}/${year}`;
+
+const getTodoDateParts = value => {
+  if (!value) {
+    return null;
+  }
+
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return {
+    date: parsedDate.getDate(),
+    month: parsedDate.getMonth() + 1,
+    year: parsedDate.getFullYear(),
+  };
+};
+
 export default function CalendarPage(props) {
   const {
     user,
@@ -86,7 +124,7 @@ export default function CalendarPage(props) {
   const [disabled, setDisabled] = useState(true);
   const [visibleAddRemove, setvisibleAddRemove] = useState(false);
   const [visibleClearTheme, setvisibleClearTheme] = useState(false);
-  const [checked, setchecked] = useState(strings.todo.today);
+  const [checked, setchecked] = useState('');
   const [checkedCalendarMenu, setcheckedCalendarMenu] = useState(
     strings.calendar.theme,
   );
@@ -96,9 +134,9 @@ export default function CalendarPage(props) {
   const [visibleDialog, setvisibleDialog] = useState(false);
   const [datePickerModal, setDatePickerModal] = useState(false);
   const [isDateSelected, setIsDateSelected] = useState(false);
-  const [date, setDate] = useState(new Date().getDate());
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [date, setDate] = useState(() => getTodayDateParts().date);
+  const [month, setMonth] = useState(() => getTodayDateParts().month);
+  const [year, setYear] = useState(() => getTodayDateParts().year);
   const [permissionModal, setPermissionModal] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
@@ -109,6 +147,9 @@ export default function CalendarPage(props) {
   const [taskName, settaskName] = useState('');
   const [taskDay, settaskDay] = useState('');
   const [taskNotes, settaskNotes] = useState('');
+  const [taskErrorText, setTaskErrorText] = useState('');
+  const [dayErrorText, setDayErrorText] = useState('');
+  const [formErrorText, setFormErrorText] = useState('');
   const [todoTask, setTodoTask] = useState({});
   const [frequency, setFrequency] = useState('');
   const [clearDays, setClearDays] = useState('');
@@ -120,6 +161,148 @@ export default function CalendarPage(props) {
   const [todoListDate, setTodoListDate] = useState(
     moment().format('YYYY-MM-DD'),
   );
+  const submitLockRef = useRef(false);
+  const deleteLockRef = useRef(false);
+
+  const resetTodoValidation = () => {
+    setTaskErrorText('');
+    setDayErrorText('');
+    setFormErrorText('');
+  };
+
+  const resetTodoActionState = () => {
+    submitLockRef.current = false;
+    deleteLockRef.current = false;
+    setBtnLoader(false);
+    setDeleteLoader(false);
+    setvisibleDialog(false);
+    setDatePickerModal(false);
+    resetTodoValidation();
+  };
+
+  const applyTodoDateParts = nextDateParts => {
+    setDate(nextDateParts.date);
+    setMonth(nextDateParts.month);
+    setYear(nextDateParts.year);
+  };
+
+  const resetTodoEditorFields = () => {
+    const todayDateParts = getTodayDateParts();
+
+    settaskName('');
+    settaskDay('');
+    settaskNotes('');
+    setTodoTask({});
+    seteditTask(false);
+    setchecked('');
+    setIsDateSelected(false);
+    applyTodoDateParts(todayDateParts);
+  };
+
+  const closeTodoEditor = () => {
+    setvisibleEdit(false);
+    setTodoModalHeading('');
+    resetTodoActionState();
+    resetTodoEditorFields();
+  };
+
+  const openAddTodoEditor = () => {
+    setVisible(false);
+    setvisibleCalendarMenu(false);
+    resetTodoActionState();
+    resetTodoEditorFields();
+    setTodoModalHeading(TODO_ADD_HEADING);
+    setvisibleEdit(true);
+  };
+
+  const openTodoEditSession = task => {
+    const selectedTask = task && typeof task === 'object' ? task : {};
+    const hasSelectedTodo = Boolean(selectedTask.id);
+    const nextTaskName = hasSelectedTodo ? selectedTask.name || '' : '';
+    const nextTaskNotes = hasSelectedTodo ? selectedTask.notes || '' : '';
+    let nextTaskDay = '';
+    let nextChecked = '';
+    let nextIsDateSelected = false;
+    let nextDateParts = getTodayDateParts();
+
+    if (
+      hasSelectedTodo &&
+      (selectedTask.day === strings.todo.someday ||
+        selectedTask.day === strings.calendar.someday)
+    ) {
+      nextTaskDay = strings.calendar.someday;
+      nextChecked = strings.calendar.someday;
+    } else if (hasSelectedTodo) {
+      const parsedTaskDay = getTodoDateParts(selectedTask.day);
+
+      if (parsedTaskDay) {
+        nextDateParts = parsedTaskDay;
+        nextTaskDay = formatTodoDayLabel(parsedTaskDay);
+        nextChecked = strings.calendar.pickday;
+        nextIsDateSelected = true;
+      }
+    }
+
+    setVisible(false);
+    setvisibleCalendarMenu(false);
+    resetTodoActionState();
+    settaskName(nextTaskName);
+    settaskDay(nextTaskDay);
+    settaskNotes(nextTaskNotes);
+    setTodoTask(hasSelectedTodo ? selectedTask : {});
+    seteditTask(true);
+    setchecked(nextChecked);
+    setIsDateSelected(nextIsDateSelected);
+    applyTodoDateParts(nextDateParts);
+    setTodoModalHeading(TODO_EDIT_HEADING);
+    setvisibleEdit(true);
+  };
+
+  const setStaleTodoContextError = () => {
+    setTaskErrorText('');
+    setDayErrorText('');
+    setFormErrorText(STALE_TODO_ERROR);
+  };
+
+  const validateTodoEditorState = () => {
+    let nextTaskErrorText = '';
+    let nextDayErrorText = '';
+
+    if (!taskName?.trim()) {
+      nextTaskErrorText = TASK_REQUIRED_ERROR;
+    }
+
+    if (
+      checked === strings.calendar.someday &&
+      taskDay === strings.calendar.someday
+    ) {
+      nextDayErrorText = '';
+    } else if (
+      checked !== strings.calendar.pickday ||
+      !isDateSelected ||
+      !taskDay?.trim()
+    ) {
+      nextDayErrorText = DAY_REQUIRED_ERROR;
+    }
+
+    setTaskErrorText(nextTaskErrorText);
+    setDayErrorText(nextDayErrorText);
+    setFormErrorText(
+      nextTaskErrorText || nextDayErrorText ? TODO_FORM_ERROR : '',
+    );
+
+    return !nextTaskErrorText && !nextDayErrorText;
+  };
+
+  const onTaskNameChange = text => {
+    settaskName(text);
+    setTaskErrorText('');
+    setFormErrorText('');
+  };
+
+  const onTaskNotesChange = text => {
+    settaskNotes(text);
+  };
 
   const onCancelWheelPicker = () => {
     setFrequency('');
@@ -137,48 +320,23 @@ export default function CalendarPage(props) {
 
   const hideModal = () => {
     setVisible(false);
-    seteditTask(false);
-    setchecked('');
   };
 
   const showModal = task => {
     setVisible(true);
-    setTodoTask(task);
-    seteditTask(true);
-    settaskName(task.name);
-    settaskDay(task.day);
-    settaskNotes(task.notes);
-    setDate(new Date(task.day).getDate());
-    setMonth(new Date(task.day).getMonth() + 1);
-    setYear(new Date(task.day).getFullYear());
-    if (task.day !== '' && task.day === strings.todo.someday) {
-      setchecked(strings.todo.someday);
-    } else if (task.day !== '' && task.day !== strings.todo.someday)
-      setchecked('Pick a day');
-    else setchecked('');
+    setTodoTask(task || {});
   };
 
   const openEditModal = heading => {
-    if (heading === 'Add To Do') {
-      settaskName('');
-      settaskDay('');
-      settaskNotes('');
-      setDate(new Date().getDate());
-      setMonth(new Date().getMonth() + 1);
-      setYear(new Date().getFullYear());
+    if (heading === TODO_ADD_HEADING) {
+      openAddTodoEditor();
+      return;
     }
-    setVisible(false);
-    setvisibleEdit(true);
-    setvisibleCalendarMenu(false);
-    setTodoModalHeading(heading);
+
+    openTodoEditSession(todoTask);
   };
 
-  const hideEditModal = () => {
-    setvisibleEdit(false);
-    setchecked('');
-    seteditTask(false);
-    setchecked('');
-  };
+  const hideEditModal = () => closeTodoEditor();
 
   const showMyTheme = () => {
     setvisibleCalendarMenu(false);
@@ -188,10 +346,17 @@ export default function CalendarPage(props) {
   const checkFirst = () => {
     settaskDay(strings.calendar.someday);
     setchecked(strings.calendar.someday);
+    setIsDateSelected(false);
+    setDatePickerModal(false);
+    setDayErrorText('');
+    setFormErrorText('');
   };
   const checkSecond = () => {
-    settaskDay(`${date}/${month}/${year}`);
+    settaskDay('');
     setchecked(strings.calendar.pickday);
+    setIsDateSelected(false);
+    setDayErrorText('');
+    setFormErrorText('');
   };
   const hideManageTheme = () => {
     setvisibleManageTheme(false);
@@ -303,7 +468,49 @@ export default function CalendarPage(props) {
     setPermissionModal(true);
   };
 
+  const onConfirmTodoDatePicker = selectedDate => {
+    const parsedDate = selectedDate ? new Date(selectedDate) : new Date();
+    const nextDateParts = {
+      date: parsedDate.getDate(),
+      month: parsedDate.getMonth() + 1,
+      year: parsedDate.getFullYear(),
+    };
+
+    applyTodoDateParts(nextDateParts);
+    settaskDay(formatTodoDayLabel(nextDateParts));
+    setIsDateSelected(true);
+    setDatePickerModal(false);
+    setDayErrorText('');
+    setFormErrorText('');
+  };
+
+  const onCancelTodoDatePicker = () => {
+    setDatePickerModal(false);
+  };
+
+  const onShowDeleteDialog = () => {
+    if (btnLoader || deleteLoader) {
+      return;
+    }
+
+    if (!todoTask?.id) {
+      setStaleTodoContextError();
+      return;
+    }
+
+    resetTodoValidation();
+    setvisibleDialog(true);
+  };
+
   const onSaveEditModal = async () => {
+    if (submitLockRef.current || btnLoader || deleteLoader) {
+      return;
+    }
+
+    if (!validateTodoEditorState()) {
+      return;
+    }
+
     const todoSubmission = buildCalendarTodoSubmission({
       taskName,
       taskNotes,
@@ -313,34 +520,47 @@ export default function CalendarPage(props) {
       date,
     });
 
-    if (todoSubmission) {
-      setBtnLoader(true);
+    if (!todoSubmission) {
+      validateTodoEditorState();
+      return;
+    }
 
-      const response = await onAddCalendarTodoTask(todoSubmission);
+    submitLockRef.current = true;
+    setBtnLoader(true);
 
-      if (response === true) {
-        settaskName('');
-        settaskDay('');
-        settaskNotes('');
-        setBtnLoader(false);
-        setvisibleEdit(false);
-        setchecked('');
-        setIsDateSelected(false);
-        setTodoModalHeading('Edit To Do');
-        showMessage('Success!', 'Todo added successfully.');
-      } else {
-        setBtnLoader(false);
-        setTodoModalHeading('Edit To Do');
-        showMessage('Error!', response);
-      }
-    } else {
+    let response = false;
+
+    try {
+      response = await onAddCalendarTodoTask(todoSubmission);
+    } catch (error) {
+      response = error?.message || 'Something went wrong.';
+    } finally {
+      submitLockRef.current = false;
       setBtnLoader(false);
-      showMessage('Error!', 'Task name and time are required.');
+    }
+
+    if (response === true) {
+      closeTodoEditor();
+      showMessage('Success!', 'Todo added successfully.');
+    } else {
+      showMessage('Error!', response);
     }
   };
 
   const onUpdateTodo = async () => {
-    setTodoModalHeading('Edit To Do');
+    if (submitLockRef.current || btnLoader || deleteLoader) {
+      return;
+    }
+
+    if (!todoTask?.id) {
+      setStaleTodoContextError();
+      return;
+    }
+
+    if (!validateTodoEditorState()) {
+      return;
+    }
+
     const todoSubmission = buildCalendarTodoSubmission({
       taskName,
       taskNotes,
@@ -350,41 +570,62 @@ export default function CalendarPage(props) {
       date,
     });
 
-    if (todoSubmission) {
-      setBtnLoader(true);
+    if (!todoSubmission) {
+      validateTodoEditorState();
+      return;
+    }
 
-      const response = await onEditCalendarTodoTask(todoTask.id, todoSubmission);
+    submitLockRef.current = true;
+    setBtnLoader(true);
 
-      if (response === true) {
-        settaskName('');
-        settaskDay('');
-        settaskNotes('');
-        setBtnLoader(false);
-        setvisibleEdit(false);
-        setchecked('');
-        setIsDateSelected(false);
-        showMessage('Success!', 'Todo edited successfully.');
-      } else {
-        setBtnLoader(false);
-        showMessage('Error!', response);
-      }
-    } else {
+    let response = false;
+
+    try {
+      response = await onEditCalendarTodoTask(todoTask.id, todoSubmission);
+    } catch (error) {
+      response = error?.message || 'Something went wrong.';
+    } finally {
+      submitLockRef.current = false;
       setBtnLoader(false);
-      showMessage('Error!', 'Task name and time are required.');
+    }
+
+    if (response === true) {
+      closeTodoEditor();
+      showMessage('Success!', 'Todo edited successfully.');
+    } else {
+      showMessage('Error!', response);
     }
   };
 
   const onClearTodo = async () => {
+    if (deleteLockRef.current || deleteLoader || btnLoader) {
+      return;
+    }
+
+    if (!todoTask?.id) {
+      setStaleTodoContextError();
+      setvisibleDialog(false);
+      return;
+    }
+
+    deleteLockRef.current = true;
     setDeleteLoader(true);
-    const response = await onDeleteCalendarTodoTask(todoTask.id);
+
+    let response = false;
+
+    try {
+      response = await onDeleteCalendarTodoTask(todoTask.id);
+    } catch (error) {
+      response = error?.message || 'Something went wrong.';
+    } finally {
+      deleteLockRef.current = false;
+      setDeleteLoader(false);
+    }
 
     if (response === true) {
-      setDeleteLoader(false);
-      setvisibleDialog(false);
-      hideEditModal();
-      showMessage('Success!', `Todo removed successfully.`);
+      closeTodoEditor();
+      showMessage('Success!', 'Todo removed successfully.');
     } else {
-      setDeleteLoader(false);
       setvisibleDialog(false);
       showMessage('Error!', response);
     }
@@ -570,19 +811,24 @@ export default function CalendarPage(props) {
     }
   };
 
-  const onConfirmDatePicker = () => {
+  const onConfirmDatePicker = selectedDate => {
+    const parsedDate = selectedDate ? new Date(selectedDate) : new Date();
+    const nextDateParts = {
+      date: parsedDate.getDate(),
+      month: parsedDate.getMonth() + 1,
+      year: parsedDate.getFullYear(),
+    };
+    const selectedDateKey = moment(
+      `${nextDateParts.year}/${nextDateParts.month}/${nextDateParts.date}`,
+      'YYYY/MM/DD',
+    ).format('YYYY-MM-DD');
+
     if (check === 'changeRepeatedTheme') {
+      applyTodoDateParts(nextDateParts);
       setIsDateSelected(true);
       setDatePickerModal(false);
-      if (
-        frequencyThemes[moment(`${year}/${month}/${date}`, 'YYYY/MM/DD').format('YYYY-MM-DD')]
-          ?.theme
-      ) {
-        setRepeatedTheme(
-          frequencyThemes[
-            moment(`${year}/${month}/${date}`, 'YYYY/MM/DD').format('YYYY-MM-DD')
-          ].theme,
-        );
+      if (frequencyThemes[selectedDateKey]?.theme) {
+        setRepeatedTheme(frequencyThemes[selectedDateKey].theme);
       } else {
         setRepeatedTheme('');
       }
@@ -673,19 +919,32 @@ export default function CalendarPage(props) {
         year={year}
         setYear={setYear}
         isDateSelected={isDateSelected}
-        setIsDateSelected={setIsDateSelected}
-        settaskName={settaskName}
-        settaskDay={settaskDay}
-        settaskNotes={settaskNotes}
+        taskName={taskName}
+        taskNotes={taskNotes}
+        taskDayLabel={
+          checked === strings.calendar.pickday && isDateSelected
+            ? formatTodoDayLabel({ date, month, year })
+            : ''
+        }
+        onTaskNameChange={onTaskNameChange}
+        onTaskNotesChange={onTaskNotesChange}
+        onConfirmDatePicker={onConfirmTodoDatePicker}
+        onCancelDatePicker={onCancelTodoDatePicker}
         onSaveEditModal={onSaveEditModal}
         editTask={editTask}
-        todoTask={todoTask}
         onUpdateTodo={onUpdateTodo}
         visibleDialog={visibleDialog}
         setvisibleDialog={setvisibleDialog}
         onDeleteTodo={onClearTodo}
+        onShowDeleteDialog={onShowDeleteDialog}
         loader={btnLoader}
         deleteLoader={deleteLoader}
+        saveDisabled={btnLoader || deleteLoader}
+        clearTaskDisabled={btnLoader || deleteLoader || !todoTask?.id}
+        canDeleteTodo={Boolean(editTask && todoTask?.id)}
+        taskErrorText={taskErrorText}
+        dayErrorText={dayErrorText}
+        formErrorText={formErrorText}
         heading={todoModalHeading}
       />
 
@@ -795,7 +1054,7 @@ export default function CalendarPage(props) {
       />
 
       <CustomModal
-        isVisible={datePickerModal}
+        isVisible={!visibleEdit && datePickerModal}
         onDismiss={() => setDatePickerModal(false)}
         content={
           <DatePickerModal

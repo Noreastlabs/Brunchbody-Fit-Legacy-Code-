@@ -1,15 +1,22 @@
 /* eslint-disable eqeqeq */
 import PropTypes from 'prop-types';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { DatePicker } from 'react-native-wheel-pick';
 import { colors } from '../../resources';
 import styles from './style';
 
 export default function DatePickerModal(props) {
-  const { onConfirm, onCancel, setDate, setMonth, setYear } = props;
+  const { onConfirm, onCancel, setDate, setMonth, setYear, date, month, year } =
+    props;
 
-  const [selectedDateStr, setSelectedDateStr] = useState(new Date());
+  const [selectedDateStr, setSelectedDateStr] = useState(
+    () => new Date(year, month - 1, date),
+  );
+
+  useEffect(() => {
+    setSelectedDateStr(new Date(year, month - 1, date));
+  }, [date, month, year]);
 
   const handleConfirm = () => {
     if (selectedDateStr) {
@@ -61,12 +68,18 @@ export default function DatePickerModal(props) {
 
 DatePickerModal.defaultProps = {
   onConfirm: () => {},
+  date: new Date().getDate(),
+  month: new Date().getMonth() + 1,
+  year: new Date().getFullYear(),
 };
 
 DatePickerModal.propTypes = {
   onConfirm: PropTypes.func,
   onCancel: PropTypes.func.isRequired,
+  date: PropTypes.number,
+  month: PropTypes.number,
   setDate: PropTypes.func.isRequired,
   setMonth: PropTypes.func.isRequired,
   setYear: PropTypes.func.isRequired,
+  year: PropTypes.number,
 };

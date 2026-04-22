@@ -1,7 +1,13 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
-import {View, ScrollView, TouchableOpacity, TextInput} from 'react-native';
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+} from 'react-native';
 import {Modal, Text, RadioButton, Headline} from 'react-native-paper';
 import PropTypes from 'prop-types';
 import {
@@ -15,6 +21,21 @@ import {colors, strings} from '../../../resources';
 import CloseIcon from './CloseIcon';
 import styles from './style';
 
+const SELECT_DAY_PLACEHOLDER = 'Select Day';
+
+const inlineStyles = StyleSheet.create({
+  supportingText: {
+    fontSize: 13,
+    marginTop: 8,
+  },
+  supportingTextError: {
+    color: colors.qccentError,
+  },
+  supportingTextInfo: {
+    color: colors.textGrey,
+  },
+});
+
 const EditTodo = props => {
   const {
     visibleEdit,
@@ -24,44 +45,67 @@ const EditTodo = props => {
     checkSecond,
     datePickerModal,
     setDatePickerModal,
-    date,
-    month,
-    year,
-    isDateSelected,
-    setIsDateSelected,
     onUpdateTodo,
-    settaskName,
-    todoTask,
-    settaskNotes,
+    taskName,
+    taskNotes,
+    taskDayLabel,
+    onTaskNameChange,
+    onTaskNotesChange,
+    onConfirmDatePicker,
+    onCancelDatePicker,
     onSaveEditModal,
-    setvisibleDialog,
     editTask,
     onDeleteTodo,
+    onShowDeleteDialog,
     visibleDialog,
     loader,
     deleteLoader,
+    saveDisabled,
+    clearTaskDisabled,
+    canDeleteTodo,
+    taskErrorText,
+    dayErrorText,
+    formErrorText,
     heading,
   } = props;
+  const isActionPending = loader || deleteLoader;
+  const renderSupportingText = (text, tone = 'error') => {
+    if (!text) {
+      return null;
+    }
+
+    return (
+      <Text
+        style={[
+          inlineStyles.supportingText,
+          tone === 'error'
+            ? inlineStyles.supportingTextError
+            : inlineStyles.supportingTextInfo,
+        ]}>
+        {text}
+      </Text>
+    );
+  };
 
   return (
     <Modal
       visible={visibleEdit}
-      onDismiss={hideEditModal}
+      onDismiss={isActionPending ? () => {} : hideEditModal}
       contentContainerStyle={styles.editModalContainer}>
       <ScrollView contentContainerStyle={{flexGrow: 1, paddingVertical: 10}}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
           <Headline style={styles.headline}>{heading}</Headline>
-          <CloseIcon onPress={hideEditModal} />
+          <CloseIcon onPress={isActionPending ? () => {} : hideEditModal} />
         </View>
 
         <Headline style={styles.editTitle}>
           {strings.editTodo.enterTask}
         </Headline>
         <TextInput
+          value={taskName}
           placeholder="Enter Task"
-          defaultValue={editTask ? todoTask.name : null}
           placeholderTextColor={colors.grey}
-          onChangeText={text => settaskName(text)}
+          onChangeText={text => onTaskNameChange(text)}
           style={styles.input}
         />
 
@@ -73,7 +117,9 @@ const EditTodo = props => {
             <View style={{flexDirection: 'row'}}>
               <RadioButton.Android
                 value="Someday"
-                status={checked === 'Someday' ? 'checked' : 'unchecked'}
+                status={
+                  checked === strings.calendar.someday ? 'checked' : 'unchecked'
+                }
                 onPress={checkFirst}
                 uncheckedColor={colors.nonEditableOverlays}
               />
@@ -82,7 +128,9 @@ const EditTodo = props => {
             <View style={{flexDirection: 'row'}}>
               <RadioButton.Android
                 value="Pick a day"
-                status={checked === 'Pick a day' ? 'checked' : 'unchecked'}
+                status={
+                  checked === strings.calendar.pickday ? 'checked' : 'unchecked'
+                }
                 onPress={checkSecond}
                 uncheckedColor={colors.nonEditableOverlays}
               />
@@ -90,7 +138,7 @@ const EditTodo = props => {
             </View>
           </View>
 
-          {checked === 'Pick a day' ? (
+          {checked === strings.calendar.pickday ? (
             <View style={{alignItems: 'center'}}>
               <Headline
                 style={[styles.editTitle, {fontSize: 20, marginBottom: 0}]}>
@@ -98,17 +146,14 @@ const EditTodo = props => {
               </Headline>
               <TouchableOpacity
                 activeOpacity={0.5}
+                disabled={isActionPending}
                 onPress={() => setDatePickerModal(true)}>
-                <Text style={styles.dateText}>
-                  {editTask && todoTask.day !== strings.todo.someday
-                    ? `${new Date(todoTask.day).getMonth() + 1}/${new Date(
-                        todoTask.day,
-                      ).getDate()}/${new Date(todoTask.day).getFullYear()}`
-                    : isDateSelected
-                    ? `${month}/${date}/${year}`
-                    : `${
-                        new Date().getMonth() + 1
-                      }/${new Date().getDate()}/${new Date().getFullYear()}`}
+                <Text
+                  style={[
+                    styles.dateText,
+                    !taskDayLabel ? inlineStyles.supportingTextInfo : null,
+                  ]}>
+                  {taskDayLabel || SELECT_DAY_PLACEHOLDER}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -118,55 +163,60 @@ const EditTodo = props => {
         <Headline style={styles.editTitle}>{strings.editTodo.notes}</Headline>
         <TextInput
           multiline
-          defaultValue={editTask ? todoTask.notes : null}
+          value={taskNotes}
           placeholder="Notes"
           placeholderTextColor={colors.grey}
           style={styles.notesInput}
-          onChangeText={text => settaskNotes(text)}
+          onChangeText={text => onTaskNotesChange(text)}
         />
+        {renderSupportingText(taskErrorText)}
+        {renderSupportingText(dayErrorText)}
+        {renderSupportingText(formErrorText)}
         <ModalButton
           onPress={editTask ? onUpdateTodo : onSaveEditModal}
           label={strings.button.save}
           loader={loader}
+          disabled={saveDisabled}
         />
-        {editTask ? (
+        {canDeleteTodo ? (
           <View style={styles.bottomTextView}>
             <TextButton
               title="Clear Task"
-              onPress={() => {
-                setvisibleDialog(true);
-              }}
+              disabled={clearTaskDisabled}
+              onPress={onShowDeleteDialog}
             />
           </View>
         ) : null}
       </ScrollView>
 
       <CustomModal
-        isVisible={datePickerModal}
-        onDismiss={() => setDatePickerModal(false)}
+        isVisible={visibleEdit && datePickerModal}
+        onDismiss={onCancelDatePicker}
         content={
           <DatePickerModal
             {...props}
-            onConfirm={() => {
-              setIsDateSelected(true);
-              setDatePickerModal(false);
-            }}
-            onCancel={() => {
-              setIsDateSelected(false);
-              setDatePickerModal(false);
-            }}
+            onConfirm={onConfirmDatePicker}
+            onCancel={onCancelDatePicker}
           />
         }
       />
 
       <CustomModal
-        isVisible={visibleDialog}
-        onDismiss={() => setvisibleDialog(false)}
+        isVisible={visibleEdit && visibleDialog}
+        onDismiss={() => {
+          if (!deleteLoader) {
+            props.setvisibleDialog(false);
+          }
+        }}
         content={
           <PermissionModal
             loader={deleteLoader}
             onDone={onDeleteTodo}
-            onCancel={() => setvisibleDialog(false)}
+            onCancel={() => {
+              if (!deleteLoader) {
+                props.setvisibleDialog(false);
+              }
+            }}
           />
         }
       />
@@ -186,18 +236,28 @@ EditTodo.propTypes = {
   month: PropTypes.number.isRequired,
   year: PropTypes.number.isRequired,
   isDateSelected: PropTypes.bool.isRequired,
-  setIsDateSelected: PropTypes.func.isRequired,
-  todoTask: PropTypes.objectOf(PropTypes.any).isRequired,
+  taskName: PropTypes.string.isRequired,
+  taskNotes: PropTypes.string.isRequired,
+  taskDayLabel: PropTypes.string.isRequired,
+  taskErrorText: PropTypes.string.isRequired,
+  dayErrorText: PropTypes.string.isRequired,
+  formErrorText: PropTypes.string.isRequired,
+  onTaskNameChange: PropTypes.func.isRequired,
+  onTaskNotesChange: PropTypes.func.isRequired,
+  onConfirmDatePicker: PropTypes.func.isRequired,
+  onCancelDatePicker: PropTypes.func.isRequired,
   onUpdateTodo: PropTypes.func.isRequired,
+  onShowDeleteDialog: PropTypes.func.isRequired,
   setvisibleDialog: PropTypes.func.isRequired,
-  settaskNotes: PropTypes.func.isRequired,
-  settaskName: PropTypes.func.isRequired,
   editTask: PropTypes.bool.isRequired,
   onDeleteTodo: PropTypes.func.isRequired,
   visibleDialog: PropTypes.bool.isRequired,
   loader: PropTypes.bool.isRequired,
   onSaveEditModal: PropTypes.func.isRequired,
   deleteLoader: PropTypes.bool.isRequired,
+  saveDisabled: PropTypes.bool.isRequired,
+  clearTaskDisabled: PropTypes.bool.isRequired,
+  canDeleteTodo: PropTypes.bool.isRequired,
   heading: PropTypes.string.isRequired,
 };
 
