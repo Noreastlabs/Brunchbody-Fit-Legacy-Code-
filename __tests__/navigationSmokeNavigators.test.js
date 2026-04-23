@@ -177,6 +177,7 @@ jest.mock('../src/screens/setting', () => ({
 }));
 
 const RootNavigation = require('../src/navigation/RootNavigation').default;
+const { ROOT_ROUTES } = require('../src/navigation/routeNames');
 const BottomTabNavigation =
   jest.requireActual('../src/navigation/BottomTabNavigation').default;
 const CalendarNavigation = require('../src/navigation/CalendarNavigation').default;
@@ -214,22 +215,38 @@ describe('Navigation smoke navigator contracts', () => {
   });
 
   test('RootNavigation keeps Home as the authenticated shell entry', () => {
-    const renderer = renderTree(<RootNavigation initialRouteName="Home" />);
+    const renderer = renderTree(
+      <RootNavigation initialRouteName={ROOT_ROUTES.HOME} />,
+    );
     const stackNavigator = renderer.root.findByType('mock-stack-navigator');
     const stackScreens = renderer.root.findAllByType('mock-stack-screen');
-    const homeScreen = stackScreens.find(screen => screen.props.name === 'Home');
+    const homeScreen = stackScreens.find(
+      screen => screen.props.name === ROOT_ROUTES.HOME,
+    );
+
+    expect(stackNavigator.props.initialRouteName).toBe(ROOT_ROUTES.HOME);
+    expect(homeScreen.props.component).toBe(mockBottomTabNavigation);
+  });
+
+  test('RootNavigation keeps the startup-level route set and component wiring', () => {
+    const renderer = renderTree(
+      <RootNavigation initialRouteName={ROOT_ROUTES.COMPLETE_PROFILE} />,
+    );
+    const stackScreens = renderer.root.findAllByType('mock-stack-screen');
     const routeToComponent = Object.fromEntries(
       stackScreens.map(screen => [screen.props.name, screen.props.component]),
     );
 
-    expect(stackNavigator.props.initialRouteName).toBe('Home');
     expect(getScreenNames(renderer, 'mock-stack-screen')).toEqual([
-      'CompleteProfile',
-      'Home',
-      'Tutorials',
+      ROOT_ROUTES.COMPLETE_PROFILE,
+      ROOT_ROUTES.HOME,
+      ROOT_ROUTES.TUTORIALS,
     ]);
-    expect(homeScreen.props.component).toBe(mockBottomTabNavigation);
-    expect(routeToComponent.Tutorials).toBe(mockTutorialsWrapper);
+    expect(routeToComponent).toEqual({
+      [ROOT_ROUTES.COMPLETE_PROFILE]: mockCompleteProfileWrapper,
+      [ROOT_ROUTES.HOME]: mockBottomTabNavigation,
+      [ROOT_ROUTES.TUTORIALS]: mockTutorialsWrapper,
+    });
   });
 
   test('BottomTabNavigation keeps the six authenticated tab destinations', () => {

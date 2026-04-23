@@ -114,7 +114,7 @@ describe('App bootstrap route resolution', () => {
     expect(AsyncStorage.clear).not.toHaveBeenCalled();
   });
 
-  test('renders the resolved startup route when bootstrap succeeds', async () => {
+  test('renders Home through RootContainer when a saved local profile exists', async () => {
     AsyncStorage.getItem.mockResolvedValueOnce(
       JSON.stringify(validLocalProfile),
     );
@@ -128,6 +128,24 @@ describe('App bootstrap route resolution', () => {
     expect(hydrateWorkoutPlans).toHaveBeenCalledTimes(1);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
     expect(rootContainer.props.initialRouteName).toBe(ROOT_ROUTES.HOME);
+    expect(renderer.toJSON()).not.toBeNull();
+    expect(consoleErrorSpy).not.toHaveBeenCalled();
+  });
+
+  test('renders CompleteProfile through RootContainer when no saved local profile exists', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(null);
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {});
+
+    const renderer = await renderBootstrap();
+    const rootContainer = renderer.root.findByType('mock-root-container');
+
+    expect(hydrateWorkoutPlans).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
+    expect(rootContainer.props.initialRouteName).toBe(
+      ROOT_ROUTES.COMPLETE_PROFILE,
+    );
     expect(renderer.toJSON()).not.toBeNull();
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
