@@ -106,6 +106,35 @@ describe('Nutrition storage boundary', () => {
     },
   );
 
+  test('malformed meals repair is key-scoped and does not wipe unrelated local data', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce('not-json');
+
+    await expect(readStoredMeals()).resolves.toEqual([]);
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('meals');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('meals');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('supplements');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('meal_categories');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('meals_directory');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalledWith('user_profile');
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(['meals'], undefined);
+    expect(AsyncStorage.multiRemove).not.toHaveBeenCalledWith(
+      expect.arrayContaining(['supplements']),
+      expect.anything(),
+    );
+    expect(AsyncStorage.multiRemove).not.toHaveBeenCalledWith(
+      expect.arrayContaining(['meal_categories']),
+      expect.anything(),
+    );
+    expect(AsyncStorage.multiRemove).not.toHaveBeenCalledWith(
+      expect.arrayContaining(['meals_directory']),
+      expect.anything(),
+    );
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
+  });
+
   test('getMeals reads meals and dispatches the legacy Redux contract', async () => {
     const dispatch = jest.fn();
     const savedMeals = [{id: 'meal-1', name: 'Lunch', items: []}];

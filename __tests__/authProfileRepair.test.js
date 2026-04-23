@@ -48,6 +48,30 @@ describe('Auth/profile repair boundary', () => {
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
 
+  test('loadStoredProfile strips NaN derived fields before durable restore', async () => {
+    const canonicalProfile = {
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({
+        ...canonicalProfile,
+        bmi: 'NaN',
+        bmr: 'NaN',
+      }),
+    );
+
+    await expect(loadStoredProfile()).resolves.toEqual(canonicalProfile);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_profile',
+      JSON.stringify(canonicalProfile),
+    );
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
   test('saveStoredProfile persists only non-derived direct profile fields', async () => {
     const canonicalProfile = {
       dob: '01/01/1995',
@@ -101,8 +125,8 @@ describe('Auth/profile repair boundary', () => {
         weight: 'bad-input',
         dob: 'not/a/date',
         gender: 'male',
-        bmi: '99.99',
-        bmr: '9999.99',
+        bmi: 'NaN',
+        bmr: 'NaN',
       },
     });
 

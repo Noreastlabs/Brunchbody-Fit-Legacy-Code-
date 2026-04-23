@@ -37,6 +37,13 @@ const renderBootstrap = async () => {
   return renderer;
 };
 
+const validLocalProfile = {
+  dob: '01/01/1995',
+  gender: 'female',
+  height: '5.06',
+  weight: '135',
+};
+
 describe('App bootstrap route resolution', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,10 +54,17 @@ describe('App bootstrap route resolution', () => {
   });
 
   test('returns Home when a saved local profile exists', async () => {
-    AsyncStorage.getItem.mockResolvedValueOnce('{"weight":"135"}');
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify(validLocalProfile),
+    );
 
     await expect(resolveInitialRouteName()).resolves.toBe(ROOT_ROUTES.HOME);
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.multiRemove).not.toHaveBeenCalled();
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
   });
 
   test('returns CompleteProfile when no saved local profile exists', async () => {
@@ -59,7 +73,12 @@ describe('App bootstrap route resolution', () => {
     await expect(resolveInitialRouteName()).resolves.toBe(
       ROOT_ROUTES.COMPLETE_PROFILE,
     );
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
     expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.multiRemove).not.toHaveBeenCalled();
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
   });
 
   test('returns CompleteProfile and repairs malformed stored local profile data', async () => {
@@ -72,8 +91,33 @@ describe('App bootstrap route resolution', () => {
     expect(AsyncStorage.removeItem).toHaveBeenCalledWith('user_profile');
   });
 
+  test('returns CompleteProfile and repairs invalid derived-only local profile data', async () => {
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({
+        bmi: 'NaN',
+        bmr: 'NaN',
+      }),
+    );
+
+    await expect(resolveInitialRouteName()).resolves.toBe(
+      ROOT_ROUTES.COMPLETE_PROFILE,
+    );
+    expect(AsyncStorage.getItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.getItem).toHaveBeenCalledWith('user_profile');
+    expect(AsyncStorage.removeItem).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.removeItem).toHaveBeenCalledWith('user_profile');
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(
+      ['user_profile'],
+      undefined,
+    );
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
+  });
+
   test('renders the resolved startup route when bootstrap succeeds', async () => {
-    AsyncStorage.getItem.mockResolvedValueOnce('{"weight":"135"}');
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify(validLocalProfile),
+    );
     const consoleErrorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
