@@ -15,7 +15,7 @@ Before opening a pull request, read and follow [SECURITY.md](SECURITY.md). Vulne
 ## Getting Started
 
 1. Fork the repository and create your branch from `main`.
-2. Install dependencies with `yarn install`.
+2. Install dependencies with `yarn install --frozen-lockfile`.
 3. Run `yarn lint` and `yarn test` to ensure your changes pass our checks.
 4. Install repository git hooks so secrets are scanned before each commit:
 
@@ -67,7 +67,7 @@ See `docs/security/KEY_MATERIAL_STORAGE.md` and `docs/secrets-and-debug-keys.md`
 
 Before requesting review or merging, verify:
 
-- [ ] `./scripts/check-secrets.sh` passes with no high-risk findings (required before merge).
+- [ ] `yarn run check:secrets` passes with no high-risk findings (required before merge).
 - [ ] Signing configuration is reviewed and verified (release signing values sourced from secure environment/CI variables, no plaintext secrets in git).
 - [ ] Changes comply with [SECURITY.md](SECURITY.md).
 
@@ -79,7 +79,7 @@ Before requesting review or merging, verify:
 - Treat public repository visibility and public mobile release readiness as separate decisions. Do not assume that a public repo means release-tagging gates have been cleared.
 - Submit pull requests with clear descriptions and reference any relevant issues.
 - Confirm your PR complies with [SECURITY.md](SECURITY.md) disclosure and secret-handling requirements.
-- Before pushing, run `./scripts/check-secrets.sh` to verify the repository does not include committed key artifacts (`*.keystore`, `*.jks`, `*.p12`, `*.pem`), cloud keys, bearer tokens, DB URLs with embedded credentials, or private key blocks.
+- Before pushing, run `yarn run check:secrets` to verify the repository does not include committed key artifacts (`*.keystore`, `*.jks`, `*.p12`, `*.pem`), cloud keys, bearer tokens, DB URLs with embedded credentials, or private key blocks.
 - Keep `.secret-scan-exclusions` minimal and limited to known-safe noisy paths (for example lockfiles).
 
 ## Questions?

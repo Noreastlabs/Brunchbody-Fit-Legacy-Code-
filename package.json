@@ -2,6 +2,7 @@
   "name": "BrunchBody",
   "version": "1.0.3-rc.2",
   "private": true,
+  "packageManager": "yarn@1.22.22",
   "scripts": {
     "android": "react-native run-android",
     "ios": "react-native run-ios",

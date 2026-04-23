@@ -44,7 +44,7 @@ When adding network features, keep production endpoints on HTTPS and confine any
 
 ## Local-only Guardrail in CI
 
-A dedicated CI workflow (`.github/workflows/local-only-guard.yml`) runs `npm run check:local-only` on pushes and pull requests.
+A dedicated CI workflow (`.github/workflows/local-only-guard.yml`) runs `yarn install --frozen-lockfile` and `yarn run check:local-only` on pushes and pull requests.
 
 The check fails if `LOCAL_ONLY_MODE_ENABLED` is `true` (or legacy `LOCAL_ONLY` resolves to `true`) **and** any source file under `src/` introduces:
 - Firebase imports
@@ -55,7 +55,7 @@ This keeps the current local-only contract enforceable at review time.
 
 ## Secret & Keystore Guardrail
 
-A dedicated CI workflow (`.github/workflows/secret-scan.yml`) runs `./scripts/check-secrets.sh` on pushes and pull requests, and a repository pre-commit hook is provided at `.githooks/pre-commit`.
+A dedicated CI workflow (`.github/workflows/secret-scan.yml`) runs `yarn run check:secrets` on pushes and pull requests, and a repository pre-commit hook is provided at `.githooks/pre-commit` to run the same guard locally before commits.
 
 The check scans both the full tracked repository and pull-request diffs/commit ranges, and fails by default if it detects:
 - secret container file types (`*.keystore`, `*.jks`, `*.p12`, `*.pem`)
@@ -154,13 +154,13 @@ To preserve compatibility with existing local users when backend sync returns:
 ### Requirements
 
 - Node.js >= 18
-- Yarn package manager
+- Yarn classic package manager
 
 ### Installation
 
 1. Install dependencies:
    ```bash
-   yarn install
+   yarn install --frozen-lockfile
    ```
 2. Start the Metro bundler:
    ```bash
