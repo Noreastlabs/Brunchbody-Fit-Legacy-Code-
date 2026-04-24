@@ -3,6 +3,8 @@ import ReactTestRenderer from 'react-test-renderer';
 
 import {
   AUTH_TAB_ROUTES,
+  CALENDAR_ROUTES,
+  JOURNAL_ROUTES,
   NUTRITION_ROUTES,
   RECREATION_ROUTES,
   ROOT_ROUTES,
@@ -35,6 +37,18 @@ jest.mock('react-redux', () => ({
 
 jest.mock('react-native-vector-icons/AntDesign', () => 'AntDesign');
 jest.mock('react-native-vector-icons/Feather', () => 'Feather');
+jest.mock('react-native-vector-icons/MaterialIcons', () => 'MaterialIcons');
+
+jest.mock('react-native-paper', () => {
+  const ReactLocal = require('react');
+
+  return {
+    Headline: props =>
+      ReactLocal.createElement('mock-paper-headline', props, props.children),
+    IconButton: props =>
+      ReactLocal.createElement('mock-paper-icon-button', props),
+  };
+});
 
 jest.mock('../src/context/DateProvider', () => ({
   useTodayKey: () => mockTodayKey,
@@ -417,6 +431,11 @@ import RoutineManager from '../src/screens/recreation/components/RoutineManager'
 import EditRoutine from '../src/screens/recreation/components/EditRoutine';
 import NewDay from '../src/screens/writing/components/NewDay';
 
+const ActualCalendarWriting =
+  jest.requireActual('../src/screens/calendar/components/Writing').default;
+const ActualJournal =
+  jest.requireActual('../src/screens/journal/components/Journal').default;
+
 const renderTree = element => {
   let renderer;
 
@@ -541,6 +560,100 @@ describe('Navigation smoke representative flows', () => {
 
     expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
       undefined,
+    );
+  });
+
+  test('Calendar writing chip still opens the current writing route', () => {
+    const renderer = renderTree(
+      <ActualCalendarWriting
+        navigation={mockNavigation}
+        currentTheme={{ name: 'Theme A', color: '#004672' }}
+        showCalendarMenu={jest.fn()}
+      />,
+    );
+
+    renderer.root
+      .findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node.props.activeOpacity === 0.4,
+      )[0]
+      .props.onPress();
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      CALENDAR_ROUTES.WRITING,
+    );
+  });
+
+  test('Journal Daily Entry selection still hands off to the DailyEntry route', () => {
+    const dailyEntryItem = {
+      id: 1,
+      title: 'DailyEntry',
+      heading: 'Daily Entry',
+      screen: JOURNAL_ROUTES.DAILY_ENTRY,
+      isEmpty: true,
+    };
+    const setPageDetail = jest.fn();
+    const pageDetail = { ...dailyEntryItem, date: '2024/1/1' };
+    const baseProps = {
+      navigation: mockNavigation,
+      loader: false,
+      listData: [dailyEntryItem],
+      isVisible: false,
+      setIsVisible: jest.fn(),
+      pageDetail: {},
+      setPageDetail,
+      permissionModal: false,
+      setPermissionModal: jest.fn(),
+      datePickerModal: false,
+      setDatePickerModal: jest.fn(),
+      date: 1,
+      month: 1,
+      year: 2024,
+      isDateSelected: true,
+      incrementDate: jest.fn(),
+      decrementDate: jest.fn(),
+      journalEntries: {},
+      onDeleteJournalEntry: jest.fn(),
+      onConfirmDatePicker: jest.fn(),
+      onCancelDatePicker: jest.fn(),
+      entryId: 'entry-1',
+    };
+
+    const renderer = renderTree(<ActualJournal {...baseProps} />);
+
+    renderer.root
+      .findAll(
+        node =>
+          typeof node.props.onPress === 'function' &&
+          node.props.activeOpacity === 0.5,
+      )
+      .find(
+        node =>
+          node.findAll(child => child.props.children === '--EMPTY--').length > 0,
+      )
+      .props.onPress();
+
+    expect(setPageDetail).toHaveBeenCalledWith(pageDetail);
+
+    ReactTestRenderer.act(() => {
+      renderer.update(
+        <ActualJournal
+          {...baseProps}
+          isVisible
+          pageDetail={pageDetail}
+        />,
+      );
+    });
+
+    renderer.root.findByType('mock-modal-content').props.onBtnPress();
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      JOURNAL_ROUTES.DAILY_ENTRY,
+      {
+        entryData: pageDetail,
+        entryId: 'entry-1',
+      },
     );
   });
 
