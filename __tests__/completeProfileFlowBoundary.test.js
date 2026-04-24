@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import {CompleteProfilePage} from '../src/screens/completeProfile/pages/completeProfile/CompleteProfile';
+import {AUTH_TAB_ROUTES, ROOT_ROUTES} from '../src/navigation/routeNames';
 import {strings} from '../src/resources';
 
 const mockDispatch = jest.fn();
@@ -92,7 +93,7 @@ const confirmAdultDateOfBirth = async renderer => {
   await ReactTestRenderer.act(async () => {
     renderer.root
       .findByType('mock-date-of-birth')
-      .props.onConfirmDate(new Date('1990-01-01T00:00:00.000Z'));
+      .props.onConfirmDate(new Date(1990, 0, 1));
     await flushEffects();
   });
 };
@@ -319,6 +320,83 @@ describe('Complete profile flow boundary', () => {
 
     await goToGender(renderer);
     expect(renderer.root.findByType('mock-gender')).toBeTruthy();
+  });
+
+  test('completes the local profile flow and hands off to Home dashboard', async () => {
+    const renderer = await renderCompleteProfile();
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-name').props.onChangeText('Taylor');
+      await flushEffects();
+    });
+
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.setFeet(5);
+      heightStep.props.setInches(6);
+      await flushEffects();
+    });
+
+    await confirmHeight(renderer);
+    await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-weight').props.onChangeText('135');
+      await flushEffects();
+    });
+
+    const genderStep = await goToGender(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      genderStep.props.onChange('female');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-gender').props.currentScreen(
+        strings.completeProfile.screen.Welcome,
+      );
+      await flushEffects();
+    });
+
+    const expectedProfileAction = {
+      type: 'PROFILE',
+      payload: {
+        name: 'Taylor',
+        dob: '1/1/1990',
+        height: '5.6',
+        weight: '135',
+        gender: 'female',
+        targetCalories: [
+          {id: 1, name: 'fat', value: '133'},
+          {id: 2, name: 'prt', value: '150'},
+          {id: 3, name: 'cho', value: '50'},
+          {id: 4, name: 'cal', value: '2000'},
+        ],
+      },
+    };
+
+    expect(mockProfile).toHaveBeenCalledTimes(1);
+    expect(mockProfile).toHaveBeenCalledWith(expectedProfileAction.payload);
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith(expectedProfileAction);
+    expect(mockClearCompletedOnboardingDraft).toHaveBeenCalledTimes(1);
+    expect(renderer.root.findByType('mock-welcome')).toBeTruthy();
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root
+        .findByType('mock-welcome')
+        .props.currentScreen(ROOT_ROUTES.HOME);
+      await flushEffects();
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(ROOT_ROUTES.HOME, {
+      screen: AUTH_TAB_ROUTES.DASHBOARD,
+    });
   });
 
   test('locks final submit until profile creation finishes and then advances', async () => {
