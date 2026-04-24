@@ -177,7 +177,10 @@ jest.mock('../src/screens/setting', () => ({
 }));
 
 const RootNavigation = require('../src/navigation/RootNavigation').default;
-const { ROOT_ROUTES } = require('../src/navigation/routeNames');
+const {
+  AUTH_TAB_ROUTES,
+  ROOT_ROUTES,
+} = require('../src/navigation/routeNames');
 const BottomTabNavigation =
   jest.requireActual('../src/navigation/BottomTabNavigation').default;
 const CalendarNavigation = require('../src/navigation/CalendarNavigation').default;
@@ -253,30 +256,40 @@ describe('Navigation smoke navigator contracts', () => {
     const renderer = renderTree(<BottomTabNavigation />);
     const tabNavigator = renderer.root.findByType('mock-tab-navigator');
     const tabScreens = renderer.root.findAllByType('mock-tab-screen');
-    const dashboardScreen = tabScreens.find(
-      screen => screen.props.name === 'Dashboard',
-    );
     const routeToComponent = Object.fromEntries(
       tabScreens.map(screen => [screen.props.name, screen.props.component]),
     );
+    const routeToLabel = Object.fromEntries(
+      tabScreens.map(screen => [
+        screen.props.name,
+        screen.props.options.tabBarLabel,
+      ]),
+    );
 
-    expect(tabNavigator.props.initialRouteName).toBe('Calendar');
+    expect(tabNavigator.props.initialRouteName).toBe(AUTH_TAB_ROUTES.CALENDAR);
     expect(getScreenNames(renderer, 'mock-tab-screen')).toEqual([
-      'Dashboard',
-      'Journal',
-      'Calendar',
-      'Nutrition',
-      'Recreation',
-      'Settings',
+      AUTH_TAB_ROUTES.DASHBOARD,
+      AUTH_TAB_ROUTES.JOURNAL,
+      AUTH_TAB_ROUTES.CALENDAR,
+      AUTH_TAB_ROUTES.NUTRITION,
+      AUTH_TAB_ROUTES.RECREATION,
+      AUTH_TAB_ROUTES.SETTINGS,
     ]);
-    expect(dashboardScreen.props.component).toBe(mockDashboardWrapper);
-    expect(dashboardScreen.props.options.tabBarLabel).toBe('Home');
-    expect(routeToComponent).toMatchObject({
-      Journal: JournalNavigation,
-      Calendar: CalendarNavigation,
-      Nutrition: NutritionNavigation,
-      Recreation: RecreationNavigation,
-      Settings: SettingsNavigation,
+    expect(routeToLabel).toEqual({
+      [AUTH_TAB_ROUTES.DASHBOARD]: ROOT_ROUTES.HOME,
+      [AUTH_TAB_ROUTES.JOURNAL]: AUTH_TAB_ROUTES.JOURNAL,
+      [AUTH_TAB_ROUTES.CALENDAR]: AUTH_TAB_ROUTES.CALENDAR,
+      [AUTH_TAB_ROUTES.NUTRITION]: AUTH_TAB_ROUTES.NUTRITION,
+      [AUTH_TAB_ROUTES.RECREATION]: AUTH_TAB_ROUTES.RECREATION,
+      [AUTH_TAB_ROUTES.SETTINGS]: AUTH_TAB_ROUTES.SETTINGS,
+    });
+    expect(routeToComponent).toEqual({
+      [AUTH_TAB_ROUTES.DASHBOARD]: mockDashboardWrapper,
+      [AUTH_TAB_ROUTES.JOURNAL]: JournalNavigation,
+      [AUTH_TAB_ROUTES.CALENDAR]: CalendarNavigation,
+      [AUTH_TAB_ROUTES.NUTRITION]: NutritionNavigation,
+      [AUTH_TAB_ROUTES.RECREATION]: RecreationNavigation,
+      [AUTH_TAB_ROUTES.SETTINGS]: SettingsNavigation,
     });
   });
 
