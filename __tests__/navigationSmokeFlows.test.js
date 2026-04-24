@@ -394,6 +394,7 @@ jest.mock('../src/screens/setting/components', () => {
   const ReactLocal = require('react');
 
   return {
+    Setting: props => ReactLocal.createElement('mock-setting', props),
     MyProfile: props =>
       ReactLocal.createElement('mock-setting-my-profile', props),
     Tutorials: props => ReactLocal.createElement('mock-setting-tutorials', props),
@@ -470,6 +471,7 @@ jest.mock('../src/screens/recreation/components/style', () => ({}));
 jest.mock('../src/screens/setting/components/My Profile/style', () => ({}));
 
 import TutorialsPage from '../src/screens/setting/pages/Tutorials/Tutorials';
+import SettingPage from '../src/screens/setting/pages/Setting/Setting';
 import DailyEntryPage from '../src/screens/journal/pages/DailyEntry/DailyEntry';
 import MealPage from '../src/screens/nutrition/pages/Meal/Meal';
 import MyProfilePage from '../src/screens/setting/pages/MyProfile/MyProfile';
@@ -1140,6 +1142,41 @@ describe('Navigation smoke representative flows', () => {
 
     expect(renderer.root.findByType('mock-custom-header').props.onPress).toBe(
       undefined,
+    );
+  });
+
+  test('Settings user-control entries still expose the current route handoffs', async () => {
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <SettingPage navigation={mockNavigation} />,
+      );
+    });
+
+    const settingsList = renderer.root.findByType('mock-setting').props.listData;
+    const profileSection = settingsList.find(item => item.title === 'Profile');
+    const exportSection = settingsList.find(
+      item => item.title === 'Export data',
+    );
+    const deleteLocalDataSection = settingsList.find(
+      item => item.title === 'Delete local data',
+    );
+
+    expect(profileSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ screen: SETTINGS_ROUTES.MY_PROFILE }),
+      ]),
+    );
+    expect(exportSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ screen: SETTINGS_ROUTES.EXPORT_TO_CSV }),
+      ]),
+    );
+    expect(deleteLocalDataSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ screen: SETTINGS_ROUTES.DELETE_ACCOUNT }),
+      ]),
     );
   });
 
