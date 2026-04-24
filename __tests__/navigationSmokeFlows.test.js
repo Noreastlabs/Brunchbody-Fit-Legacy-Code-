@@ -145,6 +145,11 @@ jest.mock('../src/resources', () => ({
   wheelPickerItems: {
     frequency: [],
     calendarDays: [],
+    weeks: [
+      { id: 1, value: '1' },
+      { id: 2, value: '2' },
+      { id: 3, value: '3' },
+    ],
   },
 }));
 jest.mock('../src/resources/index', () => ({
@@ -199,6 +204,11 @@ jest.mock('../src/resources/index', () => ({
   wheelPickerItems: {
     frequency: [],
     calendarDays: [],
+    weeks: [
+      { id: 1, value: '1' },
+      { id: 2, value: '2' },
+      { id: 3, value: '3' },
+    ],
   },
 }));
 jest.mock('../src/resources/colors', () => ({
@@ -265,6 +275,11 @@ jest.mock('../src/resources/WheelPickerItems', () => ({
   wheelPickerItems: {
     frequency: [],
     calendarDays: [],
+    weeks: [
+      { id: 1, value: '1' },
+      { id: 2, value: '2' },
+      { id: 3, value: '3' },
+    ],
   },
 }));
 
@@ -413,6 +428,23 @@ jest.mock('../src/screens/journal/components', () => {
   };
 });
 
+jest.mock('../src/screens/recreation/components', () => {
+  const ReactLocal = require('react');
+
+  return {
+    Recreation: props =>
+      ReactLocal.createElement('mock-recreation-screen', props),
+    ProgramManager: props =>
+      ReactLocal.createElement('mock-program-manager-screen', props),
+    EditRoutine: props =>
+      ReactLocal.createElement('mock-edit-routine-screen', props),
+    MyExercises: props =>
+      ReactLocal.createElement('mock-my-exercises-screen', props),
+    EditProgram: props =>
+      ReactLocal.createElement('mock-edit-program-screen', props),
+  };
+});
+
 jest.mock('../src/screens/writing/components/EditEvent', () => {
   const ReactLocal = require('react');
 
@@ -444,6 +476,8 @@ import MyProfilePage from '../src/screens/setting/pages/MyProfile/MyProfile';
 import MealDirectory from '../src/screens/nutrition/components/MealDirectory';
 import MealDetailPage from '../src/screens/nutrition/pages/MealDetail/MealDetail';
 import MealsList from '../src/screens/nutrition/components/MealsList';
+import RecreationPage from '../src/screens/recreation/pages/Recreation/Recreation';
+import ProgramManagerPage from '../src/screens/recreation/pages/ProgramManager/ProgramManager';
 import RoutineManager from '../src/screens/recreation/components/RoutineManager';
 import EditRoutine from '../src/screens/recreation/components/EditRoutine';
 import NewDay from '../src/screens/writing/components/NewDay';
@@ -502,6 +536,37 @@ const createNutritionSurfaceProps = props => ({
   deleteLoader: false,
   closeCreateItemModal: jest.fn(),
   onCreateTargetCalories: jest.fn(),
+  ...props,
+});
+
+const createRecreationPageProps = props => ({
+  navigation: mockUseNavigation(),
+  myCustomPlans: [],
+  myWorkouts: [],
+  myRoutines: [],
+  brunchBodyPlans: [],
+  myWeekPlan: {},
+  user: { completedWorkouts: {}, deletedWorkouts: {} },
+  allExercises: [],
+  completedWorkouts: [],
+  onAddRoutine: jest.fn().mockResolvedValue(true),
+  getUserRoutines: jest.fn().mockResolvedValue(true),
+  onDeleteRoutine: jest.fn().mockResolvedValue(true),
+  getUserCustomPlans: jest.fn().mockResolvedValue(true),
+  onAddCustomPlan: jest.fn().mockResolvedValue(true),
+  onDeleteCustomPlan: jest.fn().mockResolvedValue(true),
+  onGetExercises: jest.fn().mockResolvedValue(true),
+  onGetBrunchBodyPlans: jest.fn().mockResolvedValue(true),
+  onAddMyWorkout: jest.fn().mockResolvedValue(true),
+  onGetMyWorkouts: jest.fn().mockResolvedValue(true),
+  onDeleteWorkout: jest.fn().mockResolvedValue(true),
+  onEditMyWorkout: jest.fn().mockResolvedValue(true),
+  onGetWeekPlan: jest.fn().mockResolvedValue(true),
+  getAllExerciseDirectory: jest.fn().mockResolvedValue(true),
+  onMergeExercises: jest.fn().mockResolvedValue(true),
+  onGetBrunchBodyWeekPlan: jest.fn().mockResolvedValue({}),
+  updateUserProfile: jest.fn().mockResolvedValue(true),
+  onCompleteWorkout: jest.fn().mockResolvedValue(true),
   ...props,
 });
 
@@ -951,6 +1016,80 @@ describe('Navigation smoke representative flows', () => {
       cho: '3',
       cal: '21',
     });
+  });
+
+  test('RecreationPage still routes the default program menu handoff to MyExercises', async () => {
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <RecreationPage {...createRecreationPageProps()} />,
+      );
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-recreation-screen')
+        .props.onProgramMenuSelect();
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      RECREATION_ROUTES.MY_EXERCISES,
+    );
+  });
+
+  test('ProgramManagerPage still forwards custom program days into EditProgram', async () => {
+    const selectedItem = {
+      id: 'program-1',
+      name: 'Strength Plan',
+      numOfWeeks: 3,
+    };
+    const dayPlan = { day: 2, plan: [] };
+    const props = {
+      navigation: mockNavigation,
+      route: {
+        params: {
+          selectedItem,
+          program: 'Custom Program',
+        },
+      },
+      myWeekPlan: {
+        id: 'week-plan-1',
+        weekDays: [dayPlan],
+      },
+      onGetWeekPlan: jest.fn().mockResolvedValue(true),
+      onEditWeekPlan: jest.fn().mockResolvedValue(true),
+      onGetBrunchBodyWeekPlan: jest.fn().mockResolvedValue(true),
+    };
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<ProgramManagerPage {...props} />);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-program-manager-screen')
+        .props.onWeekDayPress(dayPlan);
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-program-manager-screen')
+        .props.onModalBtnPress();
+    });
+
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      RECREATION_ROUTES.EDIT_PROGRAM,
+      {
+        selectedProgram: selectedItem,
+        selectedDay: {
+          ...dayPlan,
+          type: 'Create',
+          week: '1',
+        },
+      },
+    );
   });
 
   test('RoutineManager still forwards from RoutineManager into EditRoutine through the edit action', () => {
