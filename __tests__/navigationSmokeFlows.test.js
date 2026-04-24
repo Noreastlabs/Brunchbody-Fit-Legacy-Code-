@@ -37,6 +37,11 @@ jest.mock('react-redux', () => ({
 
 jest.mock('react-native-vector-icons/AntDesign', () => 'AntDesign');
 jest.mock('react-native-vector-icons/Feather', () => 'Feather');
+jest.mock('react-native-vector-icons/FontAwesome5', () => 'FontAwesome5');
+jest.mock(
+  'react-native-vector-icons/MaterialCommunityIcons',
+  () => 'MaterialCommunityIcons',
+);
 jest.mock('react-native-vector-icons/MaterialIcons', () => 'MaterialIcons');
 
 jest.mock('react-native-paper', () => {
@@ -299,8 +304,11 @@ jest.mock('../src/components', () => {
     TextButton: props => ReactLocal.createElement('mock-text-button', props),
     TimePickerModal: props =>
       ReactLocal.createElement('mock-time-picker-modal', props),
+    TopTabs: props => ReactLocal.createElement('mock-top-tabs', props),
     WheelPickerContent: props =>
       ReactLocal.createElement('mock-wheel-picker-content', props),
+    NutritionItems: props =>
+      ReactLocal.createElement('mock-nutrition-items', props),
   };
 });
 
@@ -387,6 +395,15 @@ jest.mock('../src/screens/nutrition/components', () => {
   };
 });
 
+jest.mock('../src/screens/nutrition/components/modals', () => {
+  const ReactLocal = require('react');
+
+  return {
+    CalculationContent: props =>
+      ReactLocal.createElement('mock-calculation-content', props),
+  };
+});
+
 jest.mock('../src/screens/journal/components', () => {
   const ReactLocal = require('react');
 
@@ -435,6 +452,8 @@ const ActualCalendarWriting =
   jest.requireActual('../src/screens/calendar/components/Writing').default;
 const ActualJournal =
   jest.requireActual('../src/screens/journal/components/Journal').default;
+const ActualNutrition =
+  jest.requireActual('../src/screens/nutrition/components/Nutrition').default;
 
 const renderTree = element => {
   let renderer;
@@ -445,6 +464,46 @@ const renderTree = element => {
 
   return renderer;
 };
+
+const createNutritionSurfaceProps = props => ({
+  tab: 2,
+  onChangeHandler: jest.fn(),
+  myMeals: [{ id: 7, name: 'Lunch', items: [] }],
+  supplements: [{ id: 8, name: 'Morning Stack', items: [] }],
+  onNavigate: jest.fn(),
+  mealModalVisible: false,
+  openMealModal: jest.fn(),
+  closeMealModal: jest.fn(),
+  meal: { id: 7, name: 'Lunch' },
+  toggleCalModal: jest.fn(),
+  calculationModalVisible: false,
+  openSupplementModal: jest.fn(),
+  closeSupplementModal: jest.fn(),
+  supplementModal: false,
+  supplement: { id: 8, name: 'Morning Stack' },
+  supplementItems: [],
+  permissionModal: false,
+  createItemModal: false,
+  modalHeading: '',
+  createItemFields: [],
+  onAddBtnPress: jest.fn(),
+  colorPickerModal: false,
+  color: 'darkBlue2',
+  onCreateItem: jest.fn(),
+  createItemPending: false,
+  createItemErrorText: '',
+  alertHeading: '',
+  alertText: '',
+  onDonePermissionModal: jest.fn(),
+  closePermissionModal: jest.fn(),
+  loader: false,
+  mealItems: [],
+  onChangeTitle: jest.fn(),
+  deleteLoader: false,
+  closeCreateItemModal: jest.fn(),
+  onCreateTargetCalories: jest.fn(),
+  ...props,
+});
 
 describe('Navigation smoke representative flows', () => {
   let mockNavigation;
@@ -697,6 +756,59 @@ describe('Navigation smoke representative flows', () => {
 
     expect(props.onCreateEntry).toHaveBeenCalled();
     expect(mockNavigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  test('Nutrition surface still hands an opened meal off to the Meal route', () => {
+    const meal = { id: 7, name: 'Lunch', items: [] };
+    const closeMealModal = jest.fn();
+    const renderer = renderTree(
+      <ActualNutrition
+        {...createNutritionSurfaceProps({
+          meal,
+          mealModalVisible: true,
+          closeMealModal,
+          mealItems: meal.items,
+        })}
+      />,
+    );
+
+    renderer.root
+      .findAllByType('mock-nutrition-items')
+      .find(node => node.props.text === meal.name)
+      .props.onBtnPress();
+
+    expect(closeMealModal).toHaveBeenCalledTimes(1);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      NUTRITION_ROUTES.MEAL,
+      { meal },
+    );
+  });
+
+  test('Nutrition surface still hands an opened supplement off to the Supplement route', () => {
+    const supplement = { id: 8, name: 'Morning Stack', items: [] };
+    const closeSupplementModal = jest.fn();
+    const renderer = renderTree(
+      <ActualNutrition
+        {...createNutritionSurfaceProps({
+          tab: 3,
+          supplement,
+          supplementModal: true,
+          closeSupplementModal,
+          supplementItems: supplement.items,
+        })}
+      />,
+    );
+
+    renderer.root
+      .findAllByType('mock-nutrition-items')
+      .find(node => node.props.text === supplement.name)
+      .props.onBtnPress();
+
+    expect(closeSupplementModal).toHaveBeenCalledTimes(1);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      NUTRITION_ROUTES.SUPPLEMENT,
+      { supplement },
+    );
   });
 
   test('MealPage still forwards from Meal into MealsList when choosing the directory path', async () => {
