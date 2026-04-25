@@ -13,7 +13,7 @@ export default StyleSheet.create({
   },
   contentView: {
     marginHorizontal: RFValue(20),
-    paddingVertical: RFValue(10),
+    paddingVertical: RFValue(12),
   },
   headingText1: {
     fontSize: RFValue(40),
@@ -22,6 +22,8 @@ export default StyleSheet.create({
   },
   bodyText: {
     fontSize: RFValue(18),
+    lineHeight: RFValue(25),
+    marginBottom: RFValue(14),
     color: colors.white,
   },
 });
