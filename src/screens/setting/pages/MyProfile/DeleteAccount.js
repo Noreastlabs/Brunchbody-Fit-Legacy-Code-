@@ -44,7 +44,7 @@ export default function DeleteAccountPage(props) {
       setCheck(true);
       showMessage(
         'Success!',
-        'Saved Brunch Body data was removed from this device.\n\nFiles you exported to another app or folder were not deleted.\n\nStarter plans included with Brunch Body may appear again after setup.',
+        'Saved Brunch Body data was removed from this device.\n\nFiles you exported, copied, shared, uploaded, or saved outside the app were not deleted.\n\nStarter plans included with Brunch Body may appear again after setup.',
       );
     } else {
       showMessage('Error!', `${response}`);

@@ -14,8 +14,14 @@ import { CLEAR_USER, RESET_APP, SET_USER } from '../src/redux/constants';
 import { ONBOARDING_DRAFT_KEYS } from '../src/redux/actions/onboardingStorage';
 import SettingPage from '../src/screens/setting/pages/Setting/Setting';
 import DeleteAccountPage from '../src/screens/setting/pages/MyProfile/DeleteAccount';
+import DeleteAccountSurface from '../src/screens/setting/components/My Profile/DeleteAccount';
 import { hydrateWorkoutPlans } from '../src/storage/mmkv/hydration';
 import { storage } from '../src/storage/mmkv';
+
+const DELETE_LOCAL_DATA_CONFIRMATION_ERROR =
+  'Please confirm that you want to delete saved local data from this device.';
+const DELETE_LOCAL_DATA_SUCCESS_MESSAGE =
+  'Saved Brunch Body data was removed from this device.\n\nFiles you exported, copied, shared, uploaded, or saved outside the app were not deleted.\n\nStarter plans included with Brunch Body may appear again after setup.';
 
 jest.mock('../src/storage/mmkv', () => ({
   storage: {
@@ -27,6 +33,21 @@ jest.mock('../src/storage/mmkv/hydration', () => ({
   hydrateWorkoutPlans: jest.fn(),
 }));
 
+jest.mock('../src/components', () => {
+  const MockReact = require('react');
+
+  return {
+    CustomHeader: props => MockReact.createElement('mock-custom-header', props),
+    Button: props => MockReact.createElement('mock-button', props),
+    CustomModal: props =>
+      MockReact.createElement('mock-custom-modal', props, props.content),
+    PermissionModal: props =>
+      MockReact.createElement('mock-permission-modal', props),
+    SafeAreaWrapper: props =>
+      MockReact.createElement('mock-safe-area-wrapper', props, props.children),
+  };
+});
+
 jest.mock('../src/screens/setting/components', () => {
   const MockReact = require('react');
 
@@ -35,6 +56,22 @@ jest.mock('../src/screens/setting/components', () => {
     DeleteAccount: props => MockReact.createElement('mock-delete-account', props),
   };
 });
+
+const collectRenderedText = value => {
+  if (!value) {
+    return '';
+  }
+
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(collectRenderedText).join(' ');
+  }
+
+  return collectRenderedText(value.children);
+};
 
 describe('Local data actions', () => {
   beforeEach(() => {
@@ -228,6 +265,45 @@ describe('Local data actions', () => {
   });
 });
 
+describe('Delete local data screen copy', () => {
+  test('renders approved local deletion transparency copy', async () => {
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <DeleteAccountSurface
+          isConfirmed={false}
+          toggleSwitch={jest.fn()}
+          loader={false}
+          onDeleteAccount={jest.fn()}
+          isPermissionModal={false}
+          setIsPermissionModal={jest.fn()}
+          alertHeading=""
+          alertText=""
+          onDonePermissionModal={jest.fn()}
+        />,
+      );
+    });
+
+    const renderedText = collectRenderedText(renderer.toJSON()).replace(
+      /\s+/g,
+      ' ',
+    );
+
+    expect(renderedText).toContain('Delete local data');
+    expect(renderedText).toContain(
+      'Removes saved Brunch Body data from this device.',
+    );
+    expect(renderedText).toContain(
+      'files you exported, copied, shared, uploaded, or saved outside the app.',
+    );
+    expect(renderedText).toContain(
+      'starter plans included with Brunch Body.',
+    );
+    expect(renderedText).not.toContain('Delete account');
+  });
+});
+
 describe('Settings navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -289,6 +365,39 @@ describe('Settings navigation', () => {
     );
   });
 
+  test('delete local data requires confirmation before deletion runs', async () => {
+    const navigation = {
+      getParent: jest.fn(),
+      reset: jest.fn(),
+    };
+    const deleteUserAccount = jest.fn().mockResolvedValue(true);
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(
+        <DeleteAccountPage
+          navigation={navigation}
+          deleteUserAccount={deleteUserAccount}
+        />,
+      );
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-delete-account').props.onDeleteAccount();
+    });
+
+    const deleteLocalDataProps =
+      renderer.root.findByType('mock-delete-account').props;
+
+    expect(deleteUserAccount).not.toHaveBeenCalled();
+    expect(deleteLocalDataProps.alertHeading).toBe('Error!');
+    expect(deleteLocalDataProps.alertText).toBe(
+      DELETE_LOCAL_DATA_CONFIRMATION_ERROR,
+    );
+    expect(deleteLocalDataProps.isPermissionModal).toBe(true);
+    expect(navigation.reset).not.toHaveBeenCalled();
+  });
+
   test('delete local data returns the user to CompleteProfile after success confirmation', async () => {
     const rootNavigation = {
       getParent: jest.fn(() => undefined),
@@ -326,6 +435,12 @@ describe('Settings navigation', () => {
     await ReactTestRenderer.act(async () => {
       await renderer.root.findByType('mock-delete-account').props.onDeleteAccount();
     });
+
+    const successProps = renderer.root.findByType('mock-delete-account').props;
+
+    expect(successProps.alertHeading).toBe('Success!');
+    expect(successProps.alertText).toBe(DELETE_LOCAL_DATA_SUCCESS_MESSAGE);
+    expect(successProps.isPermissionModal).toBe(true);
 
     await ReactTestRenderer.act(async () => {
       renderer.root.findByType('mock-delete-account').props.onDonePermissionModal();

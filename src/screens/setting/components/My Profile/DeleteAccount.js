@@ -43,7 +43,8 @@ export default function DeleteAccount(props) {
             </Text>
             <Text style={styles.confirmDeletionText}>
               Not deleted:{'\n'}
-              files you exported to another app or folder.
+              files you exported, copied, shared, uploaded, or saved outside the
+              app.
             </Text>
             <Text style={styles.confirmDeletionText}>
               May appear again after setup:{'\n'}
