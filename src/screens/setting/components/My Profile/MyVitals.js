@@ -72,7 +72,9 @@ export default function MyVitals(props) {
         <CustomHeader />
         <View style={styles.headingView}>
           <Text style={styles.headingText1}>Profile details</Text>
-          <Text style={styles.headingText3}>Saved on this device only.</Text>
+          <Text style={styles.headingText3}>
+            Saved on this device only and used for in-app calculations and display.
+          </Text>
         </View>
         <View>
           <View style={styles.listView}>

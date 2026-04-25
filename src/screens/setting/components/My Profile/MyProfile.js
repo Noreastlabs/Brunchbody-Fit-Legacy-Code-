@@ -31,7 +31,9 @@ export default function MyProfile(props) {
         <CustomHeader />
         <View style={styles.headingView}>
           <Text style={styles.headingText1}>Profile</Text>
-          <Text style={styles.headingText3}>Saved on this device only.</Text>
+          <Text style={styles.headingText3}>
+            Saved on this device only and used for in-app calculations and display.
+          </Text>
         </View>
         <View style={{paddingVertical: 10}}>
           {listData.map(item => (
