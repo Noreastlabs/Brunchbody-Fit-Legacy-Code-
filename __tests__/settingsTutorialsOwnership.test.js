@@ -3,6 +3,7 @@ const mockMyProfileWrapper = () => null;
 const mockExportToCSVWrapper = () => null;
 const mockTermsOfUseWrapper = () => null;
 const mockAbbrevationsWrapper = () => null;
+const mockPrivacyAndDataWrapper = () => null;
 const mockPrivacyPolicyWrapper = () => null;
 const mockTutorialsWrapper = () => null;
 
@@ -31,6 +32,11 @@ jest.mock('../src/screens/setting/pages/Abbrevations', () => ({
   AbbrevationsWrapper: mockAbbrevationsWrapper,
 }));
 
+jest.mock('../src/screens/setting/pages/PrivacyAndData', () => ({
+  __esModule: true,
+  PrivacyAndDataWrapper: mockPrivacyAndDataWrapper,
+}));
+
 jest.mock('../src/screens/setting/pages/PrivacyPolicy', () => ({
   __esModule: true,
   PrivacyPolicyWrapper: mockPrivacyPolicyWrapper,
@@ -42,9 +48,12 @@ jest.mock('../src/screens/setting/pages/Tutorials', () => ({
 }));
 
 describe('Settings Tutorials ownership cleanup', () => {
-  test('settings barrel re-exports TutorialsWrapper from the Tutorials page entry', () => {
+  test('settings barrel re-exports routed page wrappers from their page entries', () => {
     const settingsModule = require('../src/screens/setting');
 
     expect(settingsModule.TutorialsWrapper).toBe(mockTutorialsWrapper);
+    expect(settingsModule.PrivacyAndDataWrapper).toBe(
+      mockPrivacyAndDataWrapper,
+    );
   });
 });

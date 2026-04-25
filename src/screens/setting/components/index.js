@@ -4,6 +4,7 @@ import MyVitals from './My Profile/MyVitals';
 import DeleteAccount from './My Profile/DeleteAccount';
 import ExportToCSV from './Export To CSV/ExportToCSV';
 import TermsOfUse from './TermsOfUse/TermsOfUse';
+import PrivacyAndData from './PrivacyAndData/PrivacyAndData';
 import PrivacyPolicy from './Privacy Policy/PrivacyPolicy';
 import Abbrevations from './Abbrevations/Abbrevations';
 import Tutorials from './Tutorials/Tutorials';
@@ -14,6 +15,7 @@ export {
   MyVitals,
   ExportToCSV,
   TermsOfUse,
+  PrivacyAndData,
   PrivacyPolicy,
   Abbrevations,
   Tutorials,

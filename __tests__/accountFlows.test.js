@@ -9,6 +9,7 @@ import {
   logout,
   resetPassword,
 } from '../src/redux/actions/auth';
+import { SETTINGS_ROUTES } from '../src/navigation/routeNames';
 import { CLEAR_USER, RESET_APP, SET_USER } from '../src/redux/constants';
 import { ONBOARDING_DRAFT_KEYS } from '../src/redux/actions/onboardingStorage';
 import SettingPage from '../src/screens/setting/pages/Setting/Setting';
@@ -266,6 +267,7 @@ describe('Settings navigation', () => {
     const deleteSection = settingsList.find(
       item => item.title === 'Delete local data',
     );
+    const aboutSection = settingsList.find(item => item.title === 'About');
 
     expect(exportSection.options).toEqual(
       expect.arrayContaining([
@@ -275,6 +277,14 @@ describe('Settings navigation', () => {
     expect(deleteSection.options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ screen: 'DeleteAccount' }),
+      ]),
+    );
+    expect(aboutSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Privacy & Data',
+          screen: SETTINGS_ROUTES.PRIVACY_AND_DATA,
+        }),
       ]),
     );
   });

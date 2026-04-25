@@ -7,6 +7,7 @@ import {
   ExportToCSVWrapper,
   MyProfileWrapper,
   MyVitalsWrapper,
+  PrivacyAndDataWrapper,
   PrivacyPolicyWrapper,
   SettingWrapper,
   TermsOfUseWrapper,
@@ -43,6 +44,10 @@ const SETTINGS_STACK_SCREENS = [
   {
     name: SETTINGS_ROUTES.TERMS_OF_USE,
     component: TermsOfUseWrapper,
+  },
+  {
+    name: SETTINGS_ROUTES.PRIVACY_AND_DATA,
+    component: PrivacyAndDataWrapper,
   },
   {
     name: SETTINGS_ROUTES.PRIVACY_POLICY,

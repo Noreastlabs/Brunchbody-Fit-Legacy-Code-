@@ -39,6 +39,7 @@ const mockMyPasswordWrapper = () => null;
 const mockDeleteAccountWrapper = () => null;
 const mockExportToCSVWrapper = () => null;
 const mockTermsOfUseWrapper = () => null;
+const mockPrivacyAndDataWrapper = () => null;
 const mockPrivacyPolicyWrapper = () => null;
 const mockAbbrevationsWrapper = () => null;
 const mockBottomTabNavigation = () => null;
@@ -171,6 +172,7 @@ jest.mock('../src/screens/setting', () => ({
   DeleteAccountWrapper: mockDeleteAccountWrapper,
   ExportToCSVWrapper: mockExportToCSVWrapper,
   TermsOfUseWrapper: mockTermsOfUseWrapper,
+  PrivacyAndDataWrapper: mockPrivacyAndDataWrapper,
   PrivacyPolicyWrapper: mockPrivacyPolicyWrapper,
   AbbrevationsWrapper: mockAbbrevationsWrapper,
   TutorialsWrapper: mockTutorialsWrapper,
@@ -375,6 +377,7 @@ describe('Navigation smoke navigator contracts', () => {
       'DeleteAccount',
       'ExportToCSV',
       'TermsOfUse',
+      'PrivacyAndData',
       'PrivacyPolicy',
       'Abbrevations',
     ]);

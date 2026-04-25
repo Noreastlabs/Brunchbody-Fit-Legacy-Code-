@@ -1162,6 +1162,7 @@ describe('Navigation smoke representative flows', () => {
     const deleteLocalDataSection = settingsList.find(
       item => item.title === 'Delete local data',
     );
+    const aboutSection = settingsList.find(item => item.title === 'About');
 
     expect(profileSection.options).toEqual(
       expect.arrayContaining([
@@ -1176,6 +1177,14 @@ describe('Navigation smoke representative flows', () => {
     expect(deleteLocalDataSection.options).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ screen: SETTINGS_ROUTES.DELETE_ACCOUNT }),
+      ]),
+    );
+    expect(aboutSection.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Privacy & Data',
+          screen: SETTINGS_ROUTES.PRIVACY_AND_DATA,
+        }),
       ]),
     );
   });
