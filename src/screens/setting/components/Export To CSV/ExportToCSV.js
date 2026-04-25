@@ -41,8 +41,14 @@ export default function ExportToCSV(props) {
             Exports selected journal entries as an Excel workbook (.xlsx).
           </Text>
           <Text style={styles.helperText}>
-            Files you save outside the app stay where you put them and are not
-            removed by Delete local data.
+            Exported files may contain personal fitness, journal, nutrition,
+            supplement, reflection, or profile-related information depending on
+            what you export.
+          </Text>
+          <Text style={styles.helperText}>
+            Once exported, you are responsible for where the file is saved,
+            copied, shared, uploaded, or deleted. Files saved outside the app are
+            not removed by Delete local data.
           </Text>
         </View>
         <View style={{paddingVertical: 10, marginHorizontal: 20}}>
