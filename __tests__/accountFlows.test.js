@@ -19,9 +19,9 @@ import { hydrateWorkoutPlans } from '../src/storage/mmkv/hydration';
 import { storage } from '../src/storage/mmkv';
 
 const DELETE_LOCAL_DATA_CONFIRMATION_ERROR =
-  'Please confirm that you want to delete saved local data from this device.';
+  'Please confirm that Delete local data clears Brunch Body app-local data stored by the app on this device.';
 const DELETE_LOCAL_DATA_SUCCESS_MESSAGE =
-  'Saved Brunch Body data was removed from this device.\n\nFiles you exported, copied, shared, uploaded, or saved outside the app were not deleted.\n\nStarter plans included with Brunch Body may appear again after setup.';
+  'Brunch Body app-local data stored by the app on this device was cleared.\n\nFiles you exported, copied, shared, moved, backed up, uploaded, or saved outside Brunch Body app-managed storage were not deleted.\n\nThis was not a password reset or cloud deletion.\n\nStarter content included with Brunch Body may appear again after deletion.';
 
 jest.mock('../src/storage/mmkv', () => ({
   storage: {
@@ -292,15 +292,27 @@ describe('Delete local data screen copy', () => {
 
     expect(renderedText).toContain('Delete local data');
     expect(renderedText).toContain(
-      'Removes saved Brunch Body data from this device.',
+      'This clears Brunch Body app-local data stored by the app on this device.',
     );
     expect(renderedText).toContain(
-      'files you exported, copied, shared, uploaded, or saved outside the app.',
+      'saved profile details, journal entries, workouts, nutrition, themes, todos, and other app-local Brunch Body data.',
     );
     expect(renderedText).toContain(
-      'starter plans included with Brunch Body.',
+      'files you exported, copied, shared, moved, backed up, uploaded, or saved outside Brunch Body app-managed storage.',
+    );
+    expect(renderedText).toContain(
+      'This is not a password reset or cloud deletion.',
+    );
+    expect(renderedText).toContain(
+      'Starter content included with Brunch Body.',
+    );
+    expect(renderer.root.findByType('mock-button').props.title).toBe(
+      'Delete local data',
     );
     expect(renderedText).not.toContain('Delete account');
+    expect(renderedText).not.toContain('Reset app');
+    expect(renderedText).not.toContain('Delete all data');
+    expect(renderedText).not.toContain('Erase everything');
   });
 });
 
