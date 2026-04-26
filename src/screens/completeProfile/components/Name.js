@@ -6,6 +6,7 @@ import {LogoHeader, CustomHeader} from '../../../components';
 import Input from './Input';
 import Label from './Label';
 import NextButton from './NextButton';
+import SupportingText from './SupportingText';
 import {strings} from '../../../resources';
 
 const Name = ({currentScreen, onChangeText, text}) => (
@@ -21,6 +22,9 @@ const Name = ({currentScreen, onChangeText, text}) => (
           text={text}
           placeholder={strings.completeProfile.placeholders.name}
           onChangeText={onChangeText}
+        />
+        <SupportingText
+          text={strings.completeProfile.helperText.localDataNotice}
         />
         {/* <Text style={{color: 'white'}}>{text}</Text> */}
       </View>

@@ -30,6 +30,8 @@ module.exports.strings = {
       next: 'Next',
     },
     helperText: {
+      localDataNotice:
+        'Your profile details are saved on this device and used for in-app calculations and display.',
       dob: 'Use the picker to confirm your birth date.',
       height: 'Choose your height in feet and inches.',
       weight: 'Enter your weight in pounds using whole numbers only.',
