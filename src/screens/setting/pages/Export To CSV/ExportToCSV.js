@@ -118,7 +118,7 @@ export default function ExportToCSVPage(props) {
         .then(() => {
           showMessage(
             'Success!',
-            'Journal data was exported as an Excel workbook (.xlsx).\n\nOnce exported, you are responsible for where the file is saved, copied, shared, uploaded, or deleted.',
+            'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.',
           );
         })
         .catch(e => {
@@ -136,7 +136,7 @@ export default function ExportToCSVPage(props) {
         .then(() => {
           showMessage(
             'Success!',
-            'Journal data was exported as an Excel workbook (.xlsx).\n\nOnce exported, you are responsible for where the file is saved, copied, shared, uploaded, or deleted.',
+            'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.',
           );
         })
         .catch(e => {

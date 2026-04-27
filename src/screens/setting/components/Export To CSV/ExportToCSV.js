@@ -46,9 +46,10 @@ export default function ExportToCSV(props) {
             what you export.
           </Text>
           <Text style={styles.helperText}>
-            Once exported, you are responsible for where the file is saved,
-            copied, shared, uploaded, or deleted. Files saved outside the app are
-            not removed by Delete local data.
+            Exported files are user-managed copies after export. Brunch Body
+            does not currently provide app-managed import or restore for
+            exported files. Files saved outside the app are not removed by
+            Delete local data.
           </Text>
         </View>
         <View style={{paddingVertical: 10, marginHorizontal: 20}}>

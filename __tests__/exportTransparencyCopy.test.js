@@ -55,7 +55,7 @@ import ExportToCSVSurface from '../src/screens/setting/components/Export To CSV/
 import ExportToCSVPage from '../src/screens/setting/pages/Export To CSV/ExportToCSV';
 
 const EXPORT_SUCCESS_MESSAGE =
-  'Journal data was exported as an Excel workbook (.xlsx).\n\nOnce exported, you are responsible for where the file is saved, copied, shared, uploaded, or deleted.';
+  'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.';
 
 const collectRenderedText = value => {
   if (!value) {
@@ -115,7 +115,7 @@ describe('Export transparency copy', () => {
     jest.restoreAllMocks();
   });
 
-  test('renders selected journal xlsx export sensitivity and file responsibility copy', async () => {
+  test('renders selected journal xlsx export sensitivity and exported copy boundary copy', async () => {
     let renderer;
 
     await ReactTestRenderer.act(async () => {
@@ -137,14 +137,17 @@ describe('Export transparency copy', () => {
       'Exported files may contain personal fitness, journal, nutrition, supplement, reflection, or profile-related information depending on what you export.',
     );
     expect(renderedText).toContain(
-      'Once exported, you are responsible for where the file is saved, copied, shared, uploaded, or deleted.',
+      'Exported files are user-managed copies after export.',
+    );
+    expect(renderedText).toContain(
+      'Brunch Body does not currently provide app-managed import or restore for exported files.',
     );
     expect(renderedText).toContain(
       'Files saved outside the app are not removed by Delete local data.',
     );
   });
 
-  test('shows the xlsx export success modal with file responsibility copy', async () => {
+  test('shows the xlsx export success modal with exported copy boundary copy', async () => {
     let renderer;
 
     await ReactTestRenderer.act(async () => {
