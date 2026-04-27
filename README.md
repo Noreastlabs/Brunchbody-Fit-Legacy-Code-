@@ -10,8 +10,8 @@ Current behavior in RC2:
 - Fresh installs route to `CompleteProfile` to create a device-local profile.
 - Returning users with a saved local profile route to `Home`.
 - Settings exposes device-local profile editing, journal export, and a `Delete local data` action.
-- `Delete local data` clears Brunch Body app-local data stored by the app on this device. It does not delete exported, copied, shared, moved, backed up, uploaded, or externally saved files; it is not a password reset, cloud deletion, or account deletion everywhere; and bundled starter content may appear again after deletion.
-- User data remains on-device only unless a future backend mode is explicitly reintroduced.
+- `Delete local data` clears Brunch Body app-local data stored by the app on this device. It does not delete exported, copied, shared, moved, backed up, uploaded, or externally saved files; it is not a password reset, cloud deletion, or backend account deletion; and bundled starter content may appear again after deletion.
+- In the current build, Brunch Body app-managed working data is stored locally on this device; exported journal workbook files (`.xlsx`) are user-managed copies after export.
 
 ## Public Status
 
@@ -110,7 +110,7 @@ The app is local-first and can operate offline.
   - No `api/user/...` network persistence paths in local-only mode.
   - No cross-device reconciliation or cloud backup for user-generated data.
 
-### No-cloud-sync guarantee (current behavior)
+### No cloud sync in current behavior
 
 - There is **no backend persistence** in the current build.
 - There is **no automatic cloud backup/sync** for device-local records, workouts, meals, todos, or themes.
@@ -123,7 +123,7 @@ In `src/redux/actions/{nutrition,recreation,calendar,exercise,todo}.js`, legacy 
 
 ## Migration Notes (future backend reintroduction)
 
-To preserve compatibility with existing local users when backend sync returns:
+If backend sync is reintroduced, preserve compatibility with existing local users by:
 
 1. **Keep local schema stable first**
    - Treat current persisted shapes as canonical v1.

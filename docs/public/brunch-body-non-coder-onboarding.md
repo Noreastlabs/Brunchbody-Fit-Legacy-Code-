@@ -38,7 +38,7 @@ Do not assume that deleting, uninstalling, changing devices, or exporting inform
 
 Brunch Body appears to be a mobile-first app for organizing personal fitness, nutrition, journaling, calendar/planning, and profile-tracking information in one place.
 
-Based on current project documentation, it currently appears to support local profile setup, dashboard-style summaries, workout and routine planning, meal and supplement tracking, journal entries and reviews, calendar and writing tools, todo-style planning, settings, local delete/reset behavior, and selected journal export.
+Based on current project documentation, it currently appears to support local profile setup, dashboard-style summaries, workout and routine planning, meal and supplement tracking, journal entries and reviews, calendar and writing tools, todo-style planning, settings, `Delete local data` behavior, and selected journal export.
 
 The app should be understood as a personal organization and tracking tool. It should not be treated as a medical product, a professional coaching replacement, a clinical calculator, a cloud account system, or an AI assistant.
 
@@ -80,7 +80,7 @@ Local-first does not mean risk-free. Someone with access to the unlocked device,
 
 Do not treat Brunch Body's current export behavior as a full backup of the app.
 
-Based on current public documentation, the observed export feature is for selected journal data and creates an Excel workbook file. Exported files live outside normal app-managed storage after export, so the user is responsible for where those files are saved, copied, shared, uploaded, or deleted.
+Based on current public documentation, the observed export feature is for selected journal data and creates an Excel workbook file (`.xlsx`). Exported files live outside normal app-managed storage after export, so the user is responsible for where those files are saved, copied, shared, uploaded, or deleted.
 
 Current project documentation does not verify a Brunch Body cloud backup, automatic restore, full import, or automatic device-to-device sync feature. If app storage is cleared, the app is uninstalled, the device is lost, or the user changes devices, local app data may not follow automatically.
 
@@ -94,7 +94,7 @@ Good non-coder testing is practical and observant:
 
 - Start with a fresh install or a cleared local app state when possible.
 - Use test data unless real data is needed and you are comfortable entering it.
-- Try common paths such as first-run profile setup, opening each main tab, adding a small entry, editing it if possible, deleting or resetting local data if that is part of the test, and exporting selected journal data if asked.
+- Try common paths such as first-run profile setup, opening each main tab, adding a small entry, editing it if possible, using Delete local data if that is part of the test, and exporting selected journal data if asked.
 - Compare what the app says with what it appears to do.
 - Watch for unclear wording around privacy, backup, export, delete, health, training, nutrition, calculations, or device changes.
 - Record the device, platform, app build if known, and the steps that led to the issue.
@@ -140,7 +140,7 @@ These public docs may help if they are available in the same documentation folde
 - [Brunch Body User Guide](./brunch-body-user-guide.md)
 - [Brunch Body Privacy and Data Guide](./brunch-body-privacy-and-data.md)
 
-The user guide gives a broader feature overview. The privacy and data guide gives more detail about current local-first, export, delete/reset, backup, and device-change expectations.
+The user guide gives a broader feature overview. The privacy and data guide gives more detail about current local-first, export, Delete local data, password reset, backup, and device-change expectations.
 
 ## Glossary
 
@@ -154,6 +154,6 @@ Backup: A separate copy of data that can help recovery later. This guide does no
 
 Device change: Moving from one phone or device to another. Current public documentation does not verify automatic Brunch Body data transfer across devices.
 
-Delete local data: A current app/settings concept that appears to clear Brunch Body app-local data stored by the app on this device. It should not be treated as a promise to delete exported files, copied files, shared files, moved files, backups, uploaded files, files saved outside the app, cloud data, or an account everywhere. It is not a password reset. Starter content included with Brunch Body may appear again after deletion.
+Delete local data: A current app/settings concept that appears to clear Brunch Body app-local data stored by the app on this device. It is not backend account deletion, a password reset, or a promise to delete exported files, copied files, shared files, moved files, backups, uploaded files, files saved outside the app, or cloud data. Starter content included with Brunch Body may appear again after deletion.
 
 Medical advice: Professional guidance about diagnosis, treatment, prevention, nutrition, training, or health decisions. Brunch Body should not be treated as providing medical advice.

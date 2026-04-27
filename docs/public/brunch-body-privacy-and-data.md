@@ -6,7 +6,7 @@ This is a plain-English guide for Brunch Body users, testers, and non-coders who
 
 This guide is not a legal privacy policy, legal advice, app store disclosure, or medical privacy notice.
 
-This guide is based on current observed app behavior and existing project documentation. It should be updated if Brunch Body later adds cloud sync, backend accounts, AI features, import/export changes, platform integrations, or different delete/reset behavior.
+This guide is based on current observed app behavior and existing project documentation. It should be updated if Brunch Body later adds cloud sync, backend accounts, AI features, import/export changes, platform integrations, or changes how `Delete local data` or password reset works.
 
 ## Short version
 
@@ -55,11 +55,11 @@ Based on current observed behavior and existing project docs, this guide does no
 - Deletes files you copied, shared, uploaded, or exported outside the app.
 - Provides AI features, automated coaching, or off-device processing of user data.
 
-## Deleting, resetting, and removing data
+## Deleting and removing local data
 
 The current app includes a `Delete local data` action. Current app wording and project documentation say it clears Brunch Body app-local data stored by the app on this device.
 
-That is an app-level local-data statement, not a secure deletion guarantee and not a password reset, cloud deletion, or account deletion everywhere. This guide does not promise forensic deletion, deletion from operating-system backups, deletion from device-transfer tools, or deletion from storage locations outside Brunch Body's app-managed data.
+That is an app-level local-data statement, not a secure deletion guarantee and not a password reset, cloud deletion, or backend account deletion. This guide does not promise forensic deletion, deletion from exported, copied, shared, moved, backed-up, uploaded, or externally saved files, deletion from operating-system backups, deletion from device-transfer tools, or deletion from storage locations outside Brunch Body's app-managed data.
 
 Files that you exported, copied, shared, uploaded, or saved to another app or folder are outside Brunch Body's normal app storage after export. You are responsible for managing those copies.
 
@@ -97,10 +97,10 @@ If you are testing Brunch Body and are not comfortable entering real personal de
 
 Avoid entering highly sensitive real data unless you are comfortable with that data being stored locally on the test device and possibly included in device backups or exported files depending on your actions and platform behavior.
 
-Please report any privacy, data, export, delete, backup, or reset wording that feels confusing, too broad, or inconsistent with the app behavior you observe.
+Please report any privacy, data, export, `Delete local data`, backup, or password reset wording that feels confusing, too broad, or inconsistent with the app behavior you observe.
 
 ## Future changes
 
-This guide must be updated if Brunch Body later adds or changes cloud sync, backend accounts, AI features, export/import behavior, platform integrations, app permissions, deletion/reset semantics, backup/restore behavior, or third-party data handling.
+This guide must be updated if Brunch Body later adds or changes cloud sync, backend accounts, AI features, export/import behavior, platform integrations, app permissions, how `Delete local data` or password reset works, backup/restore behavior, or third-party data handling.
 
 Public privacy language, support language, platform privacy disclosures, and store-submission answers should stay aligned with the actual shipped app behavior.

@@ -19,7 +19,7 @@ Brunch Body helps you keep everyday wellness planning in one place. Based on the
 - Keep journal entries, reviews, weight logs, calorie logs, supplement logs, and trait-related notes.
 - Use calendar, theme, writing, and todo-style planning features.
 - Edit profile details in settings.
-- Export selected journal data as an Excel workbook file.
+- Export selected journal data as an Excel workbook file (`.xlsx`).
 - Delete saved Brunch Body data from the current device.
 
 ## What information you may enter
@@ -75,13 +75,13 @@ Current project evidence supports these cautious expectations:
 
 Needs verification: Device operating systems may offer their own backup, restore, file, or device-transfer behavior outside Brunch Body. This guide does not promise whether OS-level backup or transfer will preserve Brunch Body data.
 
-## Delete, reset, export, backup, and device-change notes
+## Delete local data, export, backup, and device-change notes
 
 The current settings surface includes a `Delete local data` action. Current app wording and project documentation say it clears Brunch Body app-local data stored by the app on this device.
 
 The delete action does not appear to delete files that the user already exported, copied, shared, moved, backed up, uploaded, or saved to another app, folder, drive, or storage location. Those files are outside Brunch Body's normal app data area after export.
 
-Delete local data is not a password reset, cloud deletion, or account deletion everywhere.
+Delete local data is not a password reset, cloud deletion, or backend account deletion.
 
 Starter content included with Brunch Body may appear again after deletion. This is because bundled starter plan data is part of the app experience and may be re-seeded locally.
 
@@ -91,7 +91,7 @@ The current project evidence does not show an import or restore feature that bri
 
 There is no verified Brunch Body cloud backup or cross-device sync behavior in the current local-only build. If app storage is cleared, the app is uninstalled, the device is lost, or the user changes devices, local app data may not follow automatically.
 
-Needs verification: Confirm exact delete, reset, export, uninstall, device-transfer, and OS backup behavior in the final release build before using this guide as public support or store-review language.
+Needs verification: Confirm exact Delete local data, password reset, export, uninstall, device-transfer, and OS backup behavior in the final release build before using this guide as public support or store-review language.
 
 ## What Brunch Body does not do
 
@@ -120,7 +120,7 @@ If a user feels chest pain, trouble breathing, faintness, severe pain, or any ur
 
 ## Known limitations / Needs verification
 
-- Needs verification: Exact release-build behavior for local storage, export, delete, reset, uninstall, backup, and device-change scenarios.
+- Needs verification: Exact release-build behavior for local storage, export, Delete local data, password reset, uninstall, backup, and device-change scenarios.
 - Needs verification: Whether OS-level backup or device-transfer tools preserve any Brunch Body app data.
 - Needs verification: Final privacy policy, platform privacy labels, and store data-safety answers must match the shipped app.
 - Needs verification: Public support wording should explain that current export is journal-only and produces `.xlsx` files.
@@ -135,7 +135,7 @@ Before this guide is used for public release, review the shipped build and confi
 - No backend account storage, cloud sync, analytics, advertising tracking, or AI feature has been added without updated disclosure.
 - Profile, fitness, nutrition, journal, calendar, todo, and planning features match the descriptions above.
 - Delete local data behavior matches the app copy, privacy language, and support language.
-- Export behavior is accurately described as selected journal data exported to an Excel workbook file.
+- Export behavior is accurately described as selected journal data exported to an Excel workbook file (`.xlsx`).
 - There is still no verified import or full backup/restore feature unless the app has been updated to add one.
 - Store listing copy, privacy policy, platform privacy disclosures, support scripts, and in-app wording all describe the same behavior.
 - Health and safety language makes clear that Brunch Body is not a medical device, clinical product, diagnostic tool, or treatment tool.
