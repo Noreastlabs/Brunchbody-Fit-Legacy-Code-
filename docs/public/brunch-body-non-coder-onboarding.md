@@ -154,6 +154,6 @@ Backup: A separate copy of data that can help recovery later. This guide does no
 
 Device change: Moving from one phone or device to another. Current public documentation does not verify automatic Brunch Body data transfer across devices.
 
-Delete local data: A current app/settings concept that appears to remove saved Brunch Body data from the current device's app storage. It should not be treated as a promise to delete exported files, operating-system backups, or files saved outside the app.
+Delete local data: A current app/settings concept that appears to clear Brunch Body app-local data stored by the app on this device. It should not be treated as a promise to delete exported files, copied files, shared files, moved files, backups, uploaded files, files saved outside the app, cloud data, or an account everywhere. It is not a password reset. Starter content included with Brunch Body may appear again after deletion.
 
 Medical advice: Professional guidance about diagnosis, treatment, prevention, nutrition, training, or health decisions. Brunch Body should not be treated as providing medical advice.

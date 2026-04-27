@@ -10,7 +10,7 @@ Current behavior in RC2:
 - Fresh installs route to `CompleteProfile` to create a device-local profile.
 - Returning users with a saved local profile route to `Home`.
 - Settings exposes device-local profile editing, journal export, and a `Delete local data` action.
-- `Delete local data` removes saved Brunch Body data from this device, does not remove files you exported elsewhere, and may re-seed bundled starter plans included with the app.
+- `Delete local data` clears Brunch Body app-local data stored by the app on this device. It does not delete exported, copied, shared, moved, backed up, uploaded, or externally saved files; it is not a password reset, cloud deletion, or account deletion everywhere; and bundled starter content may appear again after deletion.
 - User data remains on-device only unless a future backend mode is explicitly reintroduced.
 
 ## Public Status

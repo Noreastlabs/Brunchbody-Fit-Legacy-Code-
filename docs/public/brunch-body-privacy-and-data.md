@@ -57,13 +57,13 @@ Based on current observed behavior and existing project docs, this guide does no
 
 ## Deleting, resetting, and removing data
 
-The current app includes local delete/reset behavior that appears to remove saved Brunch Body data from the current device's app storage.
+The current app includes a `Delete local data` action. Current app wording and project documentation say it clears Brunch Body app-local data stored by the app on this device.
 
-That is an app-level reset/delete statement, not a secure deletion guarantee. This guide does not promise forensic deletion, deletion from operating-system backups, deletion from device-transfer tools, or deletion from storage locations outside Brunch Body's app-managed data.
+That is an app-level local-data statement, not a secure deletion guarantee and not a password reset, cloud deletion, or account deletion everywhere. This guide does not promise forensic deletion, deletion from operating-system backups, deletion from device-transfer tools, or deletion from storage locations outside Brunch Body's app-managed data.
 
 Files that you exported, copied, shared, uploaded, or saved to another app or folder are outside Brunch Body's normal app storage after export. You are responsible for managing those copies.
 
-Starter plans included with Brunch Body may appear again after setup because the observed app behavior can rehydrate bundled workout-plan data after local app data is cleared.
+Starter content included with Brunch Body may appear again after deletion because the observed app behavior can rehydrate bundled workout-plan data after local app data is cleared.
 
 ## Backups, exports, and device changes
 

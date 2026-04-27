@@ -77,11 +77,13 @@ Needs verification: Device operating systems may offer their own backup, restore
 
 ## Delete, reset, export, backup, and device-change notes
 
-The current settings surface includes a `Delete local data` action. Current app wording and project documentation say this removes saved Brunch Body data from the current device.
+The current settings surface includes a `Delete local data` action. Current app wording and project documentation say it clears Brunch Body app-local data stored by the app on this device.
 
-The delete action does not appear to delete files that the user already exported to another app, folder, drive, or storage location. Those files are outside Brunch Body's normal app data area after export.
+The delete action does not appear to delete files that the user already exported, copied, shared, moved, backed up, uploaded, or saved to another app, folder, drive, or storage location. Those files are outside Brunch Body's normal app data area after export.
 
-Starter plans included with Brunch Body may appear again after setup, even after local data is deleted. This is because bundled starter plan data is part of the app experience and may be re-seeded locally.
+Delete local data is not a password reset, cloud deletion, or account deletion everywhere.
+
+Starter content included with Brunch Body may appear again after deletion. This is because bundled starter plan data is part of the app experience and may be re-seeded locally.
 
 The current export feature is journal-only. It lets the user export selected journal entry types, such as daily journal, weight log, calories in/out, supplement log, weekly review, and quarterly review. The current implementation exports an Excel workbook file (`.xlsx`), not a full backup of all Brunch Body data.
 
