@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactTestRenderer from 'react-test-renderer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ScopedStorage from 'react-native-scoped-storage';
+import RNFS from 'react-native-fs';
 import {
   changeEmail,
   changePassword,
@@ -12,6 +14,7 @@ import {
 import { SETTINGS_ROUTES } from '../src/navigation/routeNames';
 import { CLEAR_USER, RESET_APP, SET_USER } from '../src/redux/constants';
 import { ONBOARDING_DRAFT_KEYS } from '../src/redux/actions/onboardingStorage';
+import authReducer from '../src/redux/reducer/auth';
 import SettingPage from '../src/screens/setting/pages/Setting/Setting';
 import DeleteAccountPage from '../src/screens/setting/pages/MyProfile/DeleteAccount';
 import DeleteAccountSurface from '../src/screens/setting/components/My Profile/DeleteAccount';
@@ -31,6 +34,15 @@ jest.mock('../src/storage/mmkv', () => ({
 
 jest.mock('../src/storage/mmkv/hydration', () => ({
   hydrateWorkoutPlans: jest.fn(),
+}));
+
+jest.mock('react-native-scoped-storage', () => ({
+  createDocumentFile: jest.fn(),
+  deleteFile: jest.fn(),
+}));
+
+jest.mock('react-native-fs', () => ({
+  unlink: jest.fn(),
 }));
 
 jest.mock('../src/components', () => {
@@ -221,29 +233,102 @@ describe('Local data actions', () => {
     );
   });
 
-  test('logout clears local profile credentials and auth state', async () => {
+  test('logout clears only scoped local auth profile onboarding password state', async () => {
     const dispatch = jest.fn();
+    const scopedLogoutKeys = [
+      'user_profile',
+      'local_password',
+      'local_password_reset_requested_at',
+      ...ONBOARDING_DRAFT_KEYS,
+    ];
 
     const result = await logout()(dispatch);
 
     expect(result).toBe(true);
-    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        'user_profile',
-        'local_password',
-        'local_password_reset_requested_at',
-        ...ONBOARDING_DRAFT_KEYS,
-      ]),
-    );
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledTimes(1);
+    expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(scopedLogoutKeys);
     expect(AsyncStorage.clear).not.toHaveBeenCalled();
     expect(storage.clearAll).not.toHaveBeenCalled();
     expect(hydrateWorkoutPlans).not.toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith({ type: CLEAR_USER });
   });
 
-  test('deleteAccount clears broad local storage and rehydrates bundled plans', async () => {
+  test('CLEAR_USER resets the auth reducer without storage clearing', () => {
+    const populatedAuthState = authReducer(undefined, {
+      type: SET_USER,
+      payload: {
+        dob: '01/01/1995',
+        email: 'saved@example.com',
+        gender: 'female',
+        height: '5.06',
+        weight: '135',
+      },
+    });
+
+    const resetAuthState = authReducer(populatedAuthState, { type: CLEAR_USER });
+
+    expect(populatedAuthState.user).toEqual(
+      expect.objectContaining({ email: 'saved@example.com' }),
+    );
+    expect(resetAuthState).toEqual({ user: {} });
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
+    expect(storage.clearAll).not.toHaveBeenCalled();
+    expect(hydrateWorkoutPlans).not.toHaveBeenCalled();
+  });
+
+  test('RESET_APP resets reducer state without performing storage clear by itself', () => {
+    let resetState;
+
+    jest.isolateModules(() => {
+      jest.doMock('redux-persist', () => ({
+        persistReducer: (persistConfig, reducer) => {
+          expect(persistConfig.key).toBe('root');
+          return reducer;
+        },
+        persistStore: jest.fn(() => ({
+          flush: jest.fn(),
+          pause: jest.fn(),
+          persist: jest.fn(),
+          purge: jest.fn(),
+        })),
+      }));
+
+      const { store } = require('../src/redux/store/store');
+
+      store.dispatch({
+        type: SET_USER,
+        payload: {
+          dob: '01/01/1995',
+          email: 'reset@example.com',
+          gender: 'female',
+          height: '5.06',
+          weight: '135',
+        },
+      });
+
+      expect(store.getState().auth.user).toEqual(
+        expect.objectContaining({ email: 'reset@example.com' }),
+      );
+
+      store.dispatch({ type: RESET_APP });
+      resetState = store.getState();
+    });
+
+    jest.dontMock('redux-persist');
+
+    expect(resetState.auth).toEqual({ user: {} });
+    expect(resetState.journal.allJournalEntriesList).toEqual([]);
+    expect(AsyncStorage.clear).not.toHaveBeenCalled();
+    expect(storage.clearAll).not.toHaveBeenCalled();
+    expect(hydrateWorkoutPlans).not.toHaveBeenCalled();
+    expect(RNFS.unlink).not.toHaveBeenCalled();
+    expect(ScopedStorage.deleteFile).not.toHaveBeenCalled();
+  });
+
+  test('Delete local data clears app managed local stores then rehydrates bundled plans', async () => {
     const dispatch = jest.fn();
 
+    // deleteAccount is the current internal action behind Delete local data.
     const result = await deleteAccount()(dispatch);
 
     expect(result).toBe(true);
@@ -256,9 +341,31 @@ describe('Local data actions', () => {
     expect(AsyncStorage.clear).toHaveBeenCalledTimes(1);
     expect(storage.clearAll).toHaveBeenCalledTimes(1);
     expect(hydrateWorkoutPlans).toHaveBeenCalledTimes(1);
+    expect(dispatch.mock.invocationCallOrder[0]).toBeLessThan(
+      AsyncStorage.clear.mock.invocationCallOrder[0],
+    );
+    expect(AsyncStorage.clear.mock.invocationCallOrder[0]).toBeLessThan(
+      storage.clearAll.mock.invocationCallOrder[0],
+    );
     expect(storage.clearAll.mock.invocationCallOrder[0]).toBeLessThan(
       hydrateWorkoutPlans.mock.invocationCallOrder[0],
     );
+    expect(RNFS.unlink).not.toHaveBeenCalled();
+    expect(ScopedStorage.deleteFile).not.toHaveBeenCalled();
+  });
+
+  test('Delete local data does not delete user managed exported copies', async () => {
+    const dispatch = jest.fn();
+
+    // deleteAccount is the current internal action behind Delete local data.
+    const result = await deleteAccount()(dispatch);
+
+    expect(result).toBe(true);
+    expect(AsyncStorage.clear).toHaveBeenCalledTimes(1);
+    expect(storage.clearAll).toHaveBeenCalledTimes(1);
+    expect(hydrateWorkoutPlans).toHaveBeenCalledTimes(1);
+    expect(RNFS.unlink).not.toHaveBeenCalled();
+    expect(ScopedStorage.deleteFile).not.toHaveBeenCalled();
   });
 });
 
@@ -514,3 +621,5 @@ describe('Settings navigation', () => {
     expect(tabNavigation.reset).not.toHaveBeenCalled();
   });
 });
+
+// retention_clear_paths_tests_added
