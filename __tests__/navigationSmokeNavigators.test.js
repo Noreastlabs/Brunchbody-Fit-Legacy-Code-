@@ -182,6 +182,7 @@ const RootNavigation = require('../src/navigation/RootNavigation').default;
 const {
   AUTH_TAB_ROUTES,
   ROOT_ROUTES,
+  SETTINGS_ROUTES,
 } = require('../src/navigation/routeNames');
 const BottomTabNavigation =
   jest.requireActual('../src/navigation/BottomTabNavigation').default;
@@ -368,9 +369,10 @@ describe('Navigation smoke navigator contracts', () => {
   test('SettingsNavigation keeps the current settings stack route set', () => {
     const renderer = renderTree(<SettingsNavigation />);
     const stackNavigator = renderer.root.findByType('mock-stack-navigator');
+    const settingsScreenNames = getScreenNames(renderer, 'mock-stack-screen');
 
     expect(stackNavigator.props.initialRouteName).toBe('Settings');
-    expect(getScreenNames(renderer, 'mock-stack-screen')).toEqual([
+    expect(settingsScreenNames).toEqual([
       'Settings',
       'MyProfile',
       'MyVitals',
@@ -381,5 +383,8 @@ describe('Navigation smoke navigator contracts', () => {
       'PrivacyPolicy',
       'Abbrevations',
     ]);
+    expect(settingsScreenNames).not.toContain(SETTINGS_ROUTES.MY_PASSWORD);
+    expect(settingsScreenNames).not.toContain(SETTINGS_ROUTES.MY_ACCOUNT);
+    expect(settingsScreenNames).not.toContain(SETTINGS_ROUTES.MY_EMAIL);
   });
 });

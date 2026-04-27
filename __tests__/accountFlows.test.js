@@ -375,6 +375,55 @@ describe('Settings navigation', () => {
     );
   });
 
+  test('settings keep reset-password and account routes out of the visible Phase 1 surface', async () => {
+    const navigation = {
+      getParent: jest.fn(),
+      reset: jest.fn(),
+    };
+    let renderer;
+
+    await ReactTestRenderer.act(async () => {
+      renderer = ReactTestRenderer.create(<SettingPage navigation={navigation} />);
+    });
+
+    const settingsList = renderer.root.findByType('mock-setting').props.listData;
+    const visibleText = settingsList
+      .flatMap(section => [
+        section.title,
+        ...section.options.map(option => option.name),
+      ])
+      .filter(Boolean)
+      .join(' ');
+    const visibleRoutes = settingsList
+      .flatMap(section => section.options.map(option => option.screen))
+      .filter(Boolean);
+    const deleteLocalDataSections = settingsList.filter(
+      section => section.title === 'Delete local data',
+    );
+
+    expect(deleteLocalDataSections).toHaveLength(1);
+    expect(deleteLocalDataSections[0].options).toEqual([
+      expect.objectContaining({
+        name: 'Delete local data',
+        screen: SETTINGS_ROUTES.DELETE_ACCOUNT,
+      }),
+    ]);
+    expect(visibleText).toContain('Delete local data');
+    [
+      'Reset app',
+      'Reset password',
+      'Forgot Password',
+      'My Password',
+      'My Account',
+      'Delete account',
+    ].forEach(label => {
+      expect(visibleText).not.toContain(label);
+    });
+    expect(visibleRoutes).not.toContain(SETTINGS_ROUTES.MY_PASSWORD);
+    expect(visibleRoutes).not.toContain(SETTINGS_ROUTES.MY_ACCOUNT);
+    expect(visibleRoutes).not.toContain(SETTINGS_ROUTES.MY_EMAIL);
+  });
+
   test('delete local data requires confirmation before deletion runs', async () => {
     const navigation = {
       getParent: jest.fn(),
