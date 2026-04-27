@@ -22,9 +22,9 @@ import { hydrateWorkoutPlans } from '../src/storage/mmkv/hydration';
 import { storage } from '../src/storage/mmkv';
 
 const DELETE_LOCAL_DATA_CONFIRMATION_ERROR =
-  'Please confirm that Delete local data clears Brunch Body app-local data stored by the app on this device.';
+  'Please confirm that Delete local data clears Brunch Body app-managed local data on this device.';
 const DELETE_LOCAL_DATA_SUCCESS_MESSAGE =
-  'Brunch Body app-local data stored by the app on this device was cleared.\n\nFiles you exported, copied, shared, moved, backed up, uploaded, or saved outside Brunch Body app-managed storage were not deleted.\n\nThis was not a password reset or cloud deletion.\n\nStarter content included with Brunch Body may appear again after deletion.';
+  'Brunch Body app-managed local data on this device was cleared.\n\nFiles you exported, copied, shared, moved, backed up, uploaded, placed in OS backups or cloud folders, or otherwise kept outside Brunch Body app-managed storage were not deleted.\n\nThis action was limited to Brunch Body app-managed local data on this device.\n\nStarter content included with Brunch Body may appear again after deletion.';
 
 jest.mock('../src/storage/mmkv', () => ({
   storage: {
@@ -396,16 +396,16 @@ describe('Delete local data screen copy', () => {
 
     expect(renderedText).toContain('Delete local data');
     expect(renderedText).toContain(
-      'This clears Brunch Body app-local data stored by the app on this device.',
+      'This clears Brunch Body app-managed local data on this device.',
     );
     expect(renderedText).toContain(
-      'saved profile details, journal entries, workouts, nutrition, themes, todos, and other app-local Brunch Body data.',
+      'saved profile details, journal entries, workouts, nutrition, themes, todos, and other Brunch Body app-managed local data.',
     );
     expect(renderedText).toContain(
-      'files you exported, copied, shared, moved, backed up, uploaded, or saved outside Brunch Body app-managed storage.',
+      'files you exported, copied, shared, moved, backed up, uploaded, placed in OS backups or cloud folders, or otherwise kept outside Brunch Body app-managed storage.',
     );
     expect(renderedText).toContain(
-      'This is not a password reset or cloud deletion.',
+      'This action is limited to Brunch Body app-managed local data on this device.',
     );
     expect(renderedText).toContain(
       'Starter content included with Brunch Body.',

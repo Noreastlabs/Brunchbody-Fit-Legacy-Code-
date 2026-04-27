@@ -31,24 +31,24 @@ export default function DeleteAccount(props) {
         <View style={styles.headingView}>
           <Text style={styles.headingText1}>Delete local data</Text>
           <Text style={styles.headingText3}>
-            This clears Brunch Body app-local data stored by the app on this
-            device.
+            This clears Brunch Body app-managed local data on this device.
           </Text>
         </View>
         <View>
           <View style={styles.listView}>
             <Text style={styles.confirmDeletionText}>
               Deleted from this device:{'\n'}saved profile details, journal
-              entries, workouts, nutrition, themes, todos, and other app-local
-              Brunch Body data.
+              entries, workouts, nutrition, themes, todos, and other Brunch
+              Body app-managed local data.
             </Text>
             <Text style={styles.confirmDeletionText}>
               Not deleted:{'\n'}files you exported, copied, shared, moved,
-              backed up, uploaded, or saved outside Brunch Body app-managed
-              storage.
+              backed up, uploaded, placed in OS backups or cloud folders, or
+              otherwise kept outside Brunch Body app-managed storage.
             </Text>
             <Text style={styles.confirmDeletionText}>
-              Not affected:{'\n'}This is not a password reset or cloud deletion.
+              Scope:{'\n'}This action is limited to Brunch Body app-managed
+              local data on this device.
             </Text>
             <Text style={styles.confirmDeletionText}>
               May appear again after deletion:{'\n'}Starter content included
@@ -87,8 +87,8 @@ export default function DeleteAccount(props) {
               </TouchableOpacity>
               <View style={{flex: 1, marginLeft: 10}}>
                 <Text style={styles.confirmDeletionText}>
-                  I understand Delete local data clears Brunch Body app-local
-                  data stored by the app on this device.
+                  I understand Delete local data clears Brunch Body app-managed
+                  local data on this device.
                 </Text>
               </View>
             </View>

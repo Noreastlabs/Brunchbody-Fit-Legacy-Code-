@@ -33,7 +33,7 @@ export default function DeleteAccountPage(props) {
       setLoader(false);
       showMessage(
         'Error!',
-        'Please confirm that Delete local data clears Brunch Body app-local data stored by the app on this device.',
+        'Please confirm that Delete local data clears Brunch Body app-managed local data on this device.',
       );
       return;
     }
@@ -44,7 +44,7 @@ export default function DeleteAccountPage(props) {
       setCheck(true);
       showMessage(
         'Success!',
-        'Brunch Body app-local data stored by the app on this device was cleared.\n\nFiles you exported, copied, shared, moved, backed up, uploaded, or saved outside Brunch Body app-managed storage were not deleted.\n\nThis was not a password reset or cloud deletion.\n\nStarter content included with Brunch Body may appear again after deletion.',
+        'Brunch Body app-managed local data on this device was cleared.\n\nFiles you exported, copied, shared, moved, backed up, uploaded, placed in OS backups or cloud folders, or otherwise kept outside Brunch Body app-managed storage were not deleted.\n\nThis action was limited to Brunch Body app-managed local data on this device.\n\nStarter content included with Brunch Body may appear again after deletion.',
       );
     } else {
       showMessage('Error!', `${response}`);
