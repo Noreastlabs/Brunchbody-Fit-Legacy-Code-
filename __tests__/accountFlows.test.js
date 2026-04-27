@@ -241,27 +241,24 @@ describe('Local data actions', () => {
     expect(dispatch).toHaveBeenCalledWith({ type: CLEAR_USER });
   });
 
-  test('deleteAccount resets persisted app state and rehydrates bundled plans', async () => {
-    AsyncStorage.getItem
-      .mockResolvedValueOnce(
-        JSON.stringify({
-          email: 'saved@example.com',
-        }),
-      )
-      .mockResolvedValueOnce('local-pass');
+  test('deleteAccount clears broad local storage and rehydrates bundled plans', async () => {
     const dispatch = jest.fn();
 
-    const result = await deleteAccount({
-      email: 'saved@example.com',
-      password: 'local-pass',
-    })(dispatch);
+    const result = await deleteAccount()(dispatch);
 
     expect(result).toBe(true);
+    expect(dispatch).toHaveBeenCalledTimes(1);
     expect(dispatch).toHaveBeenCalledWith({ type: RESET_APP });
     expect(AsyncStorage.multiRemove).not.toHaveBeenCalled();
-    expect(AsyncStorage.clear).toHaveBeenCalled();
-    expect(storage.clearAll).toHaveBeenCalled();
-    expect(hydrateWorkoutPlans).toHaveBeenCalled();
+    expect(AsyncStorage.getItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.clear).toHaveBeenCalledTimes(1);
+    expect(storage.clearAll).toHaveBeenCalledTimes(1);
+    expect(hydrateWorkoutPlans).toHaveBeenCalledTimes(1);
+    expect(storage.clearAll.mock.invocationCallOrder[0]).toBeLessThan(
+      hydrateWorkoutPlans.mock.invocationCallOrder[0],
+    );
   });
 });
 
@@ -313,6 +310,7 @@ describe('Delete local data screen copy', () => {
     expect(renderedText).not.toContain('Reset app');
     expect(renderedText).not.toContain('Delete all data');
     expect(renderedText).not.toContain('Erase everything');
+    expect(renderedText).not.toMatch(/\barchive\b/i);
   });
 });
 
