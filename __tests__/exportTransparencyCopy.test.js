@@ -56,6 +56,14 @@ import ExportToCSVPage from '../src/screens/setting/pages/Export To CSV/ExportTo
 
 const EXPORT_SUCCESS_MESSAGE =
   'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.';
+const FORBIDDEN_REACHABLE_ACCOUNT_AUTH_COPY = [
+  /\baccount\b/i,
+  /\blog(?:\s|-)?in\b/i,
+  /\blog(?:\s|-)?out\b/i,
+  /\bpassword\b/i,
+  /\bdelete account\b/i,
+  /\breset password\b/i,
+];
 
 const collectRenderedText = value => {
   if (!value) {
@@ -145,6 +153,9 @@ describe('Export transparency copy', () => {
     expect(renderedText).toContain(
       'Files saved outside the app are not removed by Delete local data.',
     );
+    FORBIDDEN_REACHABLE_ACCOUNT_AUTH_COPY.forEach(pattern => {
+      expect(renderedText).not.toMatch(pattern);
+    });
   });
 
   test('shows the xlsx export success modal with exported copy boundary copy', async () => {

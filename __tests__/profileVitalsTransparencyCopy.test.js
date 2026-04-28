@@ -30,6 +30,11 @@ const PROFILE_VITALS_HELPER =
   'Saved on this device only and used for in-app calculations and display.';
 const GENDER_HELPER = 'Used for local BMI and BMR calculations.';
 const FORBIDDEN_COPY = [
+  'Account',
+  'Login',
+  'Logout',
+  'Password',
+  'Reset password',
   'medical advice',
   'diagnosis',
   'treatment',

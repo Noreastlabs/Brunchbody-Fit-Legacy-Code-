@@ -52,7 +52,7 @@ describe('Privacy & Data screen', () => {
       'Brunch Body is local-first in the current app. Your Brunch Body data is stored on this device in local app storage.',
     );
     expect(renderedText).toContain(
-      'The current app does not automatically sync your data to a Brunch Body cloud account.',
+      'The current app does not automatically sync your data to a Brunch Body cloud service.',
     );
     expect(renderedText).toContain(
       'Brunch Body does not currently provide automatic Brunch Body cloud backup for device-local app data.',
@@ -73,6 +73,10 @@ describe('Privacy & Data screen', () => {
       'This screen is reserved for a plain-English Privacy & Data explanation.',
     );
     expect(renderedText).not.toContain('Delete account');
+    expect(renderedText).not.toMatch(/\baccount\b/i);
+    expect(renderedText).not.toMatch(/\blog(?:\s|-)?in\b/i);
+    expect(renderedText).not.toMatch(/\blog(?:\s|-)?out\b/i);
+    expect(renderedText).not.toMatch(/\bpassword\b/i);
     expect(renderedText).not.toContain('securely backed up');
     expect(renderedText).not.toContain('synced across devices');
     expect(renderedText).not.toContain('stored in your account');

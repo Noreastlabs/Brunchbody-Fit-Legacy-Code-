@@ -58,6 +58,9 @@ The owner-approved copy decisions are:
   of current app behavior, not a legal Privacy Policy or Terms of Use rewrite.
 - Profile/vitals helper copy: profile and vitals values are stored locally and
   used for in-app calculations/display only.
+- Account model: Phase 1 reachable UX is profile-only. Use `Profile` for local
+  nickname/vitals/personalization and avoid account/auth vocabulary in reachable
+  app copy.
 
 ## Approved Wording Principles
 
@@ -103,7 +106,7 @@ disclosures have all been reviewed for that exact claim.
 Approved concepts:
 
 - `The current app does not automatically sync your data to a Brunch Body cloud
-  account.`
+  service.`
 - `Brunch Body does not currently provide automatic Brunch Body cloud backup
   for device-local app data.`
 - `The current local-only app path does not show backend persistence for
@@ -167,6 +170,12 @@ Keep helper copy short and bounded. It may explain local calculations/display,
 but it must not become medical, diagnostic, clinical nutrition, treatment,
 individualized training, or guaranteed-accuracy copy.
 
+Reachable Phase 1 app copy must treat this as a local profile model, not an
+account model. Use `Profile`, `Nickname`, `Saved on this device`, and `Delete
+local data`. Do not use `Account`, `Login`, `Logout`, `Password`, `Delete
+account`, or `Reset password` in reachable app copy unless a later approved
+decision lane adds real matching behavior.
+
 ### Legal / Policy Boundary
 
 Approved concepts:
@@ -206,6 +215,10 @@ explicitly changes behavior and approves the claim:
 - `Delete account`
 - `Delete your account`
 - `Account deletion`
+- `Login`
+- `Logout`
+- `Password`
+- `Reset password`
 - `Securely backed up`
 - `Automatically backed up`
 - `Synced across devices`

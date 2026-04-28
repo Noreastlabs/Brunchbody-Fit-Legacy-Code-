@@ -517,6 +517,12 @@ describe('Settings navigation', () => {
     ]);
     expect(visibleText).toContain('Delete local data');
     [
+      'Account',
+      'Login',
+      'Log in',
+      'Logout',
+      'Log out',
+      'Password',
       'Reset app',
       'Reset password',
       'Forgot Password',
