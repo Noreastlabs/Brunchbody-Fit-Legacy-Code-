@@ -65,6 +65,14 @@ Files that you exported, copied, shared, uploaded, or saved to another app or fo
 
 Starter content included with Brunch Body may appear again after deletion because the observed app behavior can rehydrate bundled workout-plan data after local app data is cleared.
 
+## External access and deletion questions
+
+Because Brunch Body currently stores app-managed data locally on your device and does not use a Brunch Body cloud account or backend sync for that data, Brunch Body cannot remotely retrieve app-managed local data from your device and cannot remotely delete app-managed local data from your device.
+
+Use `Delete local data` to clear Brunch Body app-managed local data on the device where you use the app. Where export is available, in-app export is the user-controlled way to create selected exported copies. Current export behavior is not a full access, backup, import, or restore system.
+
+Data and records outside Brunch Body app-managed local storage are separate. `Delete local data` does not remove exported files, copied or shared files, screenshots, screen recordings, operating-system or device backups, cloud folders, platform-provider records, third-party destination records, support emails or contact records, or other records outside app-managed storage.
+
 ## Backups, exports, and device changes
 
 Device access matters. Someone who can unlock your device, access app data through the operating system, or view exported files may be able to see sensitive Brunch Body information.
