@@ -21,6 +21,9 @@ import {
 } from '../../../../components';
 import {colors, strings} from '../../../../resources';
 
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+
 const renderSupportingText = (text, style) => {
   if (!text) {
     return null;
@@ -28,6 +31,33 @@ const renderSupportingText = (text, style) => {
 
   return <Text style={style}>{text}</Text>;
 };
+
+const UnitPreferenceSelector = ({value, onChange}) => (
+  <View style={styles.unitPreferenceContainer}>
+    {[STANDARD_UNIT_PREFERENCE, METRIC_UNIT_PREFERENCE].map(unitPreference => {
+      const isSelected = value === unitPreference;
+
+      return (
+        <TouchableOpacity
+          key={unitPreference}
+          activeOpacity={0.7}
+          onPress={() => onChange(unitPreference)}
+          style={[
+            styles.unitPreferenceOption,
+            isSelected && styles.unitPreferenceOptionSelected,
+          ]}>
+          <Text
+            style={[
+              styles.unitPreferenceText,
+              isSelected && styles.unitPreferenceTextSelected,
+            ]}>
+            {strings.completeProfile.bodyUnitPreference[unitPreference]}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+);
 
 export default function MyVitals(props) {
   const {
@@ -43,8 +73,12 @@ export default function MyVitals(props) {
     setTempFeet,
     tempInches,
     setTempInches,
+    bodyUnitPreference,
+    onSelectBodyUnitPreference,
     draftDobText,
     draftHeightText,
+    draftMetricHeightText,
+    onChangeMetricHeightText,
     draftName,
     setDraftName,
     draftGender,
@@ -65,6 +99,7 @@ export default function MyVitals(props) {
     alertHeading,
     alertText,
   } = props;
+  const isMetric = bodyUnitPreference === METRIC_UNIT_PREFERENCE;
 
   return (
     <SafeAreaWrapper>
@@ -90,6 +125,17 @@ export default function MyVitals(props) {
                 />
               </View>
             </View>
+          </View>
+        </View>
+        <View>
+          <View style={styles.listView}>
+            <Text style={styles.textStyle1}>
+              {strings.completeProfile.labels.bodyUnitPreference}
+            </Text>
+            <UnitPreferenceSelector
+              value={bodyUnitPreference}
+              onChange={onSelectBodyUnitPreference}
+            />
           </View>
         </View>
         <View>
@@ -183,16 +229,33 @@ export default function MyVitals(props) {
         <View>
           <View style={styles.listView}>
             <Text style={styles.textStyle1}>Height</Text>
-            <TouchableOpacity
-              activeOpacity={0.5}
-              style={styles.linkView}
-              onPress={onOpenHeightPicker}>
-              <View style={styles.TextView}>
-                <Text style={styles.TextInput}>{draftHeightText}</Text>
+            {isMetric ? (
+              <View style={styles.linkView}>
+                <View style={{flex: 1}}>
+                  <TextInput
+                    value={draftMetricHeightText}
+                    onChangeText={onChangeMetricHeightText}
+                    style={styles.TextInput}
+                    keyboardType="numeric"
+                    placeholder={strings.completeProfile.placeholders.heightMetric}
+                    placeholderTextColor={colors.grey}
+                  />
+                </View>
               </View>
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.5}
+                style={styles.linkView}
+                onPress={onOpenHeightPicker}>
+                <View style={styles.TextView}>
+                  <Text style={styles.TextInput}>{draftHeightText}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
             {renderSupportingText(
-              strings.completeProfile.helperText.height,
+              isMetric
+                ? strings.completeProfile.helperText.heightMetric
+                : strings.completeProfile.helperText.height,
               [styles.supportingText, styles.supportingTextInfo],
             )}
             {renderSupportingText(
@@ -233,7 +296,7 @@ export default function MyVitals(props) {
       />
 
       <CustomModal
-        isVisible={heightPickerModal}
+        isVisible={!isMetric && heightPickerModal}
         onDismiss={onCancelHeightPicker}
         content={
           <HeightPickerModal
@@ -266,6 +329,12 @@ export default function MyVitals(props) {
   );
 }
 
+UnitPreferenceSelector.propTypes = {
+  value: PropTypes.oneOf([STANDARD_UNIT_PREFERENCE, METRIC_UNIT_PREFERENCE])
+    .isRequired,
+  onChange: PropTypes.func.isRequired,
+};
+
 MyVitals.propTypes = {
   datePickerModal: PropTypes.bool.isRequired,
   heightPickerModal: PropTypes.bool.isRequired,
@@ -279,8 +348,15 @@ MyVitals.propTypes = {
   setTempFeet: PropTypes.func.isRequired,
   tempInches: PropTypes.number.isRequired,
   setTempInches: PropTypes.func.isRequired,
+  bodyUnitPreference: PropTypes.oneOf([
+    STANDARD_UNIT_PREFERENCE,
+    METRIC_UNIT_PREFERENCE,
+  ]).isRequired,
+  onSelectBodyUnitPreference: PropTypes.func.isRequired,
   draftDobText: PropTypes.string.isRequired,
   draftHeightText: PropTypes.string.isRequired,
+  draftMetricHeightText: PropTypes.string.isRequired,
+  onChangeMetricHeightText: PropTypes.func.isRequired,
   draftName: PropTypes.string.isRequired,
   setDraftName: PropTypes.func.isRequired,
   draftGender: PropTypes.string.isRequired,

@@ -52,6 +52,7 @@ describe('Auth/onboarding storage boundary', () => {
     await setOnboardingDraftValue('height', '5.06');
     await setOnboardingDraftValue('weight', '135');
     await setOnboardingDraftValue('gender', 'female');
+    await setOnboardingDraftValue('bodyUnitPreference', 'standard');
 
     expect(AsyncStorage.setItem).toHaveBeenNthCalledWith(1, 'name', 'Taylor');
     expect(AsyncStorage.setItem).toHaveBeenNthCalledWith(
@@ -66,6 +67,11 @@ describe('Auth/onboarding storage boundary', () => {
       'gender',
       'female',
     );
+    expect(AsyncStorage.setItem).toHaveBeenNthCalledWith(
+      6,
+      'bodyUnitPreference',
+      'standard',
+    );
 
     AsyncStorage.getItem.mockResolvedValueOnce('01/01/1995');
     await expect(getOnboardingDraftValue('dob')).resolves.toBe('01/01/1995');
@@ -78,6 +84,7 @@ describe('Auth/onboarding storage boundary', () => {
       'height',
       'weight',
       'gender',
+      'bodyUnitPreference',
     ]);
   });
 
@@ -87,6 +94,7 @@ describe('Auth/onboarding storage boundary', () => {
       'dob',
       'height',
       'gender',
+      'bodyUnitPreference',
     ]);
   });
 });

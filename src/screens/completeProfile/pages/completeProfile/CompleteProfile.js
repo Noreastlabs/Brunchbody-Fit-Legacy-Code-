@@ -12,6 +12,14 @@ import {Name, Gender, Welcome, Weight} from '../../components';
 import {DateOfBirthWrapper} from './DateOfBirth';
 import {HeightWrapper} from './Height';
 import {strings} from '../../../../resources';
+import {
+  centimetersToFeetInches,
+  feetInchesToCentimeters,
+  isBodyUnitPreference,
+  kilogramsToPounds,
+  parseLegacyHeightToCentimeters,
+  parseWeightToKilograms,
+} from '../../../../utils/bodyMeasurementUnits';
 
 const {
   Name: NAME_SCREEN,
@@ -31,6 +39,51 @@ const DEFAULT_DOB = {
 const DEFAULT_HEIGHT = {
   feet: 1,
   inches: 0,
+};
+
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+const NUMERIC_TEXT_PATTERN = /^(?:\d+|\d*\.\d+)$/;
+
+const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
+
+const parsePositiveNumericText = value => {
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    return null;
+  }
+
+  const valueText = `${value}`.trim();
+
+  if (!NUMERIC_TEXT_PATTERN.test(valueText)) {
+    return null;
+  }
+
+  const parsedValue = Number(valueText);
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+};
+
+const formatMetricDraftValue = value => {
+  if (!Number.isFinite(value)) {
+    return '';
+  }
+
+  return Number.isInteger(value) ? `${value}` : value.toFixed(1);
+};
+
+const getStoredHeightValue = ({feet, inches}) => `${feet}.${inches}`;
+
+const getLegacyHeightFromCentimeters = centimeters => {
+  const height = centimetersToFeetInches(centimeters);
+
+  return height ? getStoredHeightValue(height) : null;
+};
+
+const getLegacyWeightFromKilograms = kilograms => {
+  const pounds = kilogramsToPounds(kilograms);
+
+  return pounds === null ? null : `${Math.round(pounds)}`;
 };
 
 const parseStoredDob = value => {
@@ -55,24 +108,12 @@ const parseStoredDob = value => {
 };
 
 const parseStoredHeight = value => {
-  if (typeof value !== 'string') {
-    return null;
-  }
+  const centimeters = parseLegacyHeightToCentimeters(value);
 
-  const [storedFeet, storedInches] = value.split('.');
-  const feet = parseInt(storedFeet, 10);
-  const inches = parseInt(storedInches, 10);
-
-  if (!Number.isFinite(feet) || !Number.isFinite(inches)) {
-    return null;
-  }
-
-  return {feet, inches};
+  return centimeters === null ? null : centimetersToFeetInches(centimeters);
 };
 
 const getStoredDobValue = ({date, month, year}) => `${date}/${month}/${year}`;
-
-const getStoredHeightValue = ({feet, inches}) => `${feet}.${inches}`;
 
 const isWholeNumber = value => /^\d+$/.test(value);
 
@@ -107,7 +148,11 @@ export const CompleteProfilePage = () => {
   const [isDateConfirmed, setIsDateConfirmed] = useState(false);
   const [height, setHeight] = useState(DEFAULT_HEIGHT);
   const [isHeightConfirmed, setIsHeightConfirmed] = useState(false);
+  const [metricHeight, setMetricHeight] = useState('');
   const [weight, setWeight] = useState('');
+  const [bodyUnitPreference, setBodyUnitPreference] = useState(
+    STANDARD_UNIT_PREFERENCE,
+  );
   const [gender, setGender] = useState('male');
   const [stepErrors, setStepErrors] = useState({});
 
@@ -115,22 +160,34 @@ export const CompleteProfilePage = () => {
     let isMounted = true;
 
     const hydrateDraft = async () => {
-      const [draftName, draftDob, draftHeight, draftWeight, draftGender] =
-        await Promise.all([
-          getOnboardingDraftValue('name'),
-          getOnboardingDraftValue('dob'),
-          getOnboardingDraftValue('height'),
-          getOnboardingDraftValue('weight'),
-          getOnboardingDraftValue('gender'),
-        ]);
+      const [
+        draftName,
+        draftDob,
+        draftHeight,
+        draftWeight,
+        draftGender,
+        draftBodyUnitPreference,
+      ] = await Promise.all([
+        getOnboardingDraftValue('name'),
+        getOnboardingDraftValue('dob'),
+        getOnboardingDraftValue('height'),
+        getOnboardingDraftValue('weight'),
+        getOnboardingDraftValue('gender'),
+        getOnboardingDraftValue('bodyUnitPreference'),
+      ]);
 
       if (!isMounted) {
         return;
       }
 
+      const nextBodyUnitPreference = resolveBodyUnitPreference(
+        draftBodyUnitPreference,
+      );
+
       setName(draftName || '');
       setWeight(draftWeight || '');
       setGender(draftGender || 'male');
+      setBodyUnitPreference(nextBodyUnitPreference);
 
       const parsedDob = parseStoredDob(draftDob);
       if (parsedDob) {
@@ -138,10 +195,19 @@ export const CompleteProfilePage = () => {
         setIsDateConfirmed(true);
       }
 
-      const parsedHeight = parseStoredHeight(draftHeight);
-      if (parsedHeight) {
-        setHeight(parsedHeight);
-        setIsHeightConfirmed(true);
+      if (nextBodyUnitPreference === METRIC_UNIT_PREFERENCE) {
+        const parsedMetricHeight = parsePositiveNumericText(draftHeight);
+
+        if (parsedMetricHeight !== null) {
+          setMetricHeight(`${parsedMetricHeight}`);
+        }
+      } else {
+        const parsedHeight = parseStoredHeight(draftHeight);
+
+        if (parsedHeight) {
+          setHeight(parsedHeight);
+          setIsHeightConfirmed(true);
+        }
       }
     };
 
@@ -188,6 +254,12 @@ export const CompleteProfilePage = () => {
     setOnboardingDraftValue('height', getStoredHeightValue(value));
   };
 
+  const onSetMetricHeight = value => {
+    setMetricHeight(value);
+    clearStepError(HEIGHT_SCREEN);
+    setOnboardingDraftValue('height', value);
+  };
+
   const onSetWeight = value => {
     setWeight(value);
     clearStepError(WEIGHT_SCREEN);
@@ -198,6 +270,92 @@ export const CompleteProfilePage = () => {
     setGender(value);
     clearStepError(GENDER_SCREEN);
     setOnboardingDraftValue('gender', value);
+  };
+
+  const getCurrentHeightCentimeters = preference => {
+    if (preference === METRIC_UNIT_PREFERENCE) {
+      return parsePositiveNumericText(metricHeight);
+    }
+
+    return feetInchesToCentimeters(height.feet, height.inches);
+  };
+
+  const onSetBodyUnitPreference = value => {
+    const nextPreference = resolveBodyUnitPreference(value);
+    const currentPreference = bodyUnitPreference;
+
+    if (nextPreference === currentPreference) {
+      return;
+    }
+
+    const currentHeightCentimeters =
+      currentPreference === METRIC_UNIT_PREFERENCE
+        ? parsePositiveNumericText(metricHeight)
+        : isHeightConfirmed
+          ? feetInchesToCentimeters(height.feet, height.inches)
+          : null;
+    const currentWeightKilograms = weight.trim()
+      ? parseWeightToKilograms(weight.trim(), currentPreference)
+      : null;
+
+    setBodyUnitPreference(nextPreference);
+    clearStepError(HEIGHT_SCREEN);
+    clearStepError(WEIGHT_SCREEN);
+    setOnboardingDraftValue('bodyUnitPreference', nextPreference);
+
+    if (currentHeightCentimeters !== null) {
+      if (nextPreference === METRIC_UNIT_PREFERENCE) {
+        const nextMetricHeight = formatMetricDraftValue(
+          Math.round(currentHeightCentimeters),
+        );
+        setMetricHeight(nextMetricHeight);
+        setOnboardingDraftValue('height', nextMetricHeight);
+      } else {
+        const nextHeight = centimetersToFeetInches(currentHeightCentimeters);
+
+        if (nextHeight) {
+          setHeight(nextHeight);
+          setIsHeightConfirmed(true);
+          setOnboardingDraftValue('height', getStoredHeightValue(nextHeight));
+        }
+      }
+    }
+
+    if (currentWeightKilograms !== null) {
+      const nextWeight =
+        nextPreference === METRIC_UNIT_PREFERENCE
+          ? currentWeightKilograms.toFixed(1)
+          : getLegacyWeightFromKilograms(currentWeightKilograms);
+
+      if (nextWeight) {
+        setWeight(nextWeight);
+        setOnboardingDraftValue('weight', nextWeight);
+      }
+    }
+  };
+
+  const getBodyMeasurementPayload = trimmedWeight => {
+    const heightCentimeters = getCurrentHeightCentimeters(bodyUnitPreference);
+    const weightKilograms = parseWeightToKilograms(
+      trimmedWeight,
+      bodyUnitPreference,
+    );
+    const legacyHeight =
+      bodyUnitPreference === METRIC_UNIT_PREFERENCE
+        ? getLegacyHeightFromCentimeters(heightCentimeters)
+        : getStoredHeightValue(height);
+    const legacyWeight =
+      bodyUnitPreference === METRIC_UNIT_PREFERENCE
+        ? getLegacyWeightFromKilograms(weightKilograms)
+        : trimmedWeight;
+
+    return {
+      bodyUnitPreference,
+      height: legacyHeight,
+      heightCentimeters,
+      weight: legacyWeight,
+      weightKilograms,
+    };
   };
 
   const onSubmitProfile = async () => {
@@ -215,8 +373,7 @@ export const CompleteProfilePage = () => {
         profile({
           name: name.trim(),
           dob: getStoredDobValue(dateOfBirth),
-          height: getStoredHeightValue(height),
-          weight: trimmedWeight,
+          ...getBodyMeasurementPayload(trimmedWeight),
           gender: gender || 'male',
           targetCalories: getDefaultTargetCalories(),
         }),
@@ -278,10 +435,38 @@ export const CompleteProfilePage = () => {
     }
 
     if (screen === WEIGHT_SCREEN) {
-      if (!isHeightConfirmed) {
-        setStepError(HEIGHT_SCREEN, strings.completeProfile.errors.heightRequired);
+      if (
+        bodyUnitPreference === STANDARD_UNIT_PREFERENCE &&
+        !isHeightConfirmed
+      ) {
+        setStepError(
+          HEIGHT_SCREEN,
+          strings.completeProfile.errors.heightRequired,
+        );
         setCurrentScreen(HEIGHT_SCREEN);
         return;
+      }
+
+      if (bodyUnitPreference === METRIC_UNIT_PREFERENCE) {
+        const trimmedMetricHeight = metricHeight.trim();
+
+        if (!trimmedMetricHeight) {
+          setStepError(
+            HEIGHT_SCREEN,
+            strings.completeProfile.errors.heightRequired,
+          );
+          setCurrentScreen(HEIGHT_SCREEN);
+          return;
+        }
+
+        if (parsePositiveNumericText(trimmedMetricHeight) === null) {
+          setStepError(
+            HEIGHT_SCREEN,
+            strings.completeProfile.errors.heightInvalid,
+          );
+          setCurrentScreen(HEIGHT_SCREEN);
+          return;
+        }
       }
 
       clearStepError(HEIGHT_SCREEN);
@@ -295,16 +480,30 @@ export const CompleteProfilePage = () => {
       if (!trimmedWeight) {
         setStepError(
           WEIGHT_SCREEN,
-          strings.completeProfile.errors.weightRequired,
+          bodyUnitPreference === METRIC_UNIT_PREFERENCE
+            ? strings.completeProfile.errors.weightMetricRequired
+            : strings.completeProfile.errors.weightRequired,
         );
         setCurrentScreen(WEIGHT_SCREEN);
         return;
       }
 
-      if (!isWholeNumber(trimmedWeight)) {
+      const isValidWeight =
+        bodyUnitPreference === METRIC_UNIT_PREFERENCE
+          ? parseWeightToKilograms(trimmedWeight, METRIC_UNIT_PREFERENCE) !==
+            null
+          : isWholeNumber(trimmedWeight) &&
+            parseWeightToKilograms(
+              trimmedWeight,
+              STANDARD_UNIT_PREFERENCE,
+            ) !== null;
+
+      if (!isValidWeight) {
         setStepError(
           WEIGHT_SCREEN,
-          strings.completeProfile.errors.weightInvalid,
+          bodyUnitPreference === METRIC_UNIT_PREFERENCE
+            ? strings.completeProfile.errors.weightMetricInvalid
+            : strings.completeProfile.errors.weightInvalid,
         );
         setCurrentScreen(WEIGHT_SCREEN);
         return;
@@ -349,6 +548,10 @@ export const CompleteProfilePage = () => {
         selectedHeight={height}
         isHeightConfirmed={isHeightConfirmed}
         onConfirmHeight={onConfirmHeight}
+        bodyUnitPreference={bodyUnitPreference}
+        onChangeBodyUnitPreference={onSetBodyUnitPreference}
+        metricHeightText={metricHeight}
+        onChangeMetricHeight={onSetMetricHeight}
         errorText={stepErrors[HEIGHT_SCREEN] || ''}
       />
     );
@@ -359,6 +562,8 @@ export const CompleteProfilePage = () => {
       <Weight
         text={weight}
         onChangeText={onSetWeight}
+        bodyUnitPreference={bodyUnitPreference}
+        onChangeBodyUnitPreference={onSetBodyUnitPreference}
         currentScreen={giveCurrentScreen}
         errorText={stepErrors[WEIGHT_SCREEN] || ''}
       />

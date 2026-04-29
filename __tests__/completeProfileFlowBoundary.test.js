@@ -175,10 +175,12 @@ describe('Complete profile flow boundary', () => {
 
     const heightStep = await goToHeight(renderer);
     expect(heightStep.props.isHeightSelected).toBe(true);
+    expect(heightStep.props.bodyUnitPreference).toBe('standard');
     expect(heightStep.props.feet).toBe(5);
     expect(heightStep.props.inches).toBe(6);
 
     const weightStep = await goToWeight(renderer);
+    expect(weightStep.props.bodyUnitPreference).toBe('standard');
     expect(weightStep.props.text).toBe('135');
 
     const genderStep = await goToGender(renderer);
@@ -322,6 +324,86 @@ describe('Complete profile flow boundary', () => {
     expect(renderer.root.findByType('mock-gender')).toBeTruthy();
   });
 
+  test('validates metric height and weight before advancing', async () => {
+    const renderer = await renderCompleteProfile();
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.onChangeBodyUnitPreference('metric');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-height').props.currentScreen(
+        strings.completeProfile.screen.Weight,
+      );
+      await flushEffects();
+    });
+
+    expect(renderer.root.findByType('mock-height').props.errorText).toBe(
+      strings.completeProfile.errors.heightRequired,
+    );
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-height').props.onChangeMetricHeight('bad');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-height').props.currentScreen(
+        strings.completeProfile.screen.Weight,
+      );
+      await flushEffects();
+    });
+
+    expect(renderer.root.findByType('mock-height').props.errorText).toBe(
+      strings.completeProfile.errors.heightInvalid,
+    );
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-height').props.onChangeMetricHeight('168');
+      await flushEffects();
+    });
+
+    const weightStep = await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      await weightStep.props.currentScreen(strings.completeProfile.screen.Gender);
+      await flushEffects();
+    });
+
+    expect(renderer.root.findByType('mock-weight').props.errorText).toBe(
+      strings.completeProfile.errors.weightMetricRequired,
+    );
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-weight').props.onChangeText('bad');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-weight').props.currentScreen(
+        strings.completeProfile.screen.Gender,
+      );
+      await flushEffects();
+    });
+
+    expect(renderer.root.findByType('mock-weight').props.errorText).toBe(
+      strings.completeProfile.errors.weightMetricInvalid,
+    );
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-weight').props.onChangeText('61.2');
+      await flushEffects();
+    });
+
+    await goToGender(renderer);
+    expect(renderer.root.findByType('mock-gender')).toBeTruthy();
+  });
+
   test('completes the local profile flow and hands off to Home dashboard', async () => {
     const renderer = await renderCompleteProfile();
 
@@ -362,11 +444,14 @@ describe('Complete profile flow boundary', () => {
       await flushEffects();
     });
 
-    const expectedProfileAction = {
-      type: 'PROFILE',
-      payload: {
+    const submittedProfile = mockProfile.mock.calls[0][0];
+
+    expect(mockProfile).toHaveBeenCalledTimes(1);
+    expect(submittedProfile).toEqual(
+      expect.objectContaining({
         name: 'Taylor',
         dob: '1/1/1990',
+        bodyUnitPreference: 'standard',
         height: '5.6',
         weight: '135',
         gender: 'female',
@@ -376,13 +461,15 @@ describe('Complete profile flow boundary', () => {
           {id: 3, name: 'cho', value: '50'},
           {id: 4, name: 'cal', value: '2000'},
         ],
-      },
-    };
-
-    expect(mockProfile).toHaveBeenCalledTimes(1);
-    expect(mockProfile).toHaveBeenCalledWith(expectedProfileAction.payload);
+      }),
+    );
+    expect(submittedProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(submittedProfile.weightKilograms).toBeCloseTo(61.23496995);
     expect(mockDispatch).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).toHaveBeenCalledWith(expectedProfileAction);
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'PROFILE',
+      payload: submittedProfile,
+    });
     expect(mockClearCompletedOnboardingDraft).toHaveBeenCalledTimes(1);
     expect(renderer.root.findByType('mock-welcome')).toBeTruthy();
 
@@ -396,6 +483,56 @@ describe('Complete profile flow boundary', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledTimes(1);
     expect(mockNavigation.navigate).toHaveBeenCalledWith(ROOT_ROUTES.HOME, {
       screen: AUTH_TAB_ROUTES.DASHBOARD,
+    });
+  });
+
+  test('saves metric onboarding input with additive canonical and legacy compatibility fields', async () => {
+    const renderer = await renderCompleteProfile();
+
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.onChangeBodyUnitPreference('metric');
+      renderer.root.findByType('mock-height').props.onChangeMetricHeight('168');
+      await flushEffects();
+    });
+
+    await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-weight').props.onChangeText('61.2');
+      await flushEffects();
+    });
+
+    await goToGender(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-gender').props.currentScreen(
+        strings.completeProfile.screen.Welcome,
+      );
+      await flushEffects();
+    });
+
+    const submittedProfile = mockProfile.mock.calls[0][0];
+
+    expect(submittedProfile).toEqual(
+      expect.objectContaining({
+        bodyUnitPreference: 'metric',
+        height: '5.6',
+        heightCentimeters: 168,
+        weight: '135',
+        weightKilograms: 61.2,
+      }),
+    );
+    expect(getDraftWriteCalls('bodyUnitPreference')).toEqual([
+      ['bodyUnitPreference', 'metric'],
+    ]);
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'PROFILE',
+      payload: submittedProfile,
     });
   });
 

@@ -132,6 +132,30 @@ export default StyleSheet.create({
     color: colors.qccentError,
     fontWeight: '700',
   },
+  unitPreferenceContainer: {
+    flexDirection: 'row',
+    marginTop: RFValue(10),
+  },
+  unitPreferenceOption: {
+    borderWidth: 1,
+    borderColor: colors.grey,
+    borderRadius: 20,
+    paddingVertical: RFValue(8),
+    paddingHorizontal: RFValue(18),
+    marginRight: RFValue(10),
+  },
+  unitPreferenceOptionSelected: {
+    borderColor: colors.secondary,
+    backgroundColor: colors.secondary,
+  },
+  unitPreferenceText: {
+    color: colors.white,
+    fontSize: RFValue(13),
+    fontWeight: '700',
+  },
+  unitPreferenceTextSelected: {
+    color: colors.mainFont,
+  },
 
   iconStyle: {
     color: colors.white,

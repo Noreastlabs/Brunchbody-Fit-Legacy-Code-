@@ -4,6 +4,11 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { SETTINGS_ROUTES } from '../../../../navigation/routeNames';
 import { MyProfile } from '../../components';
+import {
+  formatWeight,
+  isBodyUnitPreference,
+  parseWeightToKilograms,
+} from '../../../../utils/bodyMeasurementUnits';
 
 const DEFAULT_TARGET_TOTALS = [
   { id: 1, name: 'FAT', value: '--' },
@@ -11,11 +16,35 @@ const DEFAULT_TARGET_TOTALS = [
   { id: 3, name: 'CHO', value: '--' },
   { id: 4, name: 'CAL', value: '--' },
 ];
+const STANDARD_UNIT_PREFERENCE = 'standard';
+
+const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
 
 const hasDisplayValue = value =>
   value !== null && value !== undefined && `${value}`.trim() !== '';
 
 const getTrimmedDisplayValue = value => `${value}`.trim();
+
+const getWeightText = user => {
+  if (!hasDisplayValue(user?.weight)) {
+    return 'Not set';
+  }
+
+  const weightKilograms = parseWeightToKilograms(
+    getTrimmedDisplayValue(user.weight),
+    STANDARD_UNIT_PREFERENCE,
+  );
+  const formattedWeight =
+    weightKilograms === null
+      ? null
+      : formatWeight(
+          weightKilograms,
+          resolveBodyUnitPreference(user?.bodyUnitPreference),
+        );
+
+  return formattedWeight || `${getTrimmedDisplayValue(user.weight)} LBS`;
+};
 
 const getBmiBadgeTone = bmi => {
   if (bmi < 18.5) {
@@ -58,9 +87,7 @@ export default function MyProfilePage(props) {
   const nickname = hasDisplayValue(user?.name)
     ? getTrimmedDisplayValue(user.name)
     : 'No nickname set';
-  const weightText = hasDisplayValue(user?.weight)
-    ? `${getTrimmedDisplayValue(user.weight)} LBS`
-    : 'Not set';
+  const weightText = getWeightText(user);
   const bmrText = hasDisplayValue(user?.bmr)
     ? `${getTrimmedDisplayValue(user.bmr)} CALORIES`
     : 'Not set';

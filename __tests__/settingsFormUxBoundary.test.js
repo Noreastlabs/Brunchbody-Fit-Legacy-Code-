@@ -162,11 +162,94 @@ describe('settings form UX boundary', () => {
       name: 'Lane',
       dob: '1/1/1990',
       height: '5.6',
+      heightCentimeters: expect.any(Number),
+      bodyUnitPreference: 'standard',
       gender: 'female',
     });
+    expect(updateUserProfile.mock.calls[0][0].heightCentimeters).toBeCloseTo(
+      167.64,
+    );
     expect(getUserData).toHaveBeenCalledTimes(1);
     expect(getProps().isPermissionModal).toBe(true);
     expect(getProps().formErrorText).toBe('');
+  });
+
+  test('MyVitalsPage saves metric height edits without adding weight editing', async () => {
+    const updateUserProfile = jest.fn().mockResolvedValue(true);
+    const getUserData = jest.fn().mockResolvedValue(true);
+    const renderer = await renderInAct(
+      <MyVitalsPage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          name: 'Lane',
+          dob: '01/01/1990',
+          gender: 'female',
+          height: '5.06',
+          weight: '135',
+          bodyUnitPreference: 'metric',
+          heightCentimeters: 168,
+        }}
+        updateUserProfile={updateUserProfile}
+        getUserData={getUserData}
+      />,
+    );
+    const getProps = () => renderer.root.findByType('mock-setting-my-vitals').props;
+
+    expect(getProps().bodyUnitPreference).toBe('metric');
+    expect(getProps().draftHeightText).toBe('168 cm');
+    expect(getProps().draftMetricHeightText).toBe('168');
+
+    ReactTestRenderer.act(() => {
+      getProps().onChangeMetricHeightText('170');
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onUpdateHandler();
+    });
+
+    expect(updateUserProfile).toHaveBeenCalledWith({
+      name: 'Lane',
+      dob: '1/1/1990',
+      height: '5.7',
+      heightCentimeters: 170,
+      bodyUnitPreference: 'metric',
+      gender: 'female',
+    });
+    expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty('weight');
+    expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty(
+      'weightKilograms',
+    );
+  });
+
+  test('MyVitalsPage reports invalid metric height inline', async () => {
+    const renderer = await renderInAct(
+      <MyVitalsPage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          name: 'Lane',
+          dob: '01/01/1990',
+          gender: 'female',
+          height: '5.06',
+          bodyUnitPreference: 'metric',
+        }}
+        updateUserProfile={jest.fn().mockResolvedValue(true)}
+        getUserData={jest.fn().mockResolvedValue(true)}
+      />,
+    );
+    const getProps = () => renderer.root.findByType('mock-setting-my-vitals').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().onChangeMetricHeightText('bad');
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onUpdateHandler();
+    });
+
+    expect(getProps().heightErrorText).toBe('Use a positive number for height.');
+    expect(getProps().formErrorText).toBe(
+      'Check the highlighted profile fields before saving.',
+    );
   });
 
   test('MyVitalsPage discards canceled picker edits and rehydrates from the latest user on refocus', async () => {
@@ -231,6 +314,7 @@ describe('settings form UX boundary', () => {
 
     expect(getProps().draftName).toBe('Beta');
     expect(getProps().draftGender).toBe('female');
+    expect(getProps().bodyUnitPreference).toBe('standard');
     expect(getProps().draftDobText).toBe('4/3/1988');
     expect(getProps().draftHeightText).toBe('6 ft 1 in');
     expect(getProps().datePickerModal).toBe(false);
@@ -271,5 +355,28 @@ describe('settings form UX boundary', () => {
       { id: 3, name: 'CHO', value: '--' },
       { id: 4, name: 'CAL', value: '--' },
     ]);
+  });
+
+  test('MyProfilePage formats current weight from the profile preference without changing calculations', async () => {
+    const renderer = await renderInAct(
+      <MyProfilePage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          weight: '135',
+          bodyUnitPreference: 'metric',
+          bmi: '21.79',
+          bmr: '1406.75',
+          targetCalories: [],
+        }}
+      />,
+    );
+    const listData = renderer.root.findByType('mock-setting-my-profile').props.listData;
+    const weightItem = listData.find(item => item.title === 'Current Weight');
+    const bmiItem = listData.find(item => item.title === 'BMI');
+    const bmrItem = listData.find(item => item.title === 'BMR');
+
+    expect(weightItem.options[0].displayValue).toBe('61.2 kg');
+    expect(bmiItem.options[0].displayValue).toBe('21.79');
+    expect(bmrItem.options[0].displayValue).toBe('1406.75 CALORIES');
   });
 });

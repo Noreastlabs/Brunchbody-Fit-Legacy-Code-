@@ -117,6 +117,33 @@ describe('Auth/profile repair boundary', () => {
     }
   });
 
+  test('auth reducer keeps BMI and BMR sourced from legacy compatibility fields', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-04-16T12:00:00.000Z'));
+
+    try {
+      const state = authReducer(undefined, {
+        type: SET_USER,
+        payload: {
+          height: '5.06',
+          weight: '135',
+          heightCentimeters: 200,
+          weightKilograms: 200,
+          bodyUnitPreference: 'metric',
+          dob: '01/01/1995',
+          gender: 'female',
+        },
+      });
+
+      expect(state.user.bmi).toBe('21.79');
+      expect(state.user.bmr).toBe('1406.75');
+      expect(state.user.heightCentimeters).toBe(200);
+      expect(state.user.weightKilograms).toBe(200);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   test('auth reducer omits derived metrics when source inputs are unusable', () => {
     const state = authReducer(undefined, {
       type: SET_USER,

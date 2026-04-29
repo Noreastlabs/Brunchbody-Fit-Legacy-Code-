@@ -6,9 +6,15 @@ export const ONBOARDING_DRAFT_KEYS = [
   'height',
   'weight',
   'gender',
+  'bodyUnitPreference',
 ];
 
-export const COMPLETED_ONBOARDING_DRAFT_KEYS = ['dob', 'height', 'gender'];
+export const COMPLETED_ONBOARDING_DRAFT_KEYS = [
+  'dob',
+  'height',
+  'gender',
+  'bodyUnitPreference',
+];
 
 export const getOnboardingDraftKeys = () => [...ONBOARDING_DRAFT_KEYS];
 

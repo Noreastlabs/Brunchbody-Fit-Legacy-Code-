@@ -94,6 +94,31 @@ export default StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
+  unitPreferenceContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: RFValue(18),
+  },
+  unitPreferenceOption: {
+    borderWidth: 1,
+    borderColor: colors.grey,
+    borderRadius: 20,
+    paddingVertical: RFValue(8),
+    paddingHorizontal: RFValue(18),
+    marginHorizontal: RFValue(5),
+  },
+  unitPreferenceOptionSelected: {
+    borderColor: colors.secondary,
+    backgroundColor: colors.secondary,
+  },
+  unitPreferenceText: {
+    color: colors.white,
+    fontSize: RFValue(13),
+    fontWeight: '700',
+  },
+  unitPreferenceTextSelected: {
+    color: colors.mainFont,
+  },
 
   dataSelectionNote: {
     marginTop: 14,

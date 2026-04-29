@@ -6,6 +6,13 @@ import { useFocusEffect } from '@react-navigation/core';
 import { MyVitals } from '../../components';
 import { loggedIn, profile } from '../../../../redux/actions';
 import { strings } from '../../../../resources';
+import {
+  centimetersToFeetInches,
+  feetInchesToCentimeters,
+  formatHeight as formatCanonicalHeight,
+  isBodyUnitPreference,
+  parseLegacyHeightToCentimeters,
+} from '../../../../utils/bodyMeasurementUnits';
 
 const DEFAULT_HEIGHT = {
   feet: 1,
@@ -15,6 +22,36 @@ const DEFAULT_HEIGHT = {
 const FORM_ERROR_TEXT = 'Check the highlighted profile fields before saving.';
 const SUCCESS_MESSAGE = 'Profile updated successfully.';
 const DEFAULT_SUBMIT_ERROR = strings.completeProfile.errors.submit;
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+const NUMERIC_TEXT_PATTERN = /^(?:\d+|\d*\.\d+)$/;
+
+const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
+
+const parsePositiveNumericText = value => {
+  if (typeof value !== 'string' && typeof value !== 'number') {
+    return null;
+  }
+
+  const valueText = `${value}`.trim();
+
+  if (!NUMERIC_TEXT_PATTERN.test(valueText)) {
+    return null;
+  }
+
+  const parsedValue = Number(valueText);
+
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
+};
+
+const formatMetricDraftValue = value => {
+  if (!Number.isFinite(value)) {
+    return '';
+  }
+
+  return Number.isInteger(value) ? `${value}` : value.toFixed(1);
+};
 
 const getDefaultDob = () => {
   const currentDate = new Date();
@@ -47,27 +84,38 @@ const parseStoredDob = value => {
   return { date, month, year };
 };
 
-const parseStoredHeight = value => {
-  if (typeof value !== 'string') {
-    return null;
-  }
-
-  const [storedFeet, storedInches] = value.split('.');
-  const feet = parseInt(storedFeet, 10);
-  const inches = parseInt(storedInches, 10);
-
-  if (!Number.isFinite(feet) || !Number.isFinite(inches)) {
-    return null;
-  }
-
-  return { feet, inches };
-};
-
 const formatDob = dob =>
   dob ? `${dob.month}/${dob.date}/${dob.year}` : 'Not set';
 
-const formatHeight = height =>
-  height ? `${height.feet} ft ${height.inches} in` : 'Not set';
+const getInitialHeightCentimeters = user => {
+  const storedCentimeters = parsePositiveNumericText(user?.heightCentimeters);
+
+  return storedCentimeters === null
+    ? parseLegacyHeightToCentimeters(user?.height)
+    : storedCentimeters;
+};
+
+const formatHeight = (height, unitPreference, metricHeightText) => {
+  if (unitPreference === METRIC_UNIT_PREFERENCE) {
+    const centimeters = parsePositiveNumericText(metricHeightText);
+    const formattedHeight =
+      centimeters === null
+        ? null
+        : formatCanonicalHeight(centimeters, METRIC_UNIT_PREFERENCE);
+
+    return formattedHeight || 'Not set';
+  }
+
+  const centimeters = height
+    ? feetInchesToCentimeters(height.feet, height.inches)
+    : null;
+  const formattedHeight =
+    centimeters === null
+      ? null
+      : formatCanonicalHeight(centimeters, STANDARD_UNIT_PREFERENCE);
+
+  return formattedHeight || 'Not set';
+};
 
 const getStoredDobValue = dob => `${dob.date}/${dob.month}/${dob.year}`;
 
@@ -82,7 +130,11 @@ const isAdultDob = dob => new Date().getFullYear() - dob.year >= 18;
 export default function MyVitalsPage(props) {
   const { navigation, user, updateUserProfile, getUserData } = props;
   const initialDob = parseStoredDob(user?.dob);
-  const initialHeight = parseStoredHeight(user?.height);
+  const initialHeightCentimeters = getInitialHeightCentimeters(user);
+  const initialHeight =
+    initialHeightCentimeters === null
+      ? null
+      : centimetersToFeetInches(initialHeightCentimeters);
   const latestUserRef = useRef(user);
   const submitLockRef = useRef(false);
   const [loader, setLoader] = useState(false);
@@ -90,6 +142,12 @@ export default function MyVitalsPage(props) {
   const [draftGender, setDraftGender] = useState(getInitialGender(user?.gender));
   const [draftDob, setDraftDob] = useState(initialDob);
   const [draftHeight, setDraftHeight] = useState(initialHeight);
+  const [draftMetricHeightText, setDraftMetricHeightText] = useState(
+    formatMetricDraftValue(initialHeightCentimeters),
+  );
+  const [bodyUnitPreference, setBodyUnitPreference] = useState(
+    resolveBodyUnitPreference(user?.bodyUnitPreference),
+  );
   const [datePickerModal, setDatePickerModal] = useState(false);
   const [heightPickerModal, setHeightPickerModal] = useState(false);
   const [tempDate, setTempDate] = useState(
@@ -127,13 +185,22 @@ export default function MyVitalsPage(props) {
   const hydrateFormSession = useCallback((sourceUser, options = {}) => {
     const { closeFeedback = true } = options;
     const nextDob = parseStoredDob(sourceUser?.dob);
-    const nextHeight = parseStoredHeight(sourceUser?.height);
+    const nextHeightCentimeters = getInitialHeightCentimeters(sourceUser);
+    const nextHeight =
+      nextHeightCentimeters === null
+        ? null
+        : centimetersToFeetInches(nextHeightCentimeters);
     const fallbackDob = getDefaultDob();
+    const nextBodyUnitPreference = resolveBodyUnitPreference(
+      sourceUser?.bodyUnitPreference,
+    );
 
     setDraftName(getInitialName(sourceUser?.name));
     setDraftGender(getInitialGender(sourceUser?.gender));
     setDraftDob(nextDob);
     setDraftHeight(nextHeight);
+    setDraftMetricHeightText(formatMetricDraftValue(nextHeightCentimeters));
+    setBodyUnitPreference(nextBodyUnitPreference);
     setTempDate(nextDob ? nextDob.date : fallbackDob.date);
     setTempMonth(nextDob ? nextDob.month : fallbackDob.month);
     setTempYear(nextDob ? nextDob.year : fallbackDob.year);
@@ -214,13 +281,75 @@ export default function MyVitalsPage(props) {
   };
 
   const onConfirmHeightPicker = () => {
-    setDraftHeight({
+    const nextHeight = {
       feet: tempFeet,
       inches: tempInches,
-    });
+    };
+    const nextHeightCentimeters = feetInchesToCentimeters(
+      nextHeight.feet,
+      nextHeight.inches,
+    );
+
+    setDraftHeight(nextHeight);
+    setDraftMetricHeightText(formatMetricDraftValue(nextHeightCentimeters));
     setHeightErrorText('');
     setFormErrorText('');
     setHeightPickerModal(false);
+  };
+
+  const onChangeMetricHeightText = value => {
+    setDraftMetricHeightText(value);
+    setHeightErrorText('');
+    setFormErrorText('');
+  };
+
+  const onSelectBodyUnitPreference = value => {
+    const nextBodyUnitPreference = resolveBodyUnitPreference(value);
+
+    if (nextBodyUnitPreference === bodyUnitPreference) {
+      return;
+    }
+
+    const currentHeightCentimeters =
+      bodyUnitPreference === METRIC_UNIT_PREFERENCE
+        ? parsePositiveNumericText(draftMetricHeightText)
+        : draftHeight
+          ? feetInchesToCentimeters(draftHeight.feet, draftHeight.inches)
+          : null;
+
+    if (currentHeightCentimeters !== null) {
+      if (nextBodyUnitPreference === METRIC_UNIT_PREFERENCE) {
+        setDraftMetricHeightText(
+          formatMetricDraftValue(Math.round(currentHeightCentimeters)),
+        );
+      } else {
+        const nextHeight = centimetersToFeetInches(currentHeightCentimeters);
+
+        if (nextHeight) {
+          setDraftHeight(nextHeight);
+          setTempFeet(nextHeight.feet);
+          setTempInches(nextHeight.inches);
+        }
+      }
+    }
+
+    setBodyUnitPreference(nextBodyUnitPreference);
+    setHeightPickerModal(false);
+    setHeightErrorText('');
+    setFormErrorText('');
+  };
+
+  const getDraftHeightCentimeters = () =>
+    bodyUnitPreference === METRIC_UNIT_PREFERENCE
+      ? parsePositiveNumericText(draftMetricHeightText)
+      : draftHeight
+        ? feetInchesToCentimeters(draftHeight.feet, draftHeight.inches)
+        : null;
+
+  const getLegacyHeightValueFromCentimeters = centimeters => {
+    const nextHeight = centimetersToFeetInches(centimeters);
+
+    return nextHeight ? getStoredHeightValue(nextHeight) : null;
   };
 
   const onUpdateHandler = async () => {
@@ -242,8 +371,15 @@ export default function MyVitalsPage(props) {
       hasValidationError = true;
     }
 
-    if (!draftHeight) {
-      setHeightErrorText(strings.completeProfile.errors.heightRequired);
+    const draftHeightCentimeters = getDraftHeightCentimeters();
+
+    if (draftHeightCentimeters === null) {
+      setHeightErrorText(
+        bodyUnitPreference === METRIC_UNIT_PREFERENCE &&
+          draftMetricHeightText.trim()
+          ? strings.completeProfile.errors.heightInvalid
+          : strings.completeProfile.errors.heightRequired,
+      );
       hasValidationError = true;
     }
 
@@ -257,10 +393,15 @@ export default function MyVitalsPage(props) {
 
     try {
       const trimmedName = draftName.trim();
+      const storedHeight = getLegacyHeightValueFromCentimeters(
+        draftHeightCentimeters,
+      );
       const response = await updateUserProfile({
         name: trimmedName,
         dob: getStoredDobValue(draftDob),
-        height: getStoredHeightValue(draftHeight),
+        height: storedHeight,
+        heightCentimeters: draftHeightCentimeters,
+        bodyUnitPreference,
         gender: draftGender,
       });
 
@@ -271,7 +412,9 @@ export default function MyVitalsPage(props) {
           ...latestUserRef.current,
           name: trimmedName,
           dob: getStoredDobValue(draftDob),
-          height: getStoredHeightValue(draftHeight),
+          height: storedHeight,
+          heightCentimeters: draftHeightCentimeters,
+          bodyUnitPreference,
           gender: draftGender,
         };
 
@@ -309,8 +452,16 @@ export default function MyVitalsPage(props) {
       setTempFeet={setTempFeet}
       tempInches={tempInches}
       setTempInches={setTempInches}
+      bodyUnitPreference={bodyUnitPreference}
+      onSelectBodyUnitPreference={onSelectBodyUnitPreference}
       draftDobText={formatDob(draftDob)}
-      draftHeightText={formatHeight(draftHeight)}
+      draftHeightText={formatHeight(
+        draftHeight,
+        bodyUnitPreference,
+        draftMetricHeightText,
+      )}
+      draftMetricHeightText={draftMetricHeightText}
+      onChangeMetricHeightText={onChangeMetricHeightText}
       draftName={draftName}
       setDraftName={onChangeName}
       draftGender={draftGender}

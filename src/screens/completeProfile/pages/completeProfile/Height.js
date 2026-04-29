@@ -12,6 +12,10 @@ export const HeightPage = ({
   selectedHeight,
   isHeightConfirmed,
   onConfirmHeight,
+  bodyUnitPreference,
+  onChangeBodyUnitPreference,
+  metricHeightText,
+  onChangeMetricHeight,
   ...props
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -39,6 +43,10 @@ export const HeightPage = ({
       inches={inches}
       setInches={setInches}
       isHeightSelected={isHeightConfirmed}
+      bodyUnitPreference={bodyUnitPreference}
+      onChangeBodyUnitPreference={onChangeBodyUnitPreference}
+      metricHeightText={metricHeightText}
+      onChangeMetricHeight={onChangeMetricHeight}
       onConfirmHeight={() => {
         onConfirmHeight({feet, inches});
       }}
@@ -59,6 +67,10 @@ HeightPage.propTypes = {
   }),
   isHeightConfirmed: PropTypes.bool.isRequired,
   onConfirmHeight: PropTypes.func.isRequired,
+  bodyUnitPreference: PropTypes.oneOf(['standard', 'metric']).isRequired,
+  onChangeBodyUnitPreference: PropTypes.func.isRequired,
+  metricHeightText: PropTypes.string.isRequired,
+  onChangeMetricHeight: PropTypes.func.isRequired,
   errorText: PropTypes.string,
 };
 
