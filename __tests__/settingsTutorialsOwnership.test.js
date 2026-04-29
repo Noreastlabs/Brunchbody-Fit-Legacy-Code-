@@ -4,6 +4,7 @@ const mockExportToCSVWrapper = () => null;
 const mockTermsOfUseWrapper = () => null;
 const mockAbbrevationsWrapper = () => null;
 const mockPrivacyAndDataWrapper = () => null;
+const mockHelpAndSupportWrapper = () => null;
 const mockPrivacyPolicyWrapper = () => null;
 const mockTutorialsWrapper = () => null;
 
@@ -37,6 +38,11 @@ jest.mock('../src/screens/setting/pages/PrivacyAndData', () => ({
   PrivacyAndDataWrapper: mockPrivacyAndDataWrapper,
 }));
 
+jest.mock('../src/screens/setting/pages/HelpAndSupport', () => ({
+  __esModule: true,
+  HelpAndSupportWrapper: mockHelpAndSupportWrapper,
+}));
+
 jest.mock('../src/screens/setting/pages/PrivacyPolicy', () => ({
   __esModule: true,
   PrivacyPolicyWrapper: mockPrivacyPolicyWrapper,
@@ -54,6 +60,9 @@ describe('Settings Tutorials ownership cleanup', () => {
     expect(settingsModule.TutorialsWrapper).toBe(mockTutorialsWrapper);
     expect(settingsModule.PrivacyAndDataWrapper).toBe(
       mockPrivacyAndDataWrapper,
+    );
+    expect(settingsModule.HelpAndSupportWrapper).toBe(
+      mockHelpAndSupportWrapper,
     );
   });
 });

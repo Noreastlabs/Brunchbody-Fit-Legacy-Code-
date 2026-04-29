@@ -478,6 +478,10 @@ describe('Settings navigation', () => {
           name: 'Privacy & Data',
           screen: SETTINGS_ROUTES.PRIVACY_AND_DATA,
         }),
+        expect.objectContaining({
+          name: 'Help & Support',
+          screen: SETTINGS_ROUTES.HELP_AND_SUPPORT,
+        }),
       ]),
     );
   });

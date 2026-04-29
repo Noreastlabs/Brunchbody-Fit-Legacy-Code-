@@ -160,6 +160,12 @@ const listData = [
       { id: 7, name: 'Rate us', type: '', screen: '' },
       {
         id: 8,
+        name: 'Help & Support',
+        type: '',
+        screen: SETTINGS_ROUTES.HELP_AND_SUPPORT,
+      },
+      {
+        id: 9,
         name: 'Support & Contact',
         type: '',
         link: ABOUT_LINKS.supportAndContact,

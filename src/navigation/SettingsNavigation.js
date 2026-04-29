@@ -5,6 +5,7 @@ import {
   AbbrevationsWrapper,
   DeleteAccountWrapper,
   ExportToCSVWrapper,
+  HelpAndSupportWrapper,
   MyProfileWrapper,
   MyVitalsWrapper,
   PrivacyAndDataWrapper,
@@ -48,6 +49,10 @@ const SETTINGS_STACK_SCREENS = [
   {
     name: SETTINGS_ROUTES.PRIVACY_AND_DATA,
     component: PrivacyAndDataWrapper,
+  },
+  {
+    name: SETTINGS_ROUTES.HELP_AND_SUPPORT,
+    component: HelpAndSupportWrapper,
   },
   {
     name: SETTINGS_ROUTES.PRIVACY_POLICY,

@@ -60,6 +60,7 @@ export const SETTINGS_ROUTES = Object.freeze({
   EXPORT_TO_CSV: 'ExportToCSV',
   TERMS_OF_USE: 'TermsOfUse',
   PRIVACY_AND_DATA: 'PrivacyAndData',
+  HELP_AND_SUPPORT: 'HelpAndSupport',
   PRIVACY_POLICY: 'PrivacyPolicy',
   ABBREVIATIONS: 'Abbrevations',
 });
