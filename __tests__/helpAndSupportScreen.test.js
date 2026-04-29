@@ -99,6 +99,13 @@ describe('Help & Support screen', () => {
     expect(renderedText).toContain(
       'Brunch Body cannot inspect or restore device-local app data for you.',
     );
+    expect(renderedText).toContain('Share feedback');
+    expect(renderedText).toContain(
+      'Brunch Body does not automatically monitor what you do in the app.',
+    );
+    expect(renderedText).toContain(
+      'You do not need to include exported files, screenshots with private details, or sensitive health information unless you choose to.',
+    );
 
     FORBIDDEN_REACHABLE_ACCOUNT_AUTH_COPY.forEach(pattern => {
       expect(renderedText).not.toMatch(pattern);
@@ -118,5 +125,15 @@ describe('Help & Support screen', () => {
     expect(renderedText).not.toContain('full backup');
     expect(renderedText).not.toContain('support chat');
     expect(renderedText).not.toContain('ticket');
+    expect(renderedText).not.toContain('analytics');
+    expect(renderedText).not.toContain('telemetry');
+    expect(renderedText).not.toContain('crash reporting');
+    expect(renderedText).not.toContain('support case');
+    expect(renderedText).not.toContain('case number');
+    expect(renderedText).not.toContain('open a case');
+    expect(renderedText).not.toContain('automatically collect');
+    expect(renderedText).not.toContain('automatically send');
+    expect(renderedText).not.toContain('background monitoring');
+    expect(renderedText).not.toContain('we will respond');
   });
 });

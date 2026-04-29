@@ -22,6 +22,12 @@ const trustRecoveryCopy = [
   'If you are unsure what Brunch Body can recover, assume only copies you separately saved or exported are available. Brunch Body cannot inspect or restore device-local app data for you.',
 ];
 
+const feedbackCopy = [
+  'Feedback is always your choice. Brunch Body does not automatically monitor what you do in the app.',
+  'Helpful feedback can include confusing wording, broken screens, unclear delete/export behavior, privacy or trust concerns, or missing help topics.',
+  'You do not need to include exported files, screenshots with private details, or sensitive health information unless you choose to.',
+];
+
 export default function HelpAndSupport() {
   return (
     <SafeAreaWrapper>
@@ -40,6 +46,12 @@ export default function HelpAndSupport() {
             When something feels wrong
           </Text>
           {trustRecoveryCopy.map(copy => (
+            <Text key={copy} style={styles.bodyText}>
+              {copy}
+            </Text>
+          ))}
+          <Text style={styles.sectionHeadingText}>Share feedback</Text>
+          {feedbackCopy.map(copy => (
             <Text key={copy} style={styles.bodyText}>
               {copy}
             </Text>
