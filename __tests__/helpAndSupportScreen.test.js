@@ -80,13 +80,33 @@ describe('Help & Support screen', () => {
     expect(renderedText).toContain(
       'For health, training, or nutrition decisions, rely on qualified professionals.',
     );
+    expect(renderedText).toContain('When something feels wrong');
+    expect(renderedText).toContain(
+      'If Brunch Body data looks missing or unexpected, first check that you are using the same device and current app install where you entered it.',
+    );
+    expect(renderedText).toContain(
+      'Because Brunch Body is saved on this device only, the app does not provide cloud recovery or retrieve a copy from another device.',
+    );
+    expect(renderedText).toContain(
+      'If a Profile value looks wrong, open Profile and update the value saved on this device.',
+    );
+    expect(renderedText).toContain(
+      'If you used Delete local data, Brunch Body cannot recover local data after you delete it unless you separately saved or exported a copy.',
+    );
+    expect(renderedText).toContain(
+      'Files you export, copy, share, or move are managed outside the app. Delete local data does not remove those files.',
+    );
+    expect(renderedText).toContain(
+      'Brunch Body cannot inspect or restore device-local app data for you.',
+    );
 
     FORBIDDEN_REACHABLE_ACCOUNT_AUTH_COPY.forEach(pattern => {
       expect(renderedText).not.toMatch(pattern);
     });
 
     expect(renderedText).not.toContain('syncs across devices');
-    expect(renderedText).not.toContain('cloud recovery');
+    expect(renderedText).not.toContain('cloud recovery is available');
+    expect(renderedText).not.toContain('cloud restore is available');
     expect(renderedText).not.toContain('remote recovery is available');
     expect(renderedText).not.toContain('support staff can access');
     expect(renderedText).not.toContain('support staff access');

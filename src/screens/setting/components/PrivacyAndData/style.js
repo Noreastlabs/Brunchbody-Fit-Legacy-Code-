@@ -26,4 +26,12 @@ export default StyleSheet.create({
     marginBottom: RFValue(14),
     color: colors.white,
   },
+  sectionHeadingText: {
+    fontSize: RFValue(24),
+    fontWeight: 'bold',
+    lineHeight: RFValue(30),
+    marginTop: RFValue(8),
+    marginBottom: RFValue(12),
+    color: colors.white,
+  },
 });

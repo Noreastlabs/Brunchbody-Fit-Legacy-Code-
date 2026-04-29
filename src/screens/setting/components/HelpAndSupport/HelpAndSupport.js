@@ -14,6 +14,14 @@ const helpAndSupportCopy = [
   'For health, training, or nutrition decisions, rely on qualified professionals. Brunch Body help is for understanding the app, not for professional guidance.',
 ];
 
+const trustRecoveryCopy = [
+  'If Brunch Body data looks missing or unexpected, first check that you are using the same device and current app install where you entered it. Because Brunch Body is saved on this device only, the app does not provide cloud recovery or retrieve a copy from another device.',
+  'If a Profile value looks wrong, open Profile and update the value saved on this device. Brunch Body uses saved Profile values for in-app calculations and display.',
+  'If you used Delete local data, Brunch Body cannot recover local data after you delete it unless you separately saved or exported a copy.',
+  'Files you export, copy, share, or move are managed outside the app. Delete local data does not remove those files.',
+  'If you are unsure what Brunch Body can recover, assume only copies you separately saved or exported are available. Brunch Body cannot inspect or restore device-local app data for you.',
+];
+
 export default function HelpAndSupport() {
   return (
     <SafeAreaWrapper>
@@ -24,6 +32,14 @@ export default function HelpAndSupport() {
         </View>
         <View style={styles.contentView}>
           {helpAndSupportCopy.map(copy => (
+            <Text key={copy} style={styles.bodyText}>
+              {copy}
+            </Text>
+          ))}
+          <Text style={styles.sectionHeadingText}>
+            When something feels wrong
+          </Text>
+          {trustRecoveryCopy.map(copy => (
             <Text key={copy} style={styles.bodyText}>
               {copy}
             </Text>
