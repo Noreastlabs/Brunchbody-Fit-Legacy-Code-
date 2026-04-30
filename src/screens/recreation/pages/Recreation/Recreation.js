@@ -27,7 +27,15 @@ import {
 import { useTodayKey } from '../../../../context/DateProvider';
 import { SET_USER } from '../../../../redux/constants';
 import { RECREATION_ROUTES } from '../../../../navigation/routeNames';
-import { calculateCaloriesBurnedFromPounds } from '../../../../utils/calorieBurnMetrics';
+import {
+  calculateCaloriesBurnedFromKilograms,
+  calculateCaloriesBurnedFromPounds,
+} from '../../../../utils/calorieBurnMetrics';
+
+const hasValidWeightKilograms = weightKilograms =>
+  typeof weightKilograms === 'number' &&
+  Number.isFinite(weightKilograms) &&
+  weightKilograms > 0;
 
 const workoutOptionsData = [
   { id: 1, name: 'BRUNCH BODY' },
@@ -568,11 +576,17 @@ export default function RecreationPage(props) {
   const calorieCalculationHandler = item => {
     let calories = 0;
     const calculateCaloriesForDuration = durationMinutes =>
-      calculateCaloriesBurnedFromPounds({
-        weightPounds: user.weight,
-        met: item?.met,
-        durationMinutes,
-      });
+      hasValidWeightKilograms(user?.weightKilograms)
+        ? calculateCaloriesBurnedFromKilograms({
+            weightKilograms: user.weightKilograms,
+            met: item?.met,
+            durationMinutes,
+          })
+        : calculateCaloriesBurnedFromPounds({
+            weightPounds: user.weight,
+            met: item?.met,
+            durationMinutes,
+          });
 
     if (item?.rpm) {
       if (item?.unit === 'Rp') {
@@ -623,7 +637,7 @@ export default function RecreationPage(props) {
       }
     }
 
-    return `${calories}`;
+    return Number.isFinite(calories) ? `${calories}` : false;
   };
 
   const onProgramMenuSelect = () => {

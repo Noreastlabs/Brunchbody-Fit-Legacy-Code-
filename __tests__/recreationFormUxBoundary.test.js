@@ -95,13 +95,19 @@ jest.mock('../src/utils/calorieBurnMetrics', () => {
   return {
     __esModule: true,
     ...actual,
+    calculateCaloriesBurnedFromKilograms: jest.fn(
+      actual.calculateCaloriesBurnedFromKilograms,
+    ),
     calculateCaloriesBurnedFromPounds: jest.fn(
       actual.calculateCaloriesBurnedFromPounds,
     ),
   };
 });
 
-import {calculateCaloriesBurnedFromPounds} from '../src/utils/calorieBurnMetrics';
+import {
+  calculateCaloriesBurnedFromKilograms,
+  calculateCaloriesBurnedFromPounds,
+} from '../src/utils/calorieBurnMetrics';
 import RecreationPage from '../src/screens/recreation/pages/Recreation/Recreation';
 import EditRoutinePage from '../src/screens/recreation/pages/EditRoutine/EditRoutine';
 import MyExercisesPage from '../src/screens/recreation/pages/MyExercises/MyExercises';
@@ -129,6 +135,189 @@ const renderInAct = async element => {
 const calculateLegacyCalories = ({weightPounds, met, durationMinutes}) =>
   ((Number(met) * 3.5 * (Number(weightPounds) / 2.205)) / 200) *
   Number(durationMinutes);
+
+const calculateMetricCalories = ({weightKilograms, met, durationMinutes}) =>
+  ((Number(met) * 3.5 * Number(weightKilograms)) / 200) *
+  Number(durationMinutes);
+
+const setFutureWorkoutDate = () => {
+  Object.assign(mockTodayKey, {
+    today: '2099/01/01',
+    date: 1,
+    month: 1,
+    year: 2099,
+    todoListDate: '2099/01/01',
+  });
+};
+
+const createRecreationCalorieProps = userOverrides => ({
+  navigation: {navigate: jest.fn()},
+  myCustomPlans: [],
+  onAddRoutine: jest.fn().mockResolvedValue(true),
+  myRoutines: [],
+  getUserRoutines: jest.fn().mockResolvedValue(true),
+  onDeleteRoutine: jest.fn().mockResolvedValue(true),
+  getUserCustomPlans: jest.fn().mockResolvedValue(true),
+  onAddCustomPlan: jest.fn().mockResolvedValue(true),
+  onDeleteCustomPlan: jest.fn().mockResolvedValue(true),
+  onGetExercises: jest.fn().mockResolvedValue(true),
+  brunchBodyPlans: [],
+  onGetBrunchBodyPlans: jest.fn().mockResolvedValue(true),
+  onAddMyWorkout: jest.fn().mockResolvedValue(true),
+  onGetMyWorkouts: jest.fn().mockResolvedValue(true),
+  myWorkouts: [],
+  onDeleteWorkout: jest.fn().mockResolvedValue(true),
+  onEditMyWorkout: jest.fn().mockResolvedValue(true),
+  onGetWeekPlan: jest.fn().mockResolvedValue(true),
+  myWeekPlan: {
+    weekDays: [
+      {
+        day: '1',
+        plan: [
+          {exercise: 'Push Up', amount: '60', unit: 'Rp'},
+          {exercise: 'Run', amount: '1', unit: 'mi'},
+        ],
+      },
+    ],
+  },
+  getAllExerciseDirectory: jest.fn().mockResolvedValue(true),
+  onMergeExercises: jest.fn().mockResolvedValue(true),
+  onGetBrunchBodyWeekPlan: jest.fn().mockResolvedValue({}),
+  updateUserProfile: jest.fn().mockResolvedValue(true),
+  onCompleteWorkout: jest.fn().mockResolvedValue(true),
+  user: {
+    weight: '180',
+    completedWorkouts: {},
+    deletedWorkouts: {},
+    ...userOverrides,
+  },
+  allExercises: [
+    {
+      id: 'exercise-1',
+      name: 'Push Up',
+      type: 'Exercise',
+      met: '3.5',
+      rpm: '30',
+      mph: 0,
+    },
+    {
+      id: 'cardio-1',
+      name: 'Run',
+      type: 'Cardio',
+      met: '7',
+      rpm: 0,
+      mph: '7.5',
+    },
+  ],
+  completedWorkouts: [],
+});
+
+const addRecreationWorkout = async props => {
+  setFutureWorkoutDate();
+
+  const renderer = await renderInAct(<RecreationPage {...props} />);
+  const getProps = () =>
+    renderer.root.findByType('mock-recreation-screen').props;
+
+  ReactTestRenderer.act(() => {
+    getProps().setSelectedWorkout({
+      id: 'program-1',
+      name: 'Starter',
+      weeks: '4',
+    });
+    getProps().setSelectedWorkoutOption('Starter');
+    getProps().setPickerItems([{id: 1, value: '1'}]);
+    getProps().setPickerType('Weeks');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setPickerItems([{id: 1, value: '1'}]);
+    getProps().setPickerType('Days');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+
+  await ReactTestRenderer.act(async () => {
+    await getProps().addMyWorkoutHandler();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+
+  return {renderer, getProps};
+};
+
+const addSingleExerciseEntry = async (getProps, exerciseOption) => {
+  ReactTestRenderer.act(() => {
+    getProps().onAddBtnPress();
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onNextBtnPress();
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setPickerItems([exerciseOption]);
+    getProps().setPickerType('Exercise');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setPickerItems([{id: 1, value: '3'}]);
+    getProps().setPickerType('Sets');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onSingleAmountChange('60');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setPickerItems([{id: 1, unit: 'Rp'}]);
+    getProps().setPickerType('Unit');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+
+  await ReactTestRenderer.act(async () => {
+    await getProps().onAddSingleExercise();
+  });
+};
+
+const addCardioEntry = async (getProps, cardioOption) => {
+  ReactTestRenderer.act(() => {
+    getProps().onAddBtnPress();
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setSelectedExerciseOption('CARDIO');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onNextBtnPress();
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setPickerItems([cardioOption]);
+    getProps().setPickerType('Exercise');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onCardioAmountChange('1');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().setPickerItems([{id: 1, unit: 'mi'}]);
+    getProps().setPickerType('Unit');
+  });
+  ReactTestRenderer.act(() => {
+    getProps().onPickerItemSelect(1);
+  });
+
+  await ReactTestRenderer.act(async () => {
+    await getProps().onAddCardioExe();
+  });
+};
 
 describe('recreation form UX boundary', () => {
   beforeEach(() => {
@@ -246,144 +435,52 @@ describe('recreation form UX boundary', () => {
     });
   });
 
-  test('RecreationPage calculates workout plan calories through the legacy pounds helper', async () => {
-    Object.assign(mockTodayKey, {
-      today: '2099/01/01',
-      date: 1,
-      month: 1,
-      year: 2099,
-      todoListDate: '2099/01/01',
+  test('RecreationPage selects canonical kilograms for workout plan calories', async () => {
+    const props = createRecreationCalorieProps({
+      weight: '999',
+      weightKilograms: 10,
+      bodyUnitPreference: 'pounds',
     });
 
-    const props = {
-      navigation: {navigate: jest.fn()},
-      myCustomPlans: [],
-      onAddRoutine: jest.fn().mockResolvedValue(true),
-      myRoutines: [],
-      getUserRoutines: jest.fn().mockResolvedValue(true),
-      onDeleteRoutine: jest.fn().mockResolvedValue(true),
-      getUserCustomPlans: jest.fn().mockResolvedValue(true),
-      onAddCustomPlan: jest.fn().mockResolvedValue(true),
-      onDeleteCustomPlan: jest.fn().mockResolvedValue(true),
-      onGetExercises: jest.fn().mockResolvedValue(true),
-      brunchBodyPlans: [],
-      onGetBrunchBodyPlans: jest.fn().mockResolvedValue(true),
-      onAddMyWorkout: jest.fn().mockResolvedValue(true),
-      onGetMyWorkouts: jest.fn().mockResolvedValue(true),
-      myWorkouts: [],
-      onDeleteWorkout: jest.fn().mockResolvedValue(true),
-      onEditMyWorkout: jest.fn().mockResolvedValue(true),
-      onGetWeekPlan: jest.fn().mockResolvedValue(true),
-      myWeekPlan: {
-        weekDays: [
-          {
-            day: '1',
-            plan: [
-              {exercise: 'Push Up', amount: '60', unit: 'Rp'},
-              {exercise: 'Run', amount: '1', unit: 'mi'},
-            ],
-          },
-        ],
-      },
-      getAllExerciseDirectory: jest.fn().mockResolvedValue(true),
-      onMergeExercises: jest.fn().mockResolvedValue(true),
-      onGetBrunchBodyWeekPlan: jest.fn().mockResolvedValue({}),
-      updateUserProfile: jest.fn().mockResolvedValue(true),
-      onCompleteWorkout: jest.fn().mockResolvedValue(true),
-      user: {
-        weight: '180',
-        weightKilograms: 10,
-        completedWorkouts: {},
-        deletedWorkouts: {},
-      },
-      allExercises: [
-        {
-          id: 'exercise-1',
-          name: 'Push Up',
-          type: 'Exercise',
-          met: '3.5',
-          rpm: '30',
-          mph: 0,
-        },
-        {
-          id: 'cardio-1',
-          name: 'Run',
-          type: 'Cardio',
-          met: '7',
-          rpm: 0,
-          mph: '7.5',
-        },
-      ],
-      completedWorkouts: [],
-    };
+    await addRecreationWorkout(props);
 
-    const renderer = await renderInAct(<RecreationPage {...props} />);
-    const getProps = () =>
-      renderer.root.findByType('mock-recreation-screen').props;
-
-    ReactTestRenderer.act(() => {
-      getProps().setSelectedWorkout({
-        id: 'program-1',
-        name: 'Starter',
-        weeks: '4',
-      });
-      getProps().setSelectedWorkoutOption('Starter');
-      getProps().setPickerItems([{id: 1, value: '1'}]);
-      getProps().setPickerType('Weeks');
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onPickerItemSelect(1);
-    });
-    ReactTestRenderer.act(() => {
-      getProps().setPickerItems([{id: 1, value: '1'}]);
-      getProps().setPickerType('Days');
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onPickerItemSelect(1);
-    });
-
-    await ReactTestRenderer.act(async () => {
-      await getProps().addMyWorkoutHandler();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    const helperCalls = calculateCaloriesBurnedFromPounds.mock.calls.map(
+    const helperCalls = calculateCaloriesBurnedFromKilograms.mock.calls.map(
       ([call]) => call,
     );
 
     expect(helperCalls).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          weightPounds: '180',
+          weightKilograms: 10,
           met: '3.5',
           durationMinutes: 2,
         }),
         expect.objectContaining({
-          weightPounds: '180',
+          weightKilograms: 10,
           met: '7',
           durationMinutes: 8,
         }),
       ]),
     );
     helperCalls.forEach(call => {
-      expect(call).not.toHaveProperty('weightKilograms');
+      expect(call).not.toHaveProperty('weightPounds');
     });
+    expect(calculateCaloriesBurnedFromPounds).not.toHaveBeenCalled();
     expect(props.onAddMyWorkout).toHaveBeenCalledWith(
       expect.objectContaining({
         plan: expect.arrayContaining([
           expect.objectContaining({
             exercise: 'Push Up',
-            cal: `${calculateLegacyCalories({
-              weightPounds: 180,
+            cal: `${calculateMetricCalories({
+              weightKilograms: 10,
               met: 3.5,
               durationMinutes: 2,
             })}`,
           }),
           expect.objectContaining({
             exercise: 'Run',
-            cal: `${calculateLegacyCalories({
-              weightPounds: 180,
+            cal: `${calculateMetricCalories({
+              weightKilograms: 10,
               met: 7,
               durationMinutes: 8,
             })}`,
@@ -392,6 +489,78 @@ describe('recreation form UX boundary', () => {
       }),
     );
   });
+
+  test.each([
+    ['missing canonical field', undefined, false],
+    ['numeric string canonical field', '10', true],
+    ['zero canonical field', 0, true],
+    ['negative canonical field', -10, true],
+    ['NaN canonical field', NaN, true],
+    ['Infinity canonical field', Infinity, true],
+  ])(
+    'RecreationPage falls back to legacy pounds for %s',
+    async (_label, weightKilograms, hasCanonicalField) => {
+      const props = createRecreationCalorieProps(
+        hasCanonicalField
+          ? {
+              weight: '180',
+              weightKilograms,
+              bodyUnitPreference: 'kilograms',
+            }
+          : {
+              weight: '180',
+              bodyUnitPreference: 'kilograms',
+            },
+      );
+
+      await addRecreationWorkout(props);
+
+      const helperCalls = calculateCaloriesBurnedFromPounds.mock.calls.map(
+        ([call]) => call,
+      );
+
+      expect(calculateCaloriesBurnedFromKilograms).not.toHaveBeenCalled();
+      expect(helperCalls).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            weightPounds: '180',
+            met: '3.5',
+            durationMinutes: 2,
+          }),
+          expect.objectContaining({
+            weightPounds: '180',
+            met: '7',
+            durationMinutes: 8,
+          }),
+        ]),
+      );
+      helperCalls.forEach(call => {
+        expect(call).not.toHaveProperty('weightKilograms');
+      });
+      expect(props.onAddMyWorkout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          plan: expect.arrayContaining([
+            expect.objectContaining({
+              exercise: 'Push Up',
+              cal: `${calculateLegacyCalories({
+                weightPounds: 180,
+                met: 3.5,
+                durationMinutes: 2,
+              })}`,
+            }),
+            expect.objectContaining({
+              exercise: 'Run',
+              cal: `${calculateLegacyCalories({
+                weightPounds: 180,
+                met: 7,
+                durationMinutes: 8,
+              })}`,
+            }),
+          ]),
+        }),
+      );
+    },
+  );
 
   test('EditRoutinePage keeps task validation inline, resets modal state, and guards duplicate add/delete dispatches', async () => {
     const addDeferred = createDeferred();
@@ -809,7 +978,7 @@ describe('recreation form UX boundary', () => {
     );
   });
 
-  test('EditProgramPage calculates entry calories through the legacy pounds helper', async () => {
+  test('EditProgramPage selects canonical kilograms for entry calories', async () => {
     const exerciseOption = {
       id: 'exercise-1',
       name: 'Push Up',
@@ -817,6 +986,14 @@ describe('recreation form UX boundary', () => {
       met: '3.5',
       rpm: '30',
       mph: 0,
+    };
+    const cardioOption = {
+      id: 'cardio-1',
+      name: 'Run',
+      type: 'Cardio',
+      met: '7',
+      rpm: 0,
+      mph: '7.5',
     };
     const props = {
       route: {
@@ -828,66 +1005,128 @@ describe('recreation form UX boundary', () => {
       onAddWeekPlan: jest.fn().mockResolvedValue(true),
       onEditWeekPlan: jest.fn().mockResolvedValue(true),
       myWeekPlan: {week: 1, weekDays: []},
-      user: {weight: '180', weightKilograms: 10},
-      myExercises: [exerciseOption],
+      user: {
+        weight: '999',
+        weightKilograms: 10,
+        bodyUnitPreference: 'pounds',
+      },
+      myExercises: [exerciseOption, cardioOption],
     };
 
     const renderer = await renderInAct(<EditProgramPage {...props} />);
     const getProps = () =>
       renderer.root.findByType('mock-edit-program-screen').props;
 
-    ReactTestRenderer.act(() => {
-      getProps().onAddBtnPress();
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onNextBtnPress();
-    });
-    ReactTestRenderer.act(() => {
-      getProps().setPickerItems([exerciseOption]);
-      getProps().setPickerType('Exercise');
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onPickerItemSelect(1);
-    });
-    ReactTestRenderer.act(() => {
-      getProps().setPickerItems([{id: 1, value: '3'}]);
-      getProps().setPickerType('Sets');
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onPickerItemSelect(1);
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onSingleAmountChange('60');
-    });
-    ReactTestRenderer.act(() => {
-      getProps().setPickerItems([{id: 1, unit: 'Rp'}]);
-      getProps().setPickerType('Unit');
-    });
-    ReactTestRenderer.act(() => {
-      getProps().onPickerItemSelect(1);
-    });
+    await addSingleExerciseEntry(getProps, exerciseOption);
+    await addCardioEntry(getProps, cardioOption);
 
-    await ReactTestRenderer.act(async () => {
-      await getProps().onAddSingleExercise();
-    });
+    const helperCalls = calculateCaloriesBurnedFromKilograms.mock.calls.map(
+      ([call]) => call,
+    );
 
-    expect(calculateCaloriesBurnedFromPounds).toHaveBeenCalledWith({
-      weightPounds: '180',
-      met: '3.5',
-      durationMinutes: 2,
-    });
-    calculateCaloriesBurnedFromPounds.mock.calls.forEach(([call]) => {
-      expect(call).not.toHaveProperty('weightKilograms');
-    });
-    expect(getProps().allDayPlan).toEqual([
-      expect.objectContaining({
-        exercise: 'Push Up',
-        cal: `${calculateLegacyCalories({
-          weightPounds: 180,
-          met: 3.5,
+    expect(helperCalls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          weightKilograms: 10,
+          met: '3.5',
           durationMinutes: 2,
-        })}`,
-      }),
-    ]);
+        }),
+        expect.objectContaining({
+          weightKilograms: 10,
+          met: '7',
+          durationMinutes: 8,
+        }),
+      ]),
+    );
+    helperCalls.forEach(call => {
+      expect(call).not.toHaveProperty('weightPounds');
+    });
+    expect(calculateCaloriesBurnedFromPounds).not.toHaveBeenCalled();
+    expect(getProps().allDayPlan).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          exercise: 'Push Up',
+          cal: `${calculateMetricCalories({
+            weightKilograms: 10,
+            met: 3.5,
+            durationMinutes: 2,
+          })}`,
+        }),
+        expect.objectContaining({
+          exercise: 'Run',
+          cal: `${calculateMetricCalories({
+            weightKilograms: 10,
+            met: 7,
+            durationMinutes: 8,
+          })}`,
+        }),
+      ]),
+    );
   });
+
+  test.each([
+    ['missing canonical field', undefined, false],
+    ['numeric string canonical field', '10', true],
+    ['Infinity canonical field', Infinity, true],
+  ])(
+    'EditProgramPage falls back to legacy pounds for %s',
+    async (_label, weightKilograms, hasCanonicalField) => {
+      const exerciseOption = {
+        id: 'exercise-1',
+        name: 'Push Up',
+        type: 'Exercise',
+        met: '3.5',
+        rpm: '30',
+        mph: 0,
+      };
+      const props = {
+        route: {
+          params: {
+            selectedProgram: {id: 'program-1', name: 'Starter'},
+            selectedDay: {week: 1, day: 1, plan: [], note: ''},
+          },
+        },
+        onAddWeekPlan: jest.fn().mockResolvedValue(true),
+        onEditWeekPlan: jest.fn().mockResolvedValue(true),
+        myWeekPlan: {week: 1, weekDays: []},
+        user: hasCanonicalField
+          ? {
+              weight: '180',
+              weightKilograms,
+              bodyUnitPreference: 'kilograms',
+            }
+          : {
+              weight: '180',
+              bodyUnitPreference: 'kilograms',
+            },
+        myExercises: [exerciseOption],
+      };
+
+      const renderer = await renderInAct(<EditProgramPage {...props} />);
+      const getProps = () =>
+        renderer.root.findByType('mock-edit-program-screen').props;
+
+      await addSingleExerciseEntry(getProps, exerciseOption);
+
+      expect(calculateCaloriesBurnedFromKilograms).not.toHaveBeenCalled();
+      expect(calculateCaloriesBurnedFromPounds).toHaveBeenCalledWith({
+        weightPounds: '180',
+        met: '3.5',
+        durationMinutes: 2,
+      });
+      calculateCaloriesBurnedFromPounds.mock.calls.forEach(([call]) => {
+        expect(call).not.toHaveProperty('weightKilograms');
+      });
+      expect(getProps().allDayPlan).toEqual([
+        expect.objectContaining({
+          exercise: 'Push Up',
+          cal: `${calculateLegacyCalories({
+            weightPounds: 180,
+            met: 3.5,
+            durationMinutes: 2,
+          })}`,
+        }),
+      ]);
+    },
+  );
 });

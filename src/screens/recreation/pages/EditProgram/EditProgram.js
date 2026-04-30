@@ -8,7 +8,15 @@ import {connect} from 'react-redux';
 import {EditProgram} from '../../components';
 import {wheelPickerItems} from '../../../../resources';
 import {addWeekPlan, editWeekPlan} from '../../../../redux/actions';
-import {calculateCaloriesBurnedFromPounds} from '../../../../utils/calorieBurnMetrics';
+import {
+  calculateCaloriesBurnedFromKilograms,
+  calculateCaloriesBurnedFromPounds,
+} from '../../../../utils/calorieBurnMetrics';
+
+const hasValidWeightKilograms = weightKilograms =>
+  typeof weightKilograms === 'number' &&
+  Number.isFinite(weightKilograms) &&
+  weightKilograms > 0;
 
 const addExerciseOptions = [
   {id: 1, option: 'SINGLE EXERCISE'},
@@ -498,11 +506,17 @@ export default function EditProgramPage(props) {
   const calorieCalculationHandler = item => {
     let calories = 0;
     const calculateCaloriesForDuration = durationMinutes =>
-      calculateCaloriesBurnedFromPounds({
-        weightPounds: user.weight,
-        met: item?.met || met,
-        durationMinutes,
-      });
+      hasValidWeightKilograms(user?.weightKilograms)
+        ? calculateCaloriesBurnedFromKilograms({
+            weightKilograms: user.weightKilograms,
+            met: item?.met || met,
+            durationMinutes,
+          })
+        : calculateCaloriesBurnedFromPounds({
+            weightPounds: user.weight,
+            met: item?.met || met,
+            durationMinutes,
+          });
 
     if (item?.rpm || rpm) {
       if ((item?.unit || unit) === 'Rp') {
@@ -567,7 +581,7 @@ export default function EditProgramPage(props) {
       }
     }
 
-    return `${calories}`;
+    return Number.isFinite(calories) ? `${calories}` : false;
   };
 
   const validateSingleExerciseForm = () => {
