@@ -194,31 +194,117 @@ describe('Auth/profile repair boundary', () => {
     expect(compactHeightUser.bmr).toBe(paddedHeightUser.bmr);
   });
 
-  test('auth reducer keeps BMI and BMR sourced from legacy compatibility fields', () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2026-04-16T12:00:00.000Z'));
+  test('auth reducer derives BMI and BMR from valid canonical fields as fixed strings', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: 'bad-input',
+      weight: 'bad-input',
+      heightCentimeters: 168,
+      weightKilograms: 61.2,
+      bodyUnitPreference: 'standard',
+      dob: '01/01/1995',
+      gender: 'female',
+    });
 
-    try {
-      const state = authReducer(undefined, {
-        type: SET_USER,
-        payload: {
-          height: '5.06',
-          weight: '135',
-          heightCentimeters: 200,
-          weightKilograms: 200,
-          bodyUnitPreference: 'metric',
-          dob: '01/01/1995',
-          gender: 'female',
-        },
+    expect(user.bmi).toBe('21.68');
+    expect(user.bmr).toBe('1407.08');
+    expect(typeof user.bmi).toBe('string');
+    expect(typeof user.bmr).toBe('string');
+  });
+
+  test('auth reducer prefers valid canonical fields over disagreeing legacy fields', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      bodyUnitPreference: 'standard',
+      dob: '01/01/1995',
+      gender: 'female',
+    });
+
+    expect(user.bmi).toBe('50.00');
+    expect(user.bmr).toBe('2797.40');
+    expect(user.height).toBe('5.06');
+    expect(user.weight).toBe('135');
+    expect(user.heightCentimeters).toBe(200);
+    expect(user.weightKilograms).toBe(200);
+  });
+
+  test('auth reducer falls back to legacy fields when canonical fields are missing', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: '135',
+      dob: '01/01/1995',
+      gender: 'female',
+    });
+
+    expect(user.bmi).toBe('21.79');
+    expect(user.bmr).toBe('1406.75');
+  });
+
+  test('auth reducer falls back to legacy fields when canonical fields are partial', () => {
+    [
+      { heightCentimeters: 200 },
+      { weightKilograms: 200 },
+    ].forEach(canonicalFields => {
+      const user = reduceProfileWithReferenceDate({
+        height: '5.06',
+        weight: '135',
+        dob: '01/01/1995',
+        gender: 'female',
+        ...canonicalFields,
       });
 
-      expect(state.user.bmi).toBe('21.79');
-      expect(state.user.bmr).toBe('1406.75');
-      expect(state.user.heightCentimeters).toBe(200);
-      expect(state.user.weightKilograms).toBe(200);
-    } finally {
-      jest.useRealTimers();
-    }
+      expect(user.bmi).toBe('21.79');
+      expect(user.bmr).toBe('1406.75');
+    });
+  });
+
+  test('auth reducer falls back to legacy fields when canonical fields are invalid', () => {
+    [
+      { heightCentimeters: 0, weightKilograms: 200 },
+      { heightCentimeters: -1, weightKilograms: 200 },
+      { heightCentimeters: 200, weightKilograms: 0 },
+      { heightCentimeters: 200, weightKilograms: -1 },
+      { heightCentimeters: NaN, weightKilograms: 200 },
+      { heightCentimeters: 200, weightKilograms: Infinity },
+      { heightCentimeters: '200', weightKilograms: 200 },
+      { heightCentimeters: 200, weightKilograms: '200' },
+    ].forEach(canonicalFields => {
+      const user = reduceProfileWithReferenceDate({
+        height: '5.06',
+        weight: '135',
+        dob: '01/01/1995',
+        gender: 'female',
+        ...canonicalFields,
+      });
+
+      expect(user.bmi).toBe('21.79');
+      expect(user.bmr).toBe('1406.75');
+    });
+  });
+
+  test('auth reducer preserves male BMR fallback on the canonical path', () => {
+    const unsupportedGenderUser = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      dob: '01/01/1995',
+      gender: 'unsupported',
+    });
+    const missingGenderUser = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      dob: '01/01/1995',
+    });
+
+    expect(unsupportedGenderUser.bmi).toBe('50.00');
+    expect(unsupportedGenderUser.bmr).toBe('3602.16');
+    expect(missingGenderUser.bmi).toBe('50.00');
+    expect(missingGenderUser.bmr).toBe('3602.16');
   });
 
   test('auth reducer omits derived metrics when source inputs are unusable', () => {
@@ -227,6 +313,8 @@ describe('Auth/profile repair boundary', () => {
       payload: {
         height: 'bad-input',
         weight: 'bad-input',
+        heightCentimeters: 0,
+        weightKilograms: Infinity,
         dob: 'not/a/date',
         gender: 'male',
         bmi: 'NaN',

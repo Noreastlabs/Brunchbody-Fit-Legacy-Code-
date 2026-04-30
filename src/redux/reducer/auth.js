@@ -2,7 +2,9 @@
 import { CLEAR_USER, SET_USER } from '../constants';
 import {
   calculateBmiFromImperial,
+  calculateBmiFromMetric,
   calculateBmrFromImperial,
+  calculateBmrFromMetric,
 } from '../../utils/bodyMetrics';
 
 const initialState = {
@@ -90,43 +92,90 @@ const getParsedWeight = weight => {
   return Number.isFinite(parsedWeight) ? parsedWeight : null;
 };
 
-const getBmi = (weight, userHeight) => {
-  const parsedWeight = getParsedWeight(weight);
+const isPositiveFiniteNumber = value =>
+  typeof value === 'number' && Number.isFinite(value) && value > 0;
 
-  const bmi = calculateBmiFromImperial({
-    heightInches: userHeight,
-    weightPounds: parsedWeight,
-  });
+const hasUsableCanonicalMetrics = userData =>
+  isPositiveFiniteNumber(userData?.heightCentimeters) &&
+  isPositiveFiniteNumber(userData?.weightKilograms);
 
-  if (!Number.isFinite(bmi)) {
+const formatDerivedMetric = calculatedMetric => {
+  if (!Number.isFinite(calculatedMetric)) {
     return null;
   }
 
-  return bmi.toFixed(2);
+  return calculatedMetric.toFixed(2);
 };
 
-const getBmr = (userData, userHeight, actualAge) => {
-  const parsedWeight = getParsedWeight(userData?.weight);
+const getLegacyBmi = (weight, userHeight) => {
+  const parsedWeight = getParsedWeight(weight);
 
-  const bmr = calculateBmrFromImperial({
-    heightInches: userHeight,
-    weightPounds: parsedWeight,
-    age: actualAge,
-    gender: userData?.gender,
-  });
+  return formatDerivedMetric(
+    calculateBmiFromImperial({
+      heightInches: userHeight,
+      weightPounds: parsedWeight,
+    }),
+  );
+};
 
-  if (!Number.isFinite(bmr)) {
-    return null;
+const getCanonicalBmi = userData =>
+  formatDerivedMetric(
+    calculateBmiFromMetric({
+      heightCentimeters: userData?.heightCentimeters,
+      weightKilograms: userData?.weightKilograms,
+    }),
+  );
+
+const getBmi = (userData, userHeight, useCanonicalMetrics) => {
+  if (useCanonicalMetrics) {
+    const canonicalBmi = getCanonicalBmi(userData);
+
+    if (canonicalBmi !== null) {
+      return canonicalBmi;
+    }
   }
 
-  return bmr.toFixed(2);
+  return getLegacyBmi(userData?.weight, userHeight);
+};
+
+const getLegacyBmr = (userData, userHeight, actualAge) =>
+  formatDerivedMetric(
+    calculateBmrFromImperial({
+      heightInches: userHeight,
+      weightPounds: getParsedWeight(userData?.weight),
+      age: actualAge,
+      gender: userData?.gender,
+    }),
+  );
+
+const getCanonicalBmr = (userData, actualAge) =>
+  formatDerivedMetric(
+    calculateBmrFromMetric({
+      heightCentimeters: userData?.heightCentimeters,
+      weightKilograms: userData?.weightKilograms,
+      age: actualAge,
+      gender: userData?.gender,
+    }),
+  );
+
+const getBmr = (userData, userHeight, actualAge, useCanonicalMetrics) => {
+  if (useCanonicalMetrics) {
+    const canonicalBmr = getCanonicalBmr(userData, actualAge);
+
+    if (canonicalBmr !== null) {
+      return canonicalBmr;
+    }
+  }
+
+  return getLegacyBmr(userData, userHeight, actualAge);
 };
 
 const deriveUserMetrics = userData => {
   const userHeight = getUserHeight(userData);
   const actualAge = getActualAge(userData?.dob);
-  const bmi = getBmi(userData?.weight, userHeight);
-  const bmr = getBmr(userData, userHeight, actualAge);
+  const useCanonicalMetrics = hasUsableCanonicalMetrics(userData);
+  const bmi = getBmi(userData, userHeight, useCanonicalMetrics);
+  const bmr = getBmr(userData, userHeight, actualAge, useCanonicalMetrics);
 
   return {
     ...(bmi ? { bmi } : {}),
