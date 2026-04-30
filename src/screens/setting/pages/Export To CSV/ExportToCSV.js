@@ -7,6 +7,78 @@ import moment from 'moment';
 import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import { ExportToCSV } from '../../components';
+import {
+  isBodyUnitPreference,
+  poundsToKilograms,
+} from '../../../../utils/bodyMeasurementUnits';
+
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+const LEGACY_WEIGHT_UNIT = 'lb';
+const CANONICAL_WEIGHT_UNIT = 'kg';
+
+const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
+
+const hasExportableSourceValue = value =>
+  value !== null && value !== undefined && `${value}`.trim() !== '';
+
+const isNonFiniteExportValue = value => {
+  if (typeof value === 'number') {
+    return !Number.isFinite(value);
+  }
+
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const normalizedValue = value.trim().toLowerCase();
+
+  return (
+    normalizedValue === 'nan' ||
+    normalizedValue === 'infinity' ||
+    normalizedValue === '-infinity'
+  );
+};
+
+const getSourceWeightValue = value =>
+  hasExportableSourceValue(value) && !isNonFiniteExportValue(value)
+    ? value
+    : '';
+
+const formatKilogramsForExport = kilograms => kilograms.toFixed(1);
+
+const getWeightUnitExportFields = (weight, unitPreference) => {
+  const sourceValue = getSourceWeightValue(weight);
+  const sourceUnit = sourceValue === '' ? '' : LEGACY_WEIGHT_UNIT;
+  const kilograms = poundsToKilograms(weight);
+
+  if (kilograms === null) {
+    return {
+      weight_source_value: sourceValue,
+      weight_source_unit: sourceUnit,
+      weight_display_value: '',
+      weight_display_unit: '',
+      weight_canonical_value: '',
+      weight_canonical_unit: '',
+    };
+  }
+
+  const kilogramValue = formatKilogramsForExport(kilograms);
+
+  return {
+    weight_source_value: sourceValue,
+    weight_source_unit: LEGACY_WEIGHT_UNIT,
+    weight_display_value:
+      unitPreference === METRIC_UNIT_PREFERENCE ? kilogramValue : weight,
+    weight_display_unit:
+      unitPreference === METRIC_UNIT_PREFERENCE
+        ? CANONICAL_WEIGHT_UNIT
+        : LEGACY_WEIGHT_UNIT,
+    weight_canonical_value: kilogramValue,
+    weight_canonical_unit: CANONICAL_WEIGHT_UNIT,
+  };
+};
 
 const listData = [
   {
@@ -60,7 +132,7 @@ const listData = [
 ];
 
 export default function ExportToCSVPage(props) {
-  const { navigation, journalEntriesList } = props;
+  const { navigation, journalEntriesList, user } = props;
   const [entryType, setEntryType] = useState('');
   const [entryData, setEntryData] = useState(null);
   const [alertHeading, setAlertHeading] = useState('');
@@ -80,19 +152,36 @@ export default function ExportToCSVPage(props) {
       setEntryData([]);
     } else {
       const filteredData = [];
+      const bodyUnitPreference = resolveBodyUnitPreference(
+        user?.bodyUnitPreference,
+      );
+
       [...journalEntriesList]
         .sort((a, b) => b.createdOn - a.createdOn)
-        .map(item => {
+        .forEach(item => {
           // Object.entries(item[name]).map(([key, value]) =>
           //   console.log('item[name] property: ', typeof value),
           // );
 
           if (item[name]) {
-            delete item[name].isDeleted;
-            filteredData.push({
+            const entryFields = { ...item[name] };
+            delete entryFields.isDeleted;
+            const exportRow = {
               Dated: moment(item.createdOn).format('M/D/YYYY'),
-              ...item[name],
-            });
+              ...entryFields,
+            };
+
+            filteredData.push(
+              name === 'WeightLog'
+                ? {
+                    ...exportRow,
+                    ...getWeightUnitExportFields(
+                      entryFields.weight,
+                      bodyUnitPreference,
+                    ),
+                  }
+                : exportRow,
+            );
           }
         });
 
@@ -210,10 +299,16 @@ export default function ExportToCSVPage(props) {
 ExportToCSVPage.propTypes = {
   navigation: PropTypes.objectOf(PropTypes.any).isRequired,
   journalEntriesList: PropTypes.arrayOf(PropTypes.any).isRequired,
+  user: PropTypes.objectOf(PropTypes.any),
+};
+
+ExportToCSVPage.defaultProps = {
+  user: null,
 };
 
 const mapStateToProps = state => ({
   journalEntriesList: state.journal?.allJournalEntriesList,
+  user: state.auth?.user,
 });
 
 export const ExportToCSVWrapper = connect(
