@@ -27,6 +27,7 @@ import {
 import { useTodayKey } from '../../../../context/DateProvider';
 import { SET_USER } from '../../../../redux/constants';
 import { RECREATION_ROUTES } from '../../../../navigation/routeNames';
+import { calculateCaloriesBurnedFromPounds } from '../../../../utils/calorieBurnMetrics';
 
 const workoutOptionsData = [
   { id: 1, name: 'BRUNCH BODY' },
@@ -566,54 +567,57 @@ export default function RecreationPage(props) {
 
   const calorieCalculationHandler = item => {
     let calories = 0;
-    const weight = parseFloat(user.weight, 10) / 2.205;
-    const calPerMin = (item?.met * 3.5 * weight) / 200;
+    const calculateCaloriesForDuration = durationMinutes =>
+      calculateCaloriesBurnedFromPounds({
+        weightPounds: user.weight,
+        met: item?.met,
+        durationMinutes,
+      });
 
     if (item?.rpm) {
       if (item?.unit === 'Rp') {
-        const calBurnedPerRep = calPerMin / item?.rpm;
-        calories = calBurnedPerRep * item?.amount;
+        calories = calculateCaloriesForDuration(item?.amount / item?.rpm);
       } else if (item?.unit === 'Mn') {
-        calories = calPerMin * item?.amount;
+        calories = calculateCaloriesForDuration(item?.amount);
       } else if (item?.unit === 'Hr') {
-        calories = calPerMin * item?.amount * 60;
+        calories = calculateCaloriesForDuration(item?.amount * 60);
       } else if (item?.unit === 'Sc') {
-        calories = calPerMin * (item?.amount / 60);
+        calories = calculateCaloriesForDuration(item?.amount / 60);
       } else {
         return false;
       }
     } else if (item?.mph) {
       if (item?.unit === 'mi') {
         const totalMin = (item?.amount / item?.mph) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if (item?.unit === 'm') {
         const amountInMiles = item?.amount / 1609;
         const totalMin = (amountInMiles / item?.mph) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if (item?.unit === 'km') {
         const amountInMiles = item?.amount / 1.609;
         const totalMin = (amountInMiles / item?.mph) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if (item?.unit === 'yd') {
         const amountInMiles = item?.amount / 1760;
         const totalMin = (amountInMiles / item?.mph) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if (item?.unit === 'Mn') {
-        calories = calPerMin * item?.amount;
+        calories = calculateCaloriesForDuration(item?.amount);
       } else if (item?.unit === 'Hr') {
-        calories = calPerMin * item?.amount * 60;
+        calories = calculateCaloriesForDuration(item?.amount * 60);
       } else if (item?.unit === 'Sc') {
-        calories = calPerMin * (item?.amount / 60);
+        calories = calculateCaloriesForDuration(item?.amount / 60);
       } else {
         return false;
       }
     } else {
       if (item?.unit === 'Mn') {
-        calories = calPerMin * item?.amount;
+        calories = calculateCaloriesForDuration(item?.amount);
       } else if (item?.unit === 'Hr') {
-        calories = calPerMin * item?.amount * 60;
+        calories = calculateCaloriesForDuration(item?.amount * 60);
       } else if (item?.unit === 'Sc') {
-        calories = calPerMin * (item?.amount / 60);
+        calories = calculateCaloriesForDuration(item?.amount / 60);
       } else {
         return false;
       }

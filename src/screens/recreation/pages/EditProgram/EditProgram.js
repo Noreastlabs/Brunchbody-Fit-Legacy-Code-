@@ -8,6 +8,7 @@ import {connect} from 'react-redux';
 import {EditProgram} from '../../components';
 import {wheelPickerItems} from '../../../../resources';
 import {addWeekPlan, editWeekPlan} from '../../../../redux/actions';
+import {calculateCaloriesBurnedFromPounds} from '../../../../utils/calorieBurnMetrics';
 
 const addExerciseOptions = [
   {id: 1, option: 'SINGLE EXERCISE'},
@@ -496,54 +497,71 @@ export default function EditProgramPage(props) {
 
   const calorieCalculationHandler = item => {
     let calories = 0;
-    const weight = parseFloat(user.weight, 10) / 2.205;
-    const calPerMin = ((item?.met || met) * 3.5 * weight) / 200;
+    const calculateCaloriesForDuration = durationMinutes =>
+      calculateCaloriesBurnedFromPounds({
+        weightPounds: user.weight,
+        met: item?.met || met,
+        durationMinutes,
+      });
 
     if (item?.rpm || rpm) {
       if ((item?.unit || unit) === 'Rp') {
-        const calBurnedPerRep = calPerMin / (item?.rpm || rpm);
-        calories = calBurnedPerRep * (item?.amount || amount);
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) / (item?.rpm || rpm),
+        );
       } else if ((item?.unit || unit) === 'Mn') {
-        calories = calPerMin * (item?.amount || amount);
+        calories = calculateCaloriesForDuration(item?.amount || amount);
       } else if ((item?.unit || unit) === 'Hr') {
-        calories = calPerMin * (item?.amount || amount) * 60;
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) * 60,
+        );
       } else if ((item?.unit || unit) === 'Sc') {
-        calories = calPerMin * ((item?.amount || amount) / 60);
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) / 60,
+        );
       } else {
         return false;
       }
     } else if (item?.mph || mph) {
       if ((item?.unit || unit) === 'mi') {
         const totalMin = ((item?.amount || amount) / (item?.mph || mph)) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if ((item?.unit || unit) === 'm') {
         const amountInMiles = (item?.amount || amount) / 1609;
         const totalMin = (amountInMiles / (item?.mph || mph)) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if ((item?.unit || unit) === 'km') {
         const amountInMiles = (item?.amount || amount) / 1.609;
         const totalMin = (amountInMiles / (item?.mph || mph)) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if ((item?.unit || unit) === 'yd') {
         const amountInMiles = (item?.amount || amount) / 1760;
         const totalMin = (amountInMiles / (item?.mph || mph)) * 60;
-        calories = totalMin * calPerMin;
+        calories = calculateCaloriesForDuration(totalMin);
       } else if ((item?.unit || unit) === 'Mn') {
-        calories = calPerMin * (item?.amount || amount);
+        calories = calculateCaloriesForDuration(item?.amount || amount);
       } else if ((item?.unit || unit) === 'Hr') {
-        calories = calPerMin * (item?.amount || amount) * 60;
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) * 60,
+        );
       } else if ((item?.unit || unit) === 'Sc') {
-        calories = calPerMin * ((item?.amount || amount) / 60);
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) / 60,
+        );
       } else {
         return false;
       }
     } else {
       if ((item?.unit || unit) === 'Mn') {
-        calories = calPerMin * (item?.amount || amount);
+        calories = calculateCaloriesForDuration(item?.amount || amount);
       } else if ((item?.unit || unit) === 'Hr') {
-        calories = calPerMin * (item?.amount || amount) * 60;
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) * 60,
+        );
       } else if ((item?.unit || unit) === 'Sc') {
-        calories = calPerMin * ((item?.amount || amount) / 60);
+        calories = calculateCaloriesForDuration(
+          (item?.amount || amount) / 60,
+        );
       } else {
         return false;
       }
