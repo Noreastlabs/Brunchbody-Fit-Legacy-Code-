@@ -526,6 +526,9 @@ describe('journal form UX boundary', () => {
     const getProps = () =>
       renderer.root.findByType('mock-journal-weight-log').props;
 
+    expect(getProps().weightLabel).toBe('Enter Weight (lbs)');
+    expect(getProps().weightPlaceholder).toBe('lbs');
+
     await ReactTestRenderer.act(async () => {
       await getProps().onSaveHandler();
     });
@@ -550,5 +553,178 @@ describe('journal form UX boundary', () => {
 
     expect(profile).toHaveBeenCalledWith({weight: '180'});
     expect(mockDispatch).toHaveBeenCalledTimes(1);
+  });
+
+  test('WeightLogPage falls back to standard pounds display for unsupported body units', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'unsupported'},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            weight: '180',
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const weightLogProps =
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(weightLogProps.weight).toBe('180');
+    expect(weightLogProps.weightLabel).toBe('Enter Weight (lbs)');
+    expect(weightLogProps.weightPlaceholder).toBe('lbs');
+    expect(weightLogProps.weightKeyboardType).toBe('number-pad');
+  });
+
+  test('WeightLogPage displays legacy pound entries as kilograms for metric users', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'metric'},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            weight: '135',
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const weightLogProps =
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(weightLogProps.weight).toBe('61.2');
+    expect(weightLogProps.weightLabel).toBe('Enter Weight (kg)');
+    expect(weightLogProps.weightPlaceholder).toBe('kg');
+    expect(weightLogProps.weightKeyboardType).toBe('decimal-pad');
+  });
+
+  test('WeightLogPage saves edited metric weight as a deterministic legacy pound payload', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'metric'},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            weight: '',
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().setWeight('61.2');
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    expect(props.onCreateEntry).toHaveBeenCalledWith(
+      expect.any(Number),
+      expect.objectContaining({
+        WeightLog: expect.objectContaining({
+          weight: '134.9',
+        }),
+      }),
+    );
+    expect(profile).toHaveBeenCalledWith({weight: '134.9'});
+  });
+
+  test('WeightLogPage preserves an unedited metric entry original legacy pound string', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'metric'},
+      route: {
+        params: {
+          entryId: 'entry-1',
+          entryData: {
+            date: '2024/01/01',
+            weight: '135',
+            note: 'legacy note',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(getProps().weight).toBe('61.2');
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    expect(props.onEditEntry).toHaveBeenCalledWith(
+      'entry-1',
+      expect.objectContaining({
+        WeightLog: expect.objectContaining({
+          weight: '135',
+        }),
+      }),
+    );
+    expect(profile).toHaveBeenCalledWith({weight: '135'});
+  });
+
+  test('WeightLogPage blocks invalid metric input before save payload creation', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'metric'},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            weight: '',
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().setWeight('not-a-number');
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    expect(getProps().weightErrorText).toBe('Enter a valid weight.');
+    expect(props.onCreateEntry).not.toHaveBeenCalled();
+    expect(props.onEditEntry).not.toHaveBeenCalled();
+    expect(profile).not.toHaveBeenCalled();
   });
 });

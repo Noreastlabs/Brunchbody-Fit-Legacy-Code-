@@ -8,9 +8,40 @@ import Weight from './Weight';
 import Calorie from './Calorie';
 import {colors} from '../../../resources';
 import style from './style';
+import {
+  isBodyUnitPreference,
+  poundsToKilograms,
+} from '../../../utils/bodyMeasurementUnits';
+
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+
+const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
+
+const roundChartValue = value => Math.round(value * 100) / 100;
+
+const getWeightDisplayValue = (value, unitPreference) => {
+  if (unitPreference !== METRIC_UNIT_PREFERENCE) {
+    return value;
+  }
+
+  const kilograms = poundsToKilograms(value);
+
+  return kilograms === null ? 0 : roundChartValue(kilograms);
+};
 
 const CarouselCards = props => {
-  const {loader, weightData, outlookData, calDiffData, labelsData} = props;
+  const {loader, weightData, outlookData, calDiffData, labelsData, user} =
+    props;
+  const bodyUnitPreference = resolveBodyUnitPreference(
+    user?.bodyUnitPreference,
+  );
+  const weightDisplayData = weightData.map(value =>
+    getWeightDisplayValue(value, bodyUnitPreference),
+  );
+  const weightUnitLabel =
+    bodyUnitPreference === METRIC_UNIT_PREFERENCE ? 'kg' : 'lbs';
 
   const outlookChart = {
     labels: [...labelsData].reverse(),
@@ -27,11 +58,11 @@ const CarouselCards = props => {
     labels: [...labelsData].reverse(),
     datasets: [
       {
-        data: weightData,
+        data: weightDisplayData,
         color: () => colors.tertiary,
       },
     ],
-    legend: ['Weight (lbs)'],
+    legend: [`Weight (${weightUnitLabel})`],
   };
 
   const calorieChart = {
@@ -82,6 +113,11 @@ CarouselCards.propTypes = {
   outlookData: PropTypes.arrayOf(PropTypes.any).isRequired,
   calDiffData: PropTypes.arrayOf(PropTypes.any).isRequired,
   labelsData: PropTypes.arrayOf(PropTypes.any).isRequired,
+  user: PropTypes.objectOf(PropTypes.any),
+};
+
+CarouselCards.defaultProps = {
+  user: null,
 };
 
 export default CarouselCards;

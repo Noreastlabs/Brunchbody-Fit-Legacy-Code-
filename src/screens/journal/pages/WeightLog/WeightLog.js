@@ -9,6 +9,47 @@ import {
   getJournalEntries,
   profile,
 } from '../../../../redux/actions';
+import {
+  isBodyUnitPreference,
+  kilogramsToPounds,
+  poundsToKilograms,
+} from '../../../../utils/bodyMeasurementUnits';
+
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+
+const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
+
+const formatMetricDisplayWeight = legacyWeight => {
+  const kilograms = poundsToKilograms(legacyWeight);
+
+  return kilograms === null ? '' : kilograms.toFixed(1);
+};
+
+const getInitialDisplayWeight = (legacyWeight, unitPreference) =>
+  unitPreference === METRIC_UNIT_PREFERENCE
+    ? formatMetricDisplayWeight(legacyWeight)
+    : legacyWeight;
+
+const getLegacyWeightPayload = ({
+  originalLegacyWeight,
+  unitPreference,
+  weight,
+  weightEdited,
+}) => {
+  if (unitPreference !== METRIC_UNIT_PREFERENCE) {
+    return weight;
+  }
+
+  if (!weightEdited && originalLegacyWeight) {
+    return originalLegacyWeight;
+  }
+
+  const pounds = kilogramsToPounds(weight);
+
+  return pounds === null ? null : pounds.toFixed(1);
+};
 
 export default function WeightLogPage(props) {
   const dispatch = useDispatch();
@@ -18,9 +59,15 @@ export default function WeightLogPage(props) {
     onCreateEntry,
     getAllJournalEntries,
     onEditEntry,
+    user,
   } = props;
   const entryData = route?.params?.entryData || {};
   const entryId = route?.params?.entryId;
+  const bodyUnitPreference = resolveBodyUnitPreference(
+    user?.bodyUnitPreference,
+  );
+  const isMetric = bodyUnitPreference === METRIC_UNIT_PREFERENCE;
+  const originalLegacyWeight = entryData.weight ? `${entryData.weight}` : '';
   const savePendingRef = useRef(false);
   const [loader, setLoader] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
@@ -30,8 +77,9 @@ export default function WeightLogPage(props) {
       : moment().format('M/DD/YYYY'),
   );
   const [weight, setWeight] = useState(
-    entryData.weight ? `${entryData.weight}` : '',
+    getInitialDisplayWeight(originalLegacyWeight, bodyUnitPreference),
   );
+  const [weightEdited, setWeightEdited] = useState(false);
   const [note, setNote] = useState(entryData.note || '');
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
@@ -63,6 +111,7 @@ export default function WeightLogPage(props) {
     setPermissionModal(false);
     if (check === 'clearEntry') {
       setWeight('');
+      setWeightEdited(true);
       setNote('');
       setWeightErrorText('');
       setFormErrorText('');
@@ -108,6 +157,21 @@ export default function WeightLogPage(props) {
       return;
     }
 
+    const legacyWeight = getLegacyWeightPayload({
+      originalLegacyWeight,
+      unitPreference: bodyUnitPreference,
+      weight,
+      weightEdited,
+    });
+
+    if (legacyWeight === null) {
+      setWeightErrorText('Enter a valid weight.');
+      setFormErrorText('');
+      setLoader(false);
+      savePendingRef.current = false;
+      return;
+    }
+
     try {
       setWeightErrorText('');
       setFormErrorText('');
@@ -115,7 +179,7 @@ export default function WeightLogPage(props) {
       if (entryId) {
         response = await onEditEntry(entryId, {
           WeightLog: {
-            weight,
+            weight: legacyWeight,
             note,
             isDeleted: false,
           },
@@ -123,7 +187,7 @@ export default function WeightLogPage(props) {
       } else {
         response = await onCreateEntry(d.getTime(), {
           WeightLog: {
-            weight,
+            weight: legacyWeight,
             note,
             isDeleted: false,
           },
@@ -133,7 +197,7 @@ export default function WeightLogPage(props) {
       if (response === true) {
         // Only update profile after successful journal entry save
         try {
-          const data = { weight };
+          const data = { weight: legacyWeight };
           await dispatch(profile(data));
         } catch (profileError) {
           console.warn('Profile update failed:', profileError);
@@ -163,9 +227,13 @@ export default function WeightLogPage(props) {
       weight={weight}
       setWeight={text => {
         setWeight(text);
+        setWeightEdited(true);
         setWeightErrorText('');
         setFormErrorText('');
       }}
+      weightLabel={`Enter Weight (${isMetric ? 'kg' : 'lbs'})`}
+      weightPlaceholder={isMetric ? 'kg' : 'lbs'}
+      weightKeyboardType={isMetric ? 'decimal-pad' : 'number-pad'}
       note={note}
       setNote={text => {
         setNote(text);
@@ -185,6 +253,7 @@ export default function WeightLogPage(props) {
 
 WeightLogPage.defaultProps = {
   route: {},
+  user: null,
 };
 
 WeightLogPage.propTypes = {
@@ -193,7 +262,12 @@ WeightLogPage.propTypes = {
   onCreateEntry: PropTypes.func.isRequired,
   getAllJournalEntries: PropTypes.func.isRequired,
   onEditEntry: PropTypes.func.isRequired,
+  user: PropTypes.objectOf(PropTypes.any),
 };
+
+const mapStateToProps = state => ({
+  user: state.auth?.user,
+});
 
 const mapDispatchToProps = dispatch => ({
   onCreateEntry: (date, data) => dispatch(addJournalEntry(date, data)),
@@ -202,6 +276,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 export const WeightLogWrapper = connect(
-  null,
+  mapStateToProps,
   mapDispatchToProps,
 )(WeightLogPage);

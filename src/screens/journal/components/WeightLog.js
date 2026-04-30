@@ -27,6 +27,9 @@ export default function WeightLog(props) {
     setWeight,
     note,
     setNote,
+    weightLabel,
+    weightPlaceholder,
+    weightKeyboardType,
     onSaveHandler,
     alertHeading,
     alertText,
@@ -59,13 +62,13 @@ export default function WeightLog(props) {
         </View>
 
         <View style={styles.setMargin}>
-          <Text style={styles.textStyle1}>Enter Weight (lbs)</Text>
+          <Text style={styles.textStyle1}>{weightLabel}</Text>
           <TextInput
             value={weight}
-            placeholder="lbs"
+            placeholder={weightPlaceholder}
             placeholderTextColor={colors.grey}
             onChangeText={text => setWeight(text)}
-            keyboardType="number-pad"
+            keyboardType={weightKeyboardType}
             style={styles.textInputStyle}
           />
           {weightErrorText ? (
@@ -127,6 +130,9 @@ WeightLog.propTypes = {
   setEntryName: PropTypes.func.isRequired,
   weight: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
   setWeight: PropTypes.func.isRequired,
+  weightLabel: PropTypes.string.isRequired,
+  weightPlaceholder: PropTypes.string.isRequired,
+  weightKeyboardType: PropTypes.string.isRequired,
   note: PropTypes.string.isRequired,
   setNote: PropTypes.func.isRequired,
   onSaveHandler: PropTypes.func.isRequired,
