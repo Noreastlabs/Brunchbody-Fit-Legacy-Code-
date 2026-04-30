@@ -6,6 +6,20 @@ import {
 import authReducer from '../src/redux/reducer/auth';
 import { SET_USER } from '../src/redux/constants';
 
+const reduceProfileWithReferenceDate = payload => {
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2026-04-16T12:00:00.000Z'));
+
+  try {
+    return authReducer(undefined, {
+      type: SET_USER,
+      payload,
+    }).user;
+  } finally {
+    jest.useRealTimers();
+  }
+};
+
 describe('Auth/profile repair boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -115,6 +129,69 @@ describe('Auth/profile repair boundary', () => {
     } finally {
       jest.useRealTimers();
     }
+  });
+
+  test('auth reducer preserves valid male legacy BMI and BMR outputs', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: '5.10',
+      weight: '171',
+      dob: '01/01/1995',
+      gender: 'male',
+    });
+
+    expect(user.bmi).toBe('24.53');
+    expect(user.bmr).toBe('1809.53');
+  });
+
+  test('auth reducer preserves valid female legacy BMI and BMR outputs', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: '135',
+      dob: '01/01/1995',
+      gender: 'female',
+    });
+
+    expect(user.bmi).toBe('21.79');
+    expect(user.bmr).toBe('1406.75');
+  });
+
+  test('auth reducer preserves male BMR fallback for unsupported and missing gender', () => {
+    const unsupportedGenderUser = reduceProfileWithReferenceDate({
+      height: '5.10',
+      weight: '171',
+      dob: '01/01/1995',
+      gender: 'unsupported',
+    });
+    const missingGenderUser = reduceProfileWithReferenceDate({
+      height: '5.10',
+      weight: '171',
+      dob: '01/01/1995',
+    });
+
+    expect(unsupportedGenderUser.bmi).toBe('24.53');
+    expect(unsupportedGenderUser.bmr).toBe('1809.53');
+    expect(missingGenderUser.bmi).toBe('24.53');
+    expect(missingGenderUser.bmr).toBe('1809.53');
+  });
+
+  test('auth reducer preserves compact legacy height dot notation', () => {
+    const paddedHeightUser = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: '135',
+      dob: '01/01/1995',
+      gender: 'female',
+    });
+    const compactHeightUser = reduceProfileWithReferenceDate({
+      height: '5.6',
+      weight: '135',
+      dob: '01/01/1995',
+      gender: 'female',
+    });
+
+    expect(compactHeightUser.bmi).toBe('21.79');
+    expect(compactHeightUser.bmr).toBe('1406.75');
+    expect(compactHeightUser.bmi).toBe(paddedHeightUser.bmi);
+    expect(compactHeightUser.bmr).toBe(paddedHeightUser.bmr);
   });
 
   test('auth reducer keeps BMI and BMR sourced from legacy compatibility fields', () => {

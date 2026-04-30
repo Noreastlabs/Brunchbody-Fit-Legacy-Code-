@@ -1,5 +1,9 @@
 /* eslint-disable no-restricted-properties */
 import { CLEAR_USER, SET_USER } from '../constants';
+import {
+  calculateBmiFromImperial,
+  calculateBmrFromImperial,
+} from '../../utils/bodyMetrics';
 
 const initialState = {
   user: {},
@@ -89,39 +93,33 @@ const getParsedWeight = weight => {
 const getBmi = (weight, userHeight) => {
   const parsedWeight = getParsedWeight(weight);
 
-  if (!Number.isFinite(parsedWeight) || !Number.isFinite(userHeight)) {
+  const bmi = calculateBmiFromImperial({
+    heightInches: userHeight,
+    weightPounds: parsedWeight,
+  });
+
+  if (!Number.isFinite(bmi)) {
     return null;
   }
 
-  return (703 * (parsedWeight / Math.pow(userHeight, 2))).toFixed(2);
+  return bmi.toFixed(2);
 };
 
 const getBmr = (userData, userHeight, actualAge) => {
   const parsedWeight = getParsedWeight(userData?.weight);
 
-  if (
-    !Number.isFinite(parsedWeight) ||
-    !Number.isFinite(userHeight) ||
-    !Number.isFinite(actualAge)
-  ) {
+  const bmr = calculateBmrFromImperial({
+    heightInches: userHeight,
+    weightPounds: parsedWeight,
+    age: actualAge,
+    gender: userData?.gender,
+  });
+
+  if (!Number.isFinite(bmr)) {
     return null;
   }
 
-  const bmrMale = (
-    66 +
-    6.23 * parsedWeight +
-    12.7 * userHeight -
-    6.8 * actualAge
-  ).toFixed(2);
-
-  const bmrFemale = (
-    655 +
-    4.35 * parsedWeight +
-    4.7 * userHeight -
-    4.7 * actualAge
-  ).toFixed(2);
-
-  return userData?.gender === 'female' ? bmrFemale : bmrMale;
+  return bmr.toFixed(2);
 };
 
 const deriveUserMetrics = userData => {
