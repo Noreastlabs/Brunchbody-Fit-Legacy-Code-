@@ -3,6 +3,8 @@ import {
   feetInchesToCentimeters,
   formatHeight,
   formatWeight,
+  getBodyHeightCentimeters,
+  getBodyWeightKilograms,
   isBodyUnitPreference,
   kilogramsToPounds,
   parseLegacyHeightToCentimeters,
@@ -66,6 +68,16 @@ describe('body measurement unit utilities', () => {
       expect(formatHeight(182.88, 'standard')).toBe('6 ft 0 in');
     });
 
+    test('selects canonical height before legacy compatibility height', () => {
+      expect(
+        getBodyHeightCentimeters({
+          heightCentimeters: 180,
+          height: '5.06',
+        }),
+      ).toBe(180);
+      expect(getBodyHeightCentimeters({height: '5.06'})).toBeCloseTo(167.64);
+    });
+
     test('returns null when height formatting inputs are invalid', () => {
       expect(formatHeight(167.64, 'imperial')).toBeNull();
       expect(formatHeight(0, 'metric')).toBeNull();
@@ -93,6 +105,18 @@ describe('body measurement unit utilities', () => {
       expect(formatWeight(61.23496995, 'standard')).toBe('135.0 lb');
       expect(formatWeight(61.23496995, 'metric')).toBe('61.2 kg');
       expect(formatWeight(61.26, 'metric')).toBe('61.3 kg');
+    });
+
+    test('selects canonical weight before legacy compatibility weight', () => {
+      expect(
+        getBodyWeightKilograms({
+          weightKilograms: 70,
+          weight: '135',
+        }),
+      ).toBe(70);
+      expect(getBodyWeightKilograms({weight: '135'})).toBeCloseTo(
+        61.23496995,
+      );
     });
 
     test('returns null for invalid weight inputs', () => {

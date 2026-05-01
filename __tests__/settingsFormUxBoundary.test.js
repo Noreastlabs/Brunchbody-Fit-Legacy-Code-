@@ -379,4 +379,23 @@ describe('settings form UX boundary', () => {
     expect(bmiItem.options[0].displayValue).toBe('21.79');
     expect(bmrItem.options[0].displayValue).toBe('1406.75 CALORIES');
   });
+
+  test('MyProfilePage prefers canonical current weight over conflicting legacy weight', async () => {
+    const renderer = await renderInAct(
+      <MyProfilePage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          weight: '999',
+          weightKilograms: 61.2,
+          bodyUnitPreference: 'metric',
+          targetCalories: [],
+        }}
+      />,
+    );
+    const listData =
+      renderer.root.findByType('mock-setting-my-profile').props.listData;
+    const weightItem = listData.find(item => item.title === 'Current Weight');
+
+    expect(weightItem.options[0].displayValue).toBe('61.2 kg');
+  });
 });

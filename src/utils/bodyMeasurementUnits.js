@@ -132,6 +132,14 @@ export const parseLegacyHeightToCentimeters = value => {
   return feetInchesToCentimeters(feetText, inchesText);
 };
 
+export const getBodyHeightCentimeters = ({heightCentimeters, height} = {}) => {
+  const canonicalCentimeters = toPositiveNumber(heightCentimeters);
+
+  return canonicalCentimeters === null
+    ? parseLegacyHeightToCentimeters(height)
+    : canonicalCentimeters;
+};
+
 export const formatHeight = (centimeters, unitPreference) => {
   if (!isBodyUnitPreference(unitPreference)) {
     return null;
@@ -200,6 +208,14 @@ export const parseWeightToKilograms = (value, unitPreference) => {
   return unitPreference === STANDARD_UNIT_PREFERENCE
     ? poundsToKilograms(parsedWeight)
     : parsedWeight;
+};
+
+export const getBodyWeightKilograms = ({weightKilograms, weight} = {}) => {
+  const canonicalKilograms = toPositiveNumber(weightKilograms);
+
+  return canonicalKilograms === null
+    ? poundsToKilograms(weight)
+    : canonicalKilograms;
 };
 
 export const formatWeight = (kilograms, unitPreference) => {

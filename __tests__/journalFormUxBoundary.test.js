@@ -551,7 +551,20 @@ describe('journal form UX boundary', () => {
       await second;
     });
 
-    expect(profile).toHaveBeenCalledWith({weight: '180'});
+    const savedWeightLog = props.onCreateEntry.mock.calls[0][1].WeightLog;
+
+    expect(savedWeightLog).toEqual(
+      expect.objectContaining({
+        weight: '180',
+        enteredWeightValue: '180',
+        enteredWeightUnit: 'lb',
+      }),
+    );
+    expect(savedWeightLog.weightKilograms).toBeCloseTo(81.6466266);
+    expect(profile).toHaveBeenCalledWith(
+      expect.objectContaining({weight: '180'}),
+    );
+    expect(profile.mock.calls[0][0].weightKilograms).toBeCloseTo(81.6466266);
     expect(mockDispatch).toHaveBeenCalledTimes(1);
   });
 
@@ -611,6 +624,38 @@ describe('journal form UX boundary', () => {
     expect(weightLogProps.weightKeyboardType).toBe('decimal-pad');
   });
 
+  test('WeightLogPage displays valid canonical entries before conflicting legacy source values', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'standard'},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            weight: '999',
+            weightKilograms: 61.2,
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const standardRenderer = await renderInAct(<WeightLogPage {...props} />);
+    expect(
+      standardRenderer.root.findByType('mock-journal-weight-log').props.weight,
+    ).toBe('134.9');
+
+    const metricRenderer = await renderInAct(
+      <WeightLogPage {...props} user={{bodyUnitPreference: 'metric'}} />,
+    );
+    expect(
+      metricRenderer.root.findByType('mock-journal-weight-log').props.weight,
+    ).toBe('61.2');
+  });
+
   test('WeightLogPage saves edited metric weight as a deterministic legacy pound payload', async () => {
     const props = {
       navigation: {goBack: jest.fn()},
@@ -646,10 +691,16 @@ describe('journal form UX boundary', () => {
       expect.objectContaining({
         WeightLog: expect.objectContaining({
           weight: '134.9',
+          weightKilograms: 61.2,
+          enteredWeightValue: '61.2',
+          enteredWeightUnit: 'kg',
         }),
       }),
     );
-    expect(profile).toHaveBeenCalledWith({weight: '134.9'});
+    expect(profile).toHaveBeenCalledWith({
+      weight: '134.9',
+      weightKilograms: 61.2,
+    });
   });
 
   test('WeightLogPage preserves an unedited metric entry original legacy pound string', async () => {
@@ -689,7 +740,15 @@ describe('journal form UX boundary', () => {
         }),
       }),
     );
-    expect(profile).toHaveBeenCalledWith({weight: '135'});
+    const savedWeightLog = props.onEditEntry.mock.calls[0][1].WeightLog;
+
+    expect(savedWeightLog).not.toHaveProperty('enteredWeightValue');
+    expect(savedWeightLog).not.toHaveProperty('enteredWeightUnit');
+    expect(savedWeightLog.weightKilograms).toBeCloseTo(61.23496995);
+    expect(profile).toHaveBeenCalledWith(
+      expect.objectContaining({weight: '135'}),
+    );
+    expect(profile.mock.calls[0][0].weightKilograms).toBeCloseTo(61.23496995);
   });
 
   test('WeightLogPage blocks invalid metric input before save payload creation', async () => {

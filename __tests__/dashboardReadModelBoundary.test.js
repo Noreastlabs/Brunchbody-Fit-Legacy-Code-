@@ -7,10 +7,16 @@ import { buildDashboardReadModel } from '../src/screens/dashboard/readModel';
 
 const now = new Date('2026-04-15T12:00:00.000Z');
 
-const createEntry = (date, { weight, feelingRate, caloriesDifferential }) => ({
+const createEntry = (
+  date,
+  { weight, weightKilograms, feelingRate, caloriesDifferential },
+) => ({
   id: `${date}-${weight}-${feelingRate}`,
   createdOn: new Date(date).getTime(),
-  WeightLog: { weight },
+  WeightLog: {
+    weight,
+    ...(weightKilograms === undefined ? {} : { weightKilograms }),
+  },
   DailyEntry: { feelingRate },
   CaloriesEntry: { caloriesDifferential },
 });
@@ -74,6 +80,23 @@ describe('dashboard read-model boundary', () => {
     expect(readModel.week.outlookData).toHaveLength(7);
     expect(readModel.month.calDiffData).toHaveLength(7);
     expect(readModel.year.weightData).toHaveLength(7);
+  });
+
+  test('buildDashboardReadModel prefers canonical WeightLog kilograms over legacy pounds', () => {
+    const readModel = buildDashboardReadModel(
+      [
+        createEntry('2026-04-15T12:00:00.000Z', {
+          weight: '999',
+          weightKilograms: 61.2,
+          feelingRate: '4',
+          caloriesDifferential: '100',
+        }),
+      ],
+      now,
+    );
+
+    expect(readModel.day.weightData[0]).toBe(134.92);
+    expect(readModel.week.weightData[0]).toBe(19.27);
   });
 
   test('journal reducer keeps journal lookup behavior and drops dashboard aggregate ownership', () => {

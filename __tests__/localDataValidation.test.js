@@ -376,9 +376,10 @@ describe('Persistence and hydration validation', () => {
       activity: 'Lightly Active',
     })(dispatch);
 
-    expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(
-      'user_profile',
-      JSON.stringify({
+    expect(AsyncStorage.setItem.mock.calls.at(-1)[0]).toBe('user_profile');
+    let savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+    expect(savedProfile).toEqual(
+      expect.objectContaining({
         dob: '01/01/1995',
         gender: 'female',
         height: '5.06',
@@ -386,6 +387,8 @@ describe('Persistence and hydration validation', () => {
         activity: 'Lightly Active',
       }),
     );
+    expect(savedProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(savedProfile.weightKilograms).toBeCloseTo(61.23496995);
     expect(dispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: SET_USER,
@@ -395,9 +398,10 @@ describe('Persistence and hydration validation', () => {
 
     dispatch.mockClear();
     await profile({ weight: '140' })(dispatch);
-    expect(AsyncStorage.setItem).toHaveBeenLastCalledWith(
-      'user_profile',
-      JSON.stringify({
+    expect(AsyncStorage.setItem.mock.calls.at(-1)[0]).toBe('user_profile');
+    savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+    expect(savedProfile).toEqual(
+      expect.objectContaining({
         dob: '01/01/1995',
         gender: 'female',
         height: '5.06',
@@ -405,6 +409,8 @@ describe('Persistence and hydration validation', () => {
         activity: 'Lightly Active',
       }),
     );
+    expect(savedProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(savedProfile.weightKilograms).toBeCloseTo(63.5029318);
     expect(dispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         type: SET_USER,

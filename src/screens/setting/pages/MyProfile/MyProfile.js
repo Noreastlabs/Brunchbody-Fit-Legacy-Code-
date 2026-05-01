@@ -6,8 +6,8 @@ import { SETTINGS_ROUTES } from '../../../../navigation/routeNames';
 import { MyProfile } from '../../components';
 import {
   formatWeight,
+  getBodyWeightKilograms,
   isBodyUnitPreference,
-  parseWeightToKilograms,
 } from '../../../../utils/bodyMeasurementUnits';
 
 const DEFAULT_TARGET_TOTALS = [
@@ -27,23 +27,25 @@ const hasDisplayValue = value =>
 const getTrimmedDisplayValue = value => `${value}`.trim();
 
 const getWeightText = user => {
-  if (!hasDisplayValue(user?.weight)) {
-    return 'Not set';
+  const weightKilograms = getBodyWeightKilograms({
+    weightKilograms: user?.weightKilograms,
+    weight: hasDisplayValue(user?.weight)
+      ? getTrimmedDisplayValue(user.weight)
+      : undefined,
+  });
+
+  if (weightKilograms === null) {
+    return hasDisplayValue(user?.weight)
+      ? `${getTrimmedDisplayValue(user.weight)} LBS`
+      : 'Not set';
   }
 
-  const weightKilograms = parseWeightToKilograms(
-    getTrimmedDisplayValue(user.weight),
-    STANDARD_UNIT_PREFERENCE,
+  const formattedWeight = formatWeight(
+    weightKilograms,
+    resolveBodyUnitPreference(user?.bodyUnitPreference),
   );
-  const formattedWeight =
-    weightKilograms === null
-      ? null
-      : formatWeight(
-          weightKilograms,
-          resolveBodyUnitPreference(user?.bodyUnitPreference),
-        );
 
-  return formattedWeight || `${getTrimmedDisplayValue(user.weight)} LBS`;
+  return formattedWeight || 'Not set';
 };
 
 const getBmiBadgeTone = bmi => {

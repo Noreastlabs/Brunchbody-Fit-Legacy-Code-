@@ -8,6 +8,10 @@ import {
   saveStoredProfile,
 } from './profileStorage';
 import { getOnboardingDraftKeys } from './onboardingStorage';
+import {
+  getBodyHeightCentimeters,
+  getBodyWeightKilograms,
+} from '../../utils/bodyMeasurementUnits';
 
 const LOCAL_PASSWORD_KEY = 'local_password';
 const LOCAL_PASSWORD_RESET_REQUEST_KEY = 'local_password_reset_requested_at';
@@ -17,9 +21,43 @@ const setUser = payload => ({
   payload,
 });
 
+const hasOwn = (value, key) =>
+  Object.prototype.hasOwnProperty.call(value || {}, key);
+
+const getCanonicalProfileMeasurements = data => {
+  const nextData =
+    data && typeof data === 'object' && !Array.isArray(data)
+      ? { ...data }
+      : {};
+
+  if (hasOwn(nextData, 'height')) {
+    const heightCentimeters = getBodyHeightCentimeters({
+      heightCentimeters: nextData.heightCentimeters,
+      height: nextData.height,
+    });
+
+    if (heightCentimeters !== null) {
+      nextData.heightCentimeters = heightCentimeters;
+    }
+  }
+
+  if (hasOwn(nextData, 'weight')) {
+    const weightKilograms = getBodyWeightKilograms({
+      weightKilograms: nextData.weightKilograms,
+      weight: nextData.weight,
+    });
+
+    if (weightKilograms !== null) {
+      nextData.weightKilograms = weightKilograms;
+    }
+  }
+
+  return nextData;
+};
+
 const mergeProfileWithStoredProfile = async data => {
   const storedProfile = (await loadStoredProfile()) || {};
-  return { ...storedProfile, ...data };
+  return { ...storedProfile, ...getCanonicalProfileMeasurements(data) };
 };
 
 const persistProfileAndDispatch = async (dispatch, user) => {

@@ -10,6 +10,7 @@ import {
   profile,
 } from '../../../../redux/actions';
 import {
+  getBodyWeightKilograms,
   isBodyUnitPreference,
   kilogramsToPounds,
   poundsToKilograms,
@@ -21,34 +22,136 @@ const METRIC_UNIT_PREFERENCE = 'metric';
 const resolveBodyUnitPreference = value =>
   isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
 
-const formatMetricDisplayWeight = legacyWeight => {
-  const kilograms = poundsToKilograms(legacyWeight);
+const getCanonicalEntryWeightKilograms = entryData =>
+  getBodyWeightKilograms({weightKilograms: entryData?.weightKilograms});
+
+const formatStandardDisplayWeight = entryData => {
+  const kilograms = getCanonicalEntryWeightKilograms(entryData);
+
+  if (kilograms !== null) {
+    const pounds = kilogramsToPounds(kilograms);
+
+    return pounds === null ? '' : pounds.toFixed(1);
+  }
+
+  return entryData?.weight ? `${entryData.weight}` : '';
+};
+
+const formatMetricDisplayWeight = entryData => {
+  const kilograms = getBodyWeightKilograms(entryData);
 
   return kilograms === null ? '' : kilograms.toFixed(1);
 };
 
-const getInitialDisplayWeight = (legacyWeight, unitPreference) =>
+const getInitialDisplayWeight = (entryData, unitPreference) =>
   unitPreference === METRIC_UNIT_PREFERENCE
-    ? formatMetricDisplayWeight(legacyWeight)
-    : legacyWeight;
+    ? formatMetricDisplayWeight(entryData)
+    : formatStandardDisplayWeight(entryData);
 
-const getLegacyWeightPayload = ({
-  originalLegacyWeight,
+const getExistingEnteredWeightMetadata = entryData => {
+  if (
+    entryData?.enteredWeightValue === undefined ||
+    entryData?.enteredWeightUnit === undefined
+  ) {
+    return {};
+  }
+
+  return {
+    enteredWeightValue: entryData.enteredWeightValue,
+    enteredWeightUnit: entryData.enteredWeightUnit,
+  };
+};
+
+const getEnteredWeightMetadata = ({
+  entryData,
+  unitPreference,
+  weightEdited,
+  weight,
+}) => {
+  if (!weightEdited) {
+    return getExistingEnteredWeightMetadata(entryData);
+  }
+
+  return {
+    enteredWeightValue: weight,
+    enteredWeightUnit:
+      unitPreference === METRIC_UNIT_PREFERENCE ? 'kg' : 'lb',
+  };
+};
+
+const getWeightPayloadValues = ({
+  entryData,
   unitPreference,
   weight,
   weightEdited,
 }) => {
+  const existingCanonicalWeightKilograms =
+    getCanonicalEntryWeightKilograms(entryData);
+  const originalLegacyWeight = entryData?.weight ? `${entryData.weight}` : '';
+
+  if (!weightEdited && existingCanonicalWeightKilograms !== null) {
+    const pounds = kilogramsToPounds(existingCanonicalWeightKilograms);
+    const legacyWeight =
+      originalLegacyWeight || (pounds === null ? null : pounds.toFixed(1));
+
+    return {
+      legacyWeight,
+      weightKilograms: existingCanonicalWeightKilograms,
+    };
+  }
+
   if (unitPreference !== METRIC_UNIT_PREFERENCE) {
-    return weight;
+    return {
+      legacyWeight: weight,
+      weightKilograms: poundsToKilograms(weight),
+    };
   }
 
   if (!weightEdited && originalLegacyWeight) {
-    return originalLegacyWeight;
+    return {
+      legacyWeight: originalLegacyWeight,
+      weightKilograms: poundsToKilograms(originalLegacyWeight),
+    };
   }
 
   const pounds = kilogramsToPounds(weight);
 
-  return pounds === null ? null : pounds.toFixed(1);
+  return {
+    legacyWeight: pounds === null ? null : pounds.toFixed(1),
+    weightKilograms: getBodyWeightKilograms({weightKilograms: weight}),
+  };
+};
+
+const getWeightLogPayload = ({
+  entryData,
+  unitPreference,
+  weight,
+  weightEdited,
+  note,
+}) => {
+  const {legacyWeight, weightKilograms} = getWeightPayloadValues({
+    entryData,
+    unitPreference,
+    weight,
+    weightEdited,
+  });
+
+  if (legacyWeight === null || weightKilograms === null) {
+    return null;
+  }
+
+  return {
+    weight: legacyWeight,
+    weightKilograms,
+    ...getEnteredWeightMetadata({
+      entryData,
+      unitPreference,
+      weight,
+      weightEdited,
+    }),
+    note,
+    isDeleted: false,
+  };
 };
 
 export default function WeightLogPage(props) {
@@ -67,7 +170,6 @@ export default function WeightLogPage(props) {
     user?.bodyUnitPreference,
   );
   const isMetric = bodyUnitPreference === METRIC_UNIT_PREFERENCE;
-  const originalLegacyWeight = entryData.weight ? `${entryData.weight}` : '';
   const savePendingRef = useRef(false);
   const [loader, setLoader] = useState(false);
   const [permissionModal, setPermissionModal] = useState(false);
@@ -77,7 +179,7 @@ export default function WeightLogPage(props) {
       : moment().format('M/DD/YYYY'),
   );
   const [weight, setWeight] = useState(
-    getInitialDisplayWeight(originalLegacyWeight, bodyUnitPreference),
+    getInitialDisplayWeight(entryData, bodyUnitPreference),
   );
   const [weightEdited, setWeightEdited] = useState(false);
   const [note, setNote] = useState(entryData.note || '');
@@ -157,14 +259,15 @@ export default function WeightLogPage(props) {
       return;
     }
 
-    const legacyWeight = getLegacyWeightPayload({
-      originalLegacyWeight,
+    const weightLogPayload = getWeightLogPayload({
+      entryData,
       unitPreference: bodyUnitPreference,
       weight,
       weightEdited,
+      note,
     });
 
-    if (legacyWeight === null) {
+    if (!weightLogPayload) {
       setWeightErrorText('Enter a valid weight.');
       setFormErrorText('');
       setLoader(false);
@@ -178,26 +281,21 @@ export default function WeightLogPage(props) {
 
       if (entryId) {
         response = await onEditEntry(entryId, {
-          WeightLog: {
-            weight: legacyWeight,
-            note,
-            isDeleted: false,
-          },
+          WeightLog: weightLogPayload,
         });
       } else {
         response = await onCreateEntry(d.getTime(), {
-          WeightLog: {
-            weight: legacyWeight,
-            note,
-            isDeleted: false,
-          },
+          WeightLog: weightLogPayload,
         });
       }
 
       if (response === true) {
         // Only update profile after successful journal entry save
         try {
-          const data = { weight: legacyWeight };
+          const data = {
+            weight: weightLogPayload.weight,
+            weightKilograms: weightLogPayload.weightKilograms,
+          };
           await dispatch(profile(data));
         } catch (profileError) {
           console.warn('Profile update failed:', profileError);
