@@ -1,0 +1,151 @@
+export const MEASUREMENT_CATEGORIES = Object.freeze({
+  BODY_WEIGHT: 'bodyWeight',
+  LENGTH: 'length',
+  DISTANCE: 'distance',
+  MASS: 'mass',
+});
+
+export const MEASUREMENT_UNITS = Object.freeze({
+  KILOGRAM: 'kg',
+  POUND: 'lb',
+  CENTIMETER: 'cm',
+  INCH: 'in',
+  KILOMETER: 'km',
+  MILE: 'mi',
+  GRAM: 'g',
+  OUNCE: 'oz',
+});
+
+export const MEASUREMENT_CONVERSION_ERROR_CODES = Object.freeze({
+  NON_FINITE_VALUE: 'NON_FINITE_VALUE',
+  UNSUPPORTED_CATEGORY: 'UNSUPPORTED_CATEGORY',
+  UNSUPPORTED_UNIT: 'UNSUPPORTED_UNIT',
+  UNSUPPORTED_UNIT_PAIR: 'UNSUPPORTED_UNIT_PAIR',
+});
+
+export const MEASUREMENT_CONVERSION_FACTORS = Object.freeze({
+  CENTIMETERS_PER_INCH: 2.54,
+  KILOGRAMS_PER_POUND: 0.45359237,
+  KILOMETERS_PER_MILE: 1.609344,
+  GRAMS_PER_OUNCE: 28.349523125,
+});
+
+const UNIT_NORMALIZATION = Object.freeze({
+  [MEASUREMENT_UNITS.KILOGRAM]: MEASUREMENT_UNITS.KILOGRAM,
+  [MEASUREMENT_UNITS.POUND]: MEASUREMENT_UNITS.POUND,
+  lbs: MEASUREMENT_UNITS.POUND,
+  [MEASUREMENT_UNITS.CENTIMETER]: MEASUREMENT_UNITS.CENTIMETER,
+  [MEASUREMENT_UNITS.INCH]: MEASUREMENT_UNITS.INCH,
+  [MEASUREMENT_UNITS.KILOMETER]: MEASUREMENT_UNITS.KILOMETER,
+  [MEASUREMENT_UNITS.MILE]: MEASUREMENT_UNITS.MILE,
+  [MEASUREMENT_UNITS.GRAM]: MEASUREMENT_UNITS.GRAM,
+  [MEASUREMENT_UNITS.OUNCE]: MEASUREMENT_UNITS.OUNCE,
+});
+
+const SUPPORTED_CATEGORY_UNITS = Object.freeze({
+  [MEASUREMENT_CATEGORIES.BODY_WEIGHT]: Object.freeze([
+    MEASUREMENT_UNITS.KILOGRAM,
+    MEASUREMENT_UNITS.POUND,
+  ]),
+  [MEASUREMENT_CATEGORIES.LENGTH]: Object.freeze([
+    MEASUREMENT_UNITS.CENTIMETER,
+    MEASUREMENT_UNITS.INCH,
+  ]),
+  [MEASUREMENT_CATEGORIES.DISTANCE]: Object.freeze([
+    MEASUREMENT_UNITS.KILOMETER,
+    MEASUREMENT_UNITS.MILE,
+  ]),
+  [MEASUREMENT_CATEGORIES.MASS]: Object.freeze([
+    MEASUREMENT_UNITS.GRAM,
+    MEASUREMENT_UNITS.OUNCE,
+  ]),
+});
+
+const CONVERSION_MULTIPLIERS = Object.freeze({
+  [MEASUREMENT_CATEGORIES.BODY_WEIGHT]: Object.freeze({
+    [`${MEASUREMENT_UNITS.POUND}:${MEASUREMENT_UNITS.KILOGRAM}`]:
+      MEASUREMENT_CONVERSION_FACTORS.KILOGRAMS_PER_POUND,
+    [`${MEASUREMENT_UNITS.KILOGRAM}:${MEASUREMENT_UNITS.POUND}`]:
+      1 / MEASUREMENT_CONVERSION_FACTORS.KILOGRAMS_PER_POUND,
+  }),
+  [MEASUREMENT_CATEGORIES.LENGTH]: Object.freeze({
+    [`${MEASUREMENT_UNITS.INCH}:${MEASUREMENT_UNITS.CENTIMETER}`]:
+      MEASUREMENT_CONVERSION_FACTORS.CENTIMETERS_PER_INCH,
+    [`${MEASUREMENT_UNITS.CENTIMETER}:${MEASUREMENT_UNITS.INCH}`]:
+      1 / MEASUREMENT_CONVERSION_FACTORS.CENTIMETERS_PER_INCH,
+  }),
+  [MEASUREMENT_CATEGORIES.DISTANCE]: Object.freeze({
+    [`${MEASUREMENT_UNITS.MILE}:${MEASUREMENT_UNITS.KILOMETER}`]:
+      MEASUREMENT_CONVERSION_FACTORS.KILOMETERS_PER_MILE,
+    [`${MEASUREMENT_UNITS.KILOMETER}:${MEASUREMENT_UNITS.MILE}`]:
+      1 / MEASUREMENT_CONVERSION_FACTORS.KILOMETERS_PER_MILE,
+  }),
+  [MEASUREMENT_CATEGORIES.MASS]: Object.freeze({
+    [`${MEASUREMENT_UNITS.OUNCE}:${MEASUREMENT_UNITS.GRAM}`]:
+      MEASUREMENT_CONVERSION_FACTORS.GRAMS_PER_OUNCE,
+    [`${MEASUREMENT_UNITS.GRAM}:${MEASUREMENT_UNITS.OUNCE}`]:
+      1 / MEASUREMENT_CONVERSION_FACTORS.GRAMS_PER_OUNCE,
+  }),
+});
+
+const getFailureResult = code => ({
+  ok: false,
+  error: {code},
+});
+
+const getSuccessResult = value => ({
+  ok: true,
+  value,
+});
+
+const normalizeUnit = unit =>
+  typeof unit === 'string' ? UNIT_NORMALIZATION[unit] || null : null;
+
+export const convertMeasurement = ({value, category, fromUnit, toUnit} = {}) => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return getFailureResult(
+      MEASUREMENT_CONVERSION_ERROR_CODES.NON_FINITE_VALUE,
+    );
+  }
+
+  const supportedUnits = SUPPORTED_CATEGORY_UNITS[category];
+
+  if (!supportedUnits) {
+    return getFailureResult(
+      MEASUREMENT_CONVERSION_ERROR_CODES.UNSUPPORTED_CATEGORY,
+    );
+  }
+
+  const normalizedFromUnit = normalizeUnit(fromUnit);
+  const normalizedToUnit = normalizeUnit(toUnit);
+
+  if (!normalizedFromUnit || !normalizedToUnit) {
+    return getFailureResult(
+      MEASUREMENT_CONVERSION_ERROR_CODES.UNSUPPORTED_UNIT,
+    );
+  }
+
+  if (
+    !supportedUnits.includes(normalizedFromUnit) ||
+    !supportedUnits.includes(normalizedToUnit)
+  ) {
+    return getFailureResult(
+      MEASUREMENT_CONVERSION_ERROR_CODES.UNSUPPORTED_UNIT_PAIR,
+    );
+  }
+
+  if (normalizedFromUnit === normalizedToUnit) {
+    return getSuccessResult(value);
+  }
+
+  const multiplier =
+    CONVERSION_MULTIPLIERS[category][`${normalizedFromUnit}:${normalizedToUnit}`];
+
+  if (!multiplier) {
+    return getFailureResult(
+      MEASUREMENT_CONVERSION_ERROR_CODES.UNSUPPORTED_UNIT_PAIR,
+    );
+  }
+
+  return getSuccessResult(value * multiplier);
+};

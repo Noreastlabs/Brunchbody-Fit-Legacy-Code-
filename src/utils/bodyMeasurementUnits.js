@@ -1,5 +1,8 @@
-const CENTIMETERS_PER_INCH = 2.54;
-const KILOGRAMS_PER_POUND = 0.45359237;
+import {
+  convertMeasurement,
+  MEASUREMENT_CATEGORIES,
+  MEASUREMENT_UNITS,
+} from './measurementConversions';
 
 const STANDARD_UNIT_PREFERENCE = 'standard';
 const METRIC_UNIT_PREFERENCE = 'metric';
@@ -66,7 +69,14 @@ export const feetInchesToCentimeters = (feetValue, inchesValue) => {
     return null;
   }
 
-  return (height.feet * 12 + height.inches) * CENTIMETERS_PER_INCH;
+  const result = convertMeasurement({
+    value: height.feet * 12 + height.inches,
+    category: MEASUREMENT_CATEGORIES.LENGTH,
+    fromUnit: MEASUREMENT_UNITS.INCH,
+    toUnit: MEASUREMENT_UNITS.CENTIMETER,
+  });
+
+  return result.ok ? result.value : null;
 };
 
 export const centimetersToFeetInches = centimeters => {
@@ -76,7 +86,18 @@ export const centimetersToFeetInches = centimeters => {
     return null;
   }
 
-  const totalInches = Math.round(parsedCentimeters / CENTIMETERS_PER_INCH);
+  const result = convertMeasurement({
+    value: parsedCentimeters,
+    category: MEASUREMENT_CATEGORIES.LENGTH,
+    fromUnit: MEASUREMENT_UNITS.CENTIMETER,
+    toUnit: MEASUREMENT_UNITS.INCH,
+  });
+
+  if (!result.ok) {
+    return null;
+  }
+
+  const totalInches = Math.round(result.value);
 
   if (totalInches <= 0) {
     return null;
@@ -134,15 +155,35 @@ export const formatHeight = (centimeters, unitPreference) => {
 export const poundsToKilograms = pounds => {
   const parsedPounds = toPositiveNumber(pounds);
 
-  return parsedPounds === null ? null : parsedPounds * KILOGRAMS_PER_POUND;
+  if (parsedPounds === null) {
+    return null;
+  }
+
+  const result = convertMeasurement({
+    value: parsedPounds,
+    category: MEASUREMENT_CATEGORIES.BODY_WEIGHT,
+    fromUnit: MEASUREMENT_UNITS.POUND,
+    toUnit: MEASUREMENT_UNITS.KILOGRAM,
+  });
+
+  return result.ok ? result.value : null;
 };
 
 export const kilogramsToPounds = kilograms => {
   const parsedKilograms = toPositiveNumber(kilograms);
 
-  return parsedKilograms === null
-    ? null
-    : parsedKilograms / KILOGRAMS_PER_POUND;
+  if (parsedKilograms === null) {
+    return null;
+  }
+
+  const result = convertMeasurement({
+    value: parsedKilograms,
+    category: MEASUREMENT_CATEGORIES.BODY_WEIGHT,
+    fromUnit: MEASUREMENT_UNITS.KILOGRAM,
+    toUnit: MEASUREMENT_UNITS.POUND,
+  });
+
+  return result.ok ? result.value : null;
 };
 
 export const parseWeightToKilograms = (value, unitPreference) => {

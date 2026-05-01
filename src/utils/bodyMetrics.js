@@ -2,8 +2,9 @@ import {
   kilogramsToPounds,
   parseLegacyHeightToCentimeters,
 } from './bodyMeasurementUnits';
+import {MEASUREMENT_CONVERSION_FACTORS} from './measurementConversions';
 
-const CENTIMETERS_PER_INCH = 2.54;
+const {CENTIMETERS_PER_INCH} = MEASUREMENT_CONVERSION_FACTORS;
 const NUMERIC_TEXT_PATTERN = /^(?:\d+|\d*\.\d+)$/;
 
 const toFiniteNumber = value => {
