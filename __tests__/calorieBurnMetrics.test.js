@@ -2,6 +2,7 @@ import {
   calculateCaloriesBurnedFromKilograms,
   calculateCaloriesBurnedFromPounds,
   legacyWeightPoundsToKilograms,
+  selectProfileWeightForCalorieBurn,
 } from '../src/utils/calorieBurnMetrics';
 
 const STANDARD_WEIGHT_POUNDS = 135;
@@ -20,6 +21,48 @@ const calculateCurrentScreenFormula = ({
 };
 
 describe('calorie burn metric helpers', () => {
+  test('selects canonical profile kilograms for calorie burn input', () => {
+    expect(
+      selectProfileWeightForCalorieBurn({
+        weight: '999',
+        weightKilograms: 10,
+      }),
+    ).toEqual({weightKilograms: 10});
+  });
+
+  test('falls back to legacy profile pounds when canonical kilograms are missing', () => {
+    expect(
+      selectProfileWeightForCalorieBurn({
+        weight: '180',
+      }),
+    ).toEqual({weightPounds: '180'});
+  });
+
+  test.each([
+    ['numeric string canonical field', '10'],
+    ['zero canonical field', 0],
+    ['negative canonical field', -10],
+    ['NaN canonical field', NaN],
+    ['Infinity canonical field', Infinity],
+  ])('falls back to legacy profile pounds for %s', (_label, weightKilograms) => {
+    expect(
+      selectProfileWeightForCalorieBurn({
+        weight: '180',
+        weightKilograms,
+      }),
+    ).toEqual({weightPounds: '180'});
+  });
+
+  test('keeps canonical kilograms first when profile weights conflict', () => {
+    const selectedWeight = selectProfileWeightForCalorieBurn({
+      weight: '999',
+      weightKilograms: 10,
+    });
+
+    expect(selectedWeight).toEqual({weightKilograms: 10});
+    expect(selectedWeight).not.toHaveProperty('weightPounds');
+  });
+
   test('converts legacy pounds using the Recreation/EditProgram divisor', () => {
     expect(legacyWeightPoundsToKilograms(STANDARD_WEIGHT_POUNDS)).toBeCloseTo(
       STANDARD_WEIGHT_POUNDS / 2.205,
