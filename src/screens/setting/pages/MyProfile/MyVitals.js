@@ -121,6 +121,27 @@ const getStoredDobValue = dob => `${dob.date}/${dob.month}/${dob.year}`;
 
 const getStoredHeightValue = height => `${height.feet}.${height.inches}`;
 
+const getLegacyHeightValueFromCentimeters = centimeters => {
+  const nextHeight = centimetersToFeetInches(centimeters);
+
+  return nextHeight ? getStoredHeightValue(nextHeight) : null;
+};
+
+const buildMyVitalsProfileUpdatePayload = ({
+  name,
+  dob,
+  heightCentimeters,
+  bodyUnitPreference,
+  gender,
+}) => ({
+  name,
+  dob: getStoredDobValue(dob),
+  height: getLegacyHeightValueFromCentimeters(heightCentimeters),
+  heightCentimeters,
+  bodyUnitPreference,
+  gender,
+});
+
 const getInitialName = value => (typeof value === 'string' ? value : '');
 
 const getInitialGender = value => (value === 'female' ? 'female' : 'male');
@@ -346,12 +367,6 @@ export default function MyVitalsPage(props) {
         ? feetInchesToCentimeters(draftHeight.feet, draftHeight.inches)
         : null;
 
-  const getLegacyHeightValueFromCentimeters = centimeters => {
-    const nextHeight = centimetersToFeetInches(centimeters);
-
-    return nextHeight ? getStoredHeightValue(nextHeight) : null;
-  };
-
   const onUpdateHandler = async () => {
     if (submitLockRef.current || loader) {
       return;
@@ -393,29 +408,21 @@ export default function MyVitalsPage(props) {
 
     try {
       const trimmedName = draftName.trim();
-      const storedHeight = getLegacyHeightValueFromCentimeters(
-        draftHeightCentimeters,
-      );
-      const response = await updateUserProfile({
+      const profileUpdatePayload = buildMyVitalsProfileUpdatePayload({
         name: trimmedName,
-        dob: getStoredDobValue(draftDob),
-        height: storedHeight,
+        dob: draftDob,
         heightCentimeters: draftHeightCentimeters,
         bodyUnitPreference,
         gender: draftGender,
       });
+      const response = await updateUserProfile(profileUpdatePayload);
 
       if (response === true) {
         await getUserData();
 
         const committedUser = {
           ...latestUserRef.current,
-          name: trimmedName,
-          dob: getStoredDobValue(draftDob),
-          height: storedHeight,
-          heightCentimeters: draftHeightCentimeters,
-          bodyUnitPreference,
-          gender: draftGender,
+          ...profileUpdatePayload,
         };
 
         latestUserRef.current = committedUser;

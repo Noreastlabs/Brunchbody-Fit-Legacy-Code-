@@ -22,6 +22,11 @@ const flushEffects = async () => {
 const getDraftWriteCalls = key =>
   mockSetOnboardingDraftValue.mock.calls.filter(([draftKey]) => draftKey === key);
 
+const expectNoDurableDerivedProfileFields = payload => {
+  expect(payload).not.toHaveProperty('bmi');
+  expect(payload).not.toHaveProperty('bmr');
+};
+
 const createDeferred = () => {
   let resolve;
   let reject;
@@ -465,6 +470,7 @@ describe('Complete profile flow boundary', () => {
     );
     expect(submittedProfile.heightCentimeters).toBeCloseTo(167.64);
     expect(submittedProfile.weightKilograms).toBeCloseTo(61.23496995);
+    expectNoDurableDerivedProfileFields(submittedProfile);
     expect(mockDispatch).toHaveBeenCalledTimes(1);
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'PROFILE',
@@ -527,6 +533,7 @@ describe('Complete profile flow boundary', () => {
         weightKilograms: 61.2,
       }),
     );
+    expectNoDurableDerivedProfileFields(submittedProfile);
     expect(getDraftWriteCalls('bodyUnitPreference')).toEqual([
       ['bodyUnitPreference', 'metric'],
     ]);

@@ -86,6 +86,31 @@ const getLegacyWeightFromKilograms = kilograms => {
   return pounds === null ? null : `${Math.round(pounds)}`;
 };
 
+const buildProfileBodyMeasurementPayload = ({
+  bodyUnitPreference,
+  height,
+  heightCentimeters,
+  weight,
+  weightKilograms,
+}) => {
+  const legacyHeight =
+    bodyUnitPreference === METRIC_UNIT_PREFERENCE
+      ? getLegacyHeightFromCentimeters(heightCentimeters)
+      : getStoredHeightValue(height);
+  const legacyWeight =
+    bodyUnitPreference === METRIC_UNIT_PREFERENCE
+      ? getLegacyWeightFromKilograms(weightKilograms)
+      : weight;
+
+  return {
+    bodyUnitPreference,
+    height: legacyHeight,
+    heightCentimeters,
+    weight: legacyWeight,
+    weightKilograms,
+  };
+};
+
 const parseStoredDob = value => {
   if (typeof value !== 'string') {
     return null;
@@ -334,28 +359,20 @@ export const CompleteProfilePage = () => {
     }
   };
 
-  const getBodyMeasurementPayload = trimmedWeight => {
+  const getCurrentBodyMeasurementPayload = trimmedWeight => {
     const heightCentimeters = getCurrentHeightCentimeters(bodyUnitPreference);
     const weightKilograms = parseWeightToKilograms(
       trimmedWeight,
       bodyUnitPreference,
     );
-    const legacyHeight =
-      bodyUnitPreference === METRIC_UNIT_PREFERENCE
-        ? getLegacyHeightFromCentimeters(heightCentimeters)
-        : getStoredHeightValue(height);
-    const legacyWeight =
-      bodyUnitPreference === METRIC_UNIT_PREFERENCE
-        ? getLegacyWeightFromKilograms(weightKilograms)
-        : trimmedWeight;
 
-    return {
+    return buildProfileBodyMeasurementPayload({
       bodyUnitPreference,
-      height: legacyHeight,
       heightCentimeters,
-      weight: legacyWeight,
+      height,
+      weight: trimmedWeight,
       weightKilograms,
-    };
+    });
   };
 
   const onSubmitProfile = async () => {
@@ -373,7 +390,7 @@ export const CompleteProfilePage = () => {
         profile({
           name: name.trim(),
           dob: getStoredDobValue(dateOfBirth),
-          ...getBodyMeasurementPayload(trimmedWeight),
+          ...getCurrentBodyMeasurementPayload(trimmedWeight),
           gender: gender || 'male',
           targetCalories: getDefaultTargetCalories(),
         }),

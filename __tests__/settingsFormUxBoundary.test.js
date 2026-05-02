@@ -61,6 +61,11 @@ const renderInAct = async element => {
   return renderer;
 };
 
+const expectNoDurableDerivedProfileFields = payload => {
+  expect(payload).not.toHaveProperty('bmi');
+  expect(payload).not.toHaveProperty('bmr');
+};
+
 describe('settings form UX boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -169,6 +174,7 @@ describe('settings form UX boundary', () => {
     expect(updateUserProfile.mock.calls[0][0].heightCentimeters).toBeCloseTo(
       167.64,
     );
+    expectNoDurableDerivedProfileFields(updateUserProfile.mock.calls[0][0]);
     expect(getUserData).toHaveBeenCalledTimes(1);
     expect(getProps().isPermissionModal).toBe(true);
     expect(getProps().formErrorText).toBe('');
@@ -219,6 +225,7 @@ describe('settings form UX boundary', () => {
     expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty(
       'weightKilograms',
     );
+    expectNoDurableDerivedProfileFields(updateUserProfile.mock.calls[0][0]);
   });
 
   test('MyVitalsPage reports invalid metric height inline', async () => {
