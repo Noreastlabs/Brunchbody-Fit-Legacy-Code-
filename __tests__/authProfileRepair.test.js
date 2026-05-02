@@ -90,7 +90,7 @@ describe('Auth/profile repair boundary', () => {
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
 
-  test('loadStoredProfile does not generate missing canonical fields', async () => {
+  test('loadStoredProfile backfills missing canonical body fields and rewrites storage', async () => {
     const storedProfile = {
       dob: '01/01/1995',
       gender: 'female',
@@ -109,15 +109,108 @@ describe('Auth/profile repair boundary', () => {
 
     const loadedProfile = await loadStoredProfile();
 
-    expect(loadedProfile).toEqual(storedProfile);
-    expect(loadedProfile).not.toHaveProperty('heightCentimeters');
-    expect(loadedProfile).not.toHaveProperty('weightKilograms');
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-      'user_profile',
-      JSON.stringify(storedProfile),
+    expect(loadedProfile).toEqual(expect.objectContaining(storedProfile));
+    expect(loadedProfile.height).toBe('5.06');
+    expect(loadedProfile.weight).toBe('135');
+    expect(loadedProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(loadedProfile.weightKilograms).toBeCloseTo(61.23496995);
+    expect(loadedProfile).not.toHaveProperty('bmi');
+    expect(loadedProfile).not.toHaveProperty('bmr');
+    expect(AsyncStorage.setItem).toHaveBeenCalledTimes(1);
+    const rewrittenProfile = JSON.parse(
+      AsyncStorage.setItem.mock.calls.at(-1)[1],
     );
+    expect(rewrittenProfile).toEqual(loadedProfile);
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
+
+  test.each([
+    ['missing', {}],
+    ['unsupported', { bodyUnitPreference: 'unsupported' }],
+  ])(
+    'loadStoredProfile defers canonical backfill when bodyUnitPreference is %s',
+    async (_label, preferenceFields) => {
+      const storedProfile = {
+        dob: '01/01/1995',
+        gender: 'female',
+        height: '5.06',
+        weight: '135',
+        ...preferenceFields,
+      };
+
+      AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+      const loadedProfile = await loadStoredProfile();
+
+      expect(loadedProfile).toEqual(storedProfile);
+      expect(loadedProfile).not.toHaveProperty('heightCentimeters');
+      expect(loadedProfile).not.toHaveProperty('weightKilograms');
+      expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    },
+  );
+
+  test('loadStoredProfile preserves existing canonical fields over disagreeing legacy fields', async () => {
+    const storedProfile = {
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      bodyUnitPreference: 'standard',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+    await expect(loadStoredProfile()).resolves.toEqual(storedProfile);
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('loadStoredProfile preserves invalid existing canonical fields without overwrite', async () => {
+    const storedProfile = {
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 0,
+      weightKilograms: 'bad-input',
+      bodyUnitPreference: 'standard',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+    await expect(loadStoredProfile()).resolves.toEqual(storedProfile);
+    expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ['malformed text', { height: 'bad-input', weight: 'bad-input' }],
+    ['blank values', { height: '', weight: ' ' }],
+    ['zero values', { height: '0.10', weight: '0' }],
+  ])(
+    'loadStoredProfile preserves %s without canonical backfill',
+    async (_label, bodyFields) => {
+      const storedProfile = {
+        dob: '01/01/1995',
+        gender: 'female',
+        bodyUnitPreference: 'standard',
+        ...bodyFields,
+      };
+
+      AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+      const loadedProfile = await loadStoredProfile();
+
+      expect(loadedProfile).toEqual(storedProfile);
+      expect(loadedProfile).not.toHaveProperty('heightCentimeters');
+      expect(loadedProfile).not.toHaveProperty('weightKilograms');
+      expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    },
+  );
 
   test('loadStoredProfile strips NaN derived fields before durable restore', async () => {
     const canonicalProfile = {
@@ -167,7 +260,7 @@ describe('Auth/profile repair boundary', () => {
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
 
-  test('saveStoredProfile does not generate missing canonical fields', async () => {
+  test('saveStoredProfile persists canonical backfill when legacy body fields are eligible', async () => {
     const storedProfile = {
       dob: '01/01/1995',
       gender: 'female',
@@ -183,11 +276,47 @@ describe('Auth/profile repair boundary', () => {
     });
 
     const savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
-    expect(savedProfile).toEqual(storedProfile);
-    expect(savedProfile).not.toHaveProperty('heightCentimeters');
-    expect(savedProfile).not.toHaveProperty('weightKilograms');
+    expect(savedProfile).toEqual(expect.objectContaining(storedProfile));
+    expect(savedProfile.height).toBe('5.06');
+    expect(savedProfile.weight).toBe('135');
+    expect(savedProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(savedProfile.weightKilograms).toBeCloseTo(61.23496995);
+    expect(savedProfile).not.toHaveProperty('bmi');
+    expect(savedProfile).not.toHaveProperty('bmr');
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
+
+  test.each([
+    ['missing', {}],
+    ['unsupported', { bodyUnitPreference: 'unsupported' }],
+  ])(
+    'saveStoredProfile defers canonical backfill when bodyUnitPreference is %s',
+    async (_label, preferenceFields) => {
+      const storedProfile = {
+        dob: '01/01/1995',
+        gender: 'female',
+        height: '5.06',
+        weight: '135',
+        ...preferenceFields,
+      };
+
+      await saveStoredProfile({
+        ...storedProfile,
+        bmi: '1.00',
+        bmr: '2.00',
+      });
+
+      const savedProfile = JSON.parse(
+        AsyncStorage.setItem.mock.calls.at(-1)[1],
+      );
+      expect(savedProfile).toEqual(storedProfile);
+      expect(savedProfile).not.toHaveProperty('heightCentimeters');
+      expect(savedProfile).not.toHaveProperty('weightKilograms');
+      expect(savedProfile).not.toHaveProperty('bmi');
+      expect(savedProfile).not.toHaveProperty('bmr');
+      expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+    },
+  );
 
   test('profile save preserves stored body shape on non-body partial updates', async () => {
     const dispatch = jest.fn();
@@ -211,6 +340,48 @@ describe('Auth/profile repair boundary', () => {
       ...storedProfile,
       name: 'Taylor Rae',
     });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SET_USER,
+      payload: savedProfile,
+    });
+  });
+
+  test('profile save carries load-repaired canonical fields through non-body partial updates', async () => {
+    const dispatch = jest.fn();
+    const storedProfile = {
+      name: 'Taylor',
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      bodyUnitPreference: 'standard',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+    await profile({ name: 'Taylor Rae' })(dispatch);
+
+    expect(AsyncStorage.setItem).toHaveBeenCalledTimes(2);
+    const repairedStoredProfile = JSON.parse(
+      AsyncStorage.setItem.mock.calls[0][1],
+    );
+    const savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+
+    expect(repairedStoredProfile).toEqual(
+      expect.objectContaining(storedProfile),
+    );
+    expect(repairedStoredProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(repairedStoredProfile.weightKilograms).toBeCloseTo(61.23496995);
+    expect(savedProfile).toEqual(
+      expect.objectContaining({
+        ...storedProfile,
+        name: 'Taylor Rae',
+      }),
+    );
+    expect(savedProfile.height).toBe('5.06');
+    expect(savedProfile.weight).toBe('135');
+    expect(savedProfile.heightCentimeters).toBeCloseTo(167.64);
+    expect(savedProfile.weightKilograms).toBeCloseTo(61.23496995);
     expect(dispatch).toHaveBeenCalledWith({
       type: SET_USER,
       payload: savedProfile,
