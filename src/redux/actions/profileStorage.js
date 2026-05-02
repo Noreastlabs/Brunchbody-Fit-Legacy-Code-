@@ -9,7 +9,8 @@ const DERIVED_PROFILE_FIELDS = ['bmi', 'bmr'];
 const isPlainObject = value =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const stripDerivedProfileFields = profileData => {
+// Storage normalization is shape-preserving except for untrusted derived fields.
+const normalizeProfileStorageShape = profileData => {
   if (!isPlainObject(profileData)) {
     return null;
   }
@@ -46,7 +47,7 @@ export const loadStoredProfile = async () => {
     return null;
   }
 
-  const sanitizedResult = stripDerivedProfileFields(parsedProfile);
+  const sanitizedResult = normalizeProfileStorageShape(parsedProfile);
 
   if (!sanitizedResult) {
     await AsyncStorage.removeItem(USER_PROFILE_KEY);
@@ -73,7 +74,7 @@ export const loadStoredProfile = async () => {
 export const hasStoredProfile = async () => Boolean(await loadStoredProfile());
 
 export const saveStoredProfile = async profileData => {
-  const sanitizedResult = stripDerivedProfileFields(profileData);
+  const sanitizedResult = normalizeProfileStorageShape(profileData);
   const sanitizedProfile = sanitizedResult?.sanitizedProfile;
 
   if (!sanitizedProfile || Object.keys(sanitizedProfile).length === 0) {

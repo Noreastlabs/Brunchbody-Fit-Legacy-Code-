@@ -32,6 +32,9 @@ describe('Auth/onboarding storage boundary', () => {
       dob: '01/01/1995',
       height: '5.06',
       weight: '135',
+      heightCentimeters: 167.64,
+      weightKilograms: 61.23496995,
+      bodyUnitPreference: 'standard',
       gender: 'female',
     };
 

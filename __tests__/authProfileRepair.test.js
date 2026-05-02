@@ -3,6 +3,7 @@ import {
   loadStoredProfile,
   saveStoredProfile,
 } from '../src/redux/actions/profileStorage';
+import { profile } from '../src/redux/actions/auth';
 import authReducer from '../src/redux/reducer/auth';
 import { SET_USER } from '../src/redux/constants';
 
@@ -38,8 +39,8 @@ describe('Auth/profile repair boundary', () => {
     expect(AsyncStorage.setItem).not.toHaveBeenCalled();
   });
 
-  test('loadStoredProfile strips stale derived fields and rewrites the canonical profile', async () => {
-    const canonicalProfile = {
+  test('loadStoredProfile strips stale derived fields and rewrites the stored profile', async () => {
+    const storedProfile = {
       dob: '01/01/1995',
       gender: 'female',
       height: '5.06',
@@ -48,16 +49,72 @@ describe('Auth/profile repair boundary', () => {
 
     AsyncStorage.getItem.mockResolvedValueOnce(
       JSON.stringify({
-        ...canonicalProfile,
+        ...storedProfile,
         bmi: '1.00',
         bmr: '2.00',
       }),
     );
 
-    await expect(loadStoredProfile()).resolves.toEqual(canonicalProfile);
+    await expect(loadStoredProfile()).resolves.toEqual(storedProfile);
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       'user_profile',
-      JSON.stringify(canonicalProfile),
+      JSON.stringify(storedProfile),
+    );
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('loadStoredProfile preserves body shape while repairing derived residue', async () => {
+    const storedProfile = {
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      bodyUnitPreference: 'metric',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({
+        ...storedProfile,
+        bmi: '1.00',
+        bmr: '2.00',
+      }),
+    );
+
+    await expect(loadStoredProfile()).resolves.toEqual(storedProfile);
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_profile',
+      JSON.stringify(storedProfile),
+    );
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('loadStoredProfile does not generate missing canonical fields', async () => {
+    const storedProfile = {
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      bodyUnitPreference: 'standard',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(
+      JSON.stringify({
+        ...storedProfile,
+        bmi: '1.00',
+        bmr: '2.00',
+      }),
+    );
+
+    const loadedProfile = await loadStoredProfile();
+
+    expect(loadedProfile).toEqual(storedProfile);
+    expect(loadedProfile).not.toHaveProperty('heightCentimeters');
+    expect(loadedProfile).not.toHaveProperty('weightKilograms');
+    expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+      'user_profile',
+      JSON.stringify(storedProfile),
     );
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
   });
@@ -87,24 +144,113 @@ describe('Auth/profile repair boundary', () => {
   });
 
   test('saveStoredProfile persists only non-derived direct profile fields', async () => {
-    const canonicalProfile = {
+    const storedProfile = {
       dob: '01/01/1995',
       gender: 'female',
       height: '5.06',
       weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      bodyUnitPreference: 'metric',
     };
 
     await saveStoredProfile({
-      ...canonicalProfile,
+      ...storedProfile,
       bmi: '1.00',
       bmr: '2.00',
     });
 
     expect(AsyncStorage.setItem).toHaveBeenCalledWith(
       'user_profile',
-      JSON.stringify(canonicalProfile),
+      JSON.stringify(storedProfile),
     );
     expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('saveStoredProfile does not generate missing canonical fields', async () => {
+    const storedProfile = {
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      bodyUnitPreference: 'standard',
+    };
+
+    await saveStoredProfile({
+      ...storedProfile,
+      bmi: '1.00',
+      bmr: '2.00',
+    });
+
+    const savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+    expect(savedProfile).toEqual(storedProfile);
+    expect(savedProfile).not.toHaveProperty('heightCentimeters');
+    expect(savedProfile).not.toHaveProperty('weightKilograms');
+    expect(AsyncStorage.removeItem).not.toHaveBeenCalled();
+  });
+
+  test('profile save preserves stored body shape on non-body partial updates', async () => {
+    const dispatch = jest.fn();
+    const storedProfile = {
+      name: 'Taylor',
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      bodyUnitPreference: 'metric',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+    await profile({ name: 'Taylor Rae' })(dispatch);
+
+    const savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+    expect(savedProfile).toEqual({
+      ...storedProfile,
+      name: 'Taylor Rae',
+    });
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SET_USER,
+      payload: savedProfile,
+    });
+  });
+
+  test('profile save keeps canonical refresh limited to incoming legacy body fields', async () => {
+    const dispatch = jest.fn();
+    const storedProfile = {
+      name: 'Taylor',
+      dob: '01/01/1995',
+      gender: 'female',
+      height: '5.06',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 200,
+      bodyUnitPreference: 'metric',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+    await profile({ weight: '140' })(dispatch);
+
+    const savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+    expect(savedProfile).toEqual(
+      expect.objectContaining({
+        name: 'Taylor',
+        dob: '01/01/1995',
+        gender: 'female',
+        height: '5.06',
+        weight: '140',
+        heightCentimeters: 200,
+        bodyUnitPreference: 'metric',
+      }),
+    );
+    expect(savedProfile.weightKilograms).toBeCloseTo(63.5029318);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SET_USER,
+      payload: savedProfile,
+    });
   });
 
   test('auth reducer recomputes derived metrics instead of trusting stale incoming fields', () => {
