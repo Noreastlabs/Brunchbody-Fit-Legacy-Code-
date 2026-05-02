@@ -48,7 +48,7 @@ const getInitialDisplayWeight = (entryData, unitPreference) =>
     ? formatMetricDisplayWeight(entryData)
     : formatStandardDisplayWeight(entryData);
 
-const getExistingEnteredWeightMetadata = entryData => {
+const getExistingInputProvenanceFields = entryData => {
   if (
     entryData?.enteredWeightValue === undefined ||
     entryData?.enteredWeightUnit === undefined
@@ -62,14 +62,14 @@ const getExistingEnteredWeightMetadata = entryData => {
   };
 };
 
-const getEnteredWeightMetadata = ({
+const getWeightLogInputProvenanceFields = ({
   entryData,
   unitPreference,
   weightEdited,
   weight,
 }) => {
   if (!weightEdited) {
-    return getExistingEnteredWeightMetadata(entryData);
+    return getExistingInputProvenanceFields(entryData);
   }
 
   return {
@@ -79,7 +79,7 @@ const getEnteredWeightMetadata = ({
   };
 };
 
-const getWeightPayloadValues = ({
+const getWeightLogSourceAndCanonicalFields = ({
   entryData,
   unitPreference,
   weight,
@@ -95,60 +95,64 @@ const getWeightPayloadValues = ({
       originalLegacyWeight || (pounds === null ? null : pounds.toFixed(1));
 
     return {
-      legacyWeight,
-      weightKilograms: existingCanonicalWeightKilograms,
+      legacySourceWeight: legacyWeight,
+      canonicalWeightKilograms: existingCanonicalWeightKilograms,
     };
   }
 
   if (unitPreference !== METRIC_UNIT_PREFERENCE) {
     return {
-      legacyWeight: weight,
-      weightKilograms: poundsToKilograms(weight),
+      legacySourceWeight: weight,
+      canonicalWeightKilograms: poundsToKilograms(weight),
     };
   }
 
   if (!weightEdited && originalLegacyWeight) {
     return {
-      legacyWeight: originalLegacyWeight,
-      weightKilograms: poundsToKilograms(originalLegacyWeight),
+      legacySourceWeight: originalLegacyWeight,
+      canonicalWeightKilograms: poundsToKilograms(originalLegacyWeight),
     };
   }
 
   const pounds = kilogramsToPounds(weight);
 
   return {
-    legacyWeight: pounds === null ? null : pounds.toFixed(1),
-    weightKilograms: getBodyWeightKilograms({weightKilograms: weight}),
+    legacySourceWeight: pounds === null ? null : pounds.toFixed(1),
+    canonicalWeightKilograms: getBodyWeightKilograms({weightKilograms: weight}),
   };
 };
 
-const getWeightLogPayload = ({
+const buildWeightLogEntryPayload = ({
   entryData,
   unitPreference,
   weight,
   weightEdited,
   note,
 }) => {
-  const {legacyWeight, weightKilograms} = getWeightPayloadValues({
+  const legacyAndCanonicalFields = getWeightLogSourceAndCanonicalFields({
     entryData,
     unitPreference,
     weight,
     weightEdited,
   });
+  const inputProvenanceFields = getWeightLogInputProvenanceFields({
+    entryData,
+    unitPreference,
+    weight,
+    weightEdited,
+  });
+  const {legacySourceWeight, canonicalWeightKilograms} =
+    legacyAndCanonicalFields;
 
-  if (legacyWeight === null || weightKilograms === null) {
+  if (legacySourceWeight === null || canonicalWeightKilograms === null) {
     return null;
   }
 
   return {
-    weight: legacyWeight,
-    weightKilograms,
-    ...getEnteredWeightMetadata({
-      entryData,
-      unitPreference,
-      weight,
-      weightEdited,
-    }),
+    // `weight` remains the legacy/source pounds value; kg is canonical context.
+    weight: legacySourceWeight,
+    weightKilograms: canonicalWeightKilograms,
+    ...inputProvenanceFields,
     note,
     isDeleted: false,
   };
@@ -259,7 +263,7 @@ export default function WeightLogPage(props) {
       return;
     }
 
-    const weightLogPayload = getWeightLogPayload({
+    const weightLogPayload = buildWeightLogEntryPayload({
       entryData,
       unitPreference: bodyUnitPreference,
       weight,
