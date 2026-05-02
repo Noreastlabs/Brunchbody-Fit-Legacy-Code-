@@ -132,6 +132,100 @@ describe('selected journal export boundary', () => {
     });
   });
 
+  test('exports WeightLog canonical context from stored kilograms while preserving raw fields', async () => {
+    const sourceEntry = createJournalEntry('WeightLog', {
+      isDeleted: false,
+      weight: '999',
+      weightKilograms: 61.2,
+      enteredWeightValue: '61.2',
+      enteredWeightUnit: 'kg',
+      note: 'Metric edit',
+    });
+
+    const rows = await exportRowsForEntryType({
+      entryType: 'WeightLog',
+      journalEntriesList: [sourceEntry],
+      user: { bodyUnitPreference: 'metric' },
+    });
+
+    expect(rows).toEqual([
+      {
+        Dated: '1/1/2024',
+        weight: '999',
+        weightKilograms: 61.2,
+        enteredWeightValue: '61.2',
+        enteredWeightUnit: 'kg',
+        note: 'Metric edit',
+        weight_source_value: '999',
+        weight_source_unit: 'lb',
+        weight_display_value: '61.2',
+        weight_display_unit: 'kg',
+        weight_canonical_value: '61.2',
+        weight_canonical_unit: 'kg',
+      },
+    ]);
+    expect(sourceEntry.WeightLog).toEqual({
+      isDeleted: false,
+      weight: '999',
+      weightKilograms: 61.2,
+      enteredWeightValue: '61.2',
+      enteredWeightUnit: 'kg',
+      note: 'Metric edit',
+    });
+  });
+
+  test('exports standard WeightLog display from stored canonical kilograms when present', async () => {
+    const rows = await exportRowsForEntryType({
+      entryType: 'WeightLog',
+      journalEntriesList: [
+        createJournalEntry('WeightLog', {
+          isDeleted: false,
+          weight: '999',
+          weightKilograms: 61.2,
+        }),
+      ],
+      user: { bodyUnitPreference: 'standard' },
+    });
+
+    expect(rows[0]).toEqual({
+      Dated: '1/1/2024',
+      weight: '999',
+      weightKilograms: 61.2,
+      weight_source_value: '999',
+      weight_source_unit: 'lb',
+      weight_display_value: '134.9',
+      weight_display_unit: 'lb',
+      weight_canonical_value: '61.2',
+      weight_canonical_unit: 'kg',
+    });
+  });
+
+  test('falls back to legacy WeightLog pounds when stored canonical kilograms are invalid', async () => {
+    const rows = await exportRowsForEntryType({
+      entryType: 'WeightLog',
+      journalEntriesList: [
+        createJournalEntry('WeightLog', {
+          isDeleted: false,
+          weight: '135',
+          weightKilograms: 'bad-input',
+        }),
+      ],
+      user: { bodyUnitPreference: 'metric' },
+    });
+
+    expect(rows[0]).toEqual({
+      Dated: '1/1/2024',
+      weight: '135',
+      weightKilograms: 'bad-input',
+      weight_source_value: '135',
+      weight_source_unit: 'lb',
+      weight_display_value: '61.2',
+      weight_display_unit: 'kg',
+      weight_canonical_value: '61.2',
+      weight_canonical_unit: 'kg',
+    });
+  });
+
   test.each([
     { label: 'missing', user: undefined },
     { label: 'unsupported', user: { bodyUnitPreference: 'unsupported' } },

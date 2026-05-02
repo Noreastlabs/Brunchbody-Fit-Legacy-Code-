@@ -8,8 +8,9 @@ import PropTypes from 'prop-types';
 import RNFS from 'react-native-fs';
 import { ExportToCSV } from '../../components';
 import {
+  getBodyWeightKilograms,
   isBodyUnitPreference,
-  poundsToKilograms,
+  kilogramsToPounds,
 } from '../../../../utils/bodyMeasurementUnits';
 
 const STANDARD_UNIT_PREFERENCE = 'standard';
@@ -48,10 +49,19 @@ const getSourceWeightValue = value =>
 
 const formatKilogramsForExport = kilograms => kilograms.toFixed(1);
 
-const getWeightUnitExportFields = (weight, unitPreference) => {
+const formatPoundsForExport = pounds => pounds.toFixed(1);
+
+const getWeightUnitExportFields = (entryFields, unitPreference) => {
+  const weight = entryFields?.weight;
   const sourceValue = getSourceWeightValue(weight);
   const sourceUnit = sourceValue === '' ? '' : LEGACY_WEIGHT_UNIT;
-  const kilograms = poundsToKilograms(weight);
+  const storedKilograms = getBodyWeightKilograms({
+    weightKilograms: entryFields?.weightKilograms,
+  });
+  const kilograms =
+    storedKilograms === null
+      ? getBodyWeightKilograms({ weight })
+      : storedKilograms;
 
   if (kilograms === null) {
     return {
@@ -65,15 +75,26 @@ const getWeightUnitExportFields = (weight, unitPreference) => {
   }
 
   const kilogramValue = formatKilogramsForExport(kilograms);
+  const storedKilogramPounds =
+    storedKilograms === null ? null : kilogramsToPounds(storedKilograms);
+  const standardDisplayValue =
+    storedKilograms === null
+      ? weight
+      : storedKilogramPounds === null
+        ? ''
+        : formatPoundsForExport(storedKilogramPounds);
+  const isMetricPreference = unitPreference === METRIC_UNIT_PREFERENCE;
 
   return {
     weight_source_value: sourceValue,
-    weight_source_unit: LEGACY_WEIGHT_UNIT,
-    weight_display_value:
-      unitPreference === METRIC_UNIT_PREFERENCE ? kilogramValue : weight,
-    weight_display_unit:
-      unitPreference === METRIC_UNIT_PREFERENCE
-        ? CANONICAL_WEIGHT_UNIT
+    weight_source_unit: sourceUnit,
+    weight_display_value: isMetricPreference
+      ? kilogramValue
+      : standardDisplayValue,
+    weight_display_unit: isMetricPreference
+      ? CANONICAL_WEIGHT_UNIT
+      : standardDisplayValue === ''
+        ? ''
         : LEGACY_WEIGHT_UNIT,
     weight_canonical_value: kilogramValue,
     weight_canonical_unit: CANONICAL_WEIGHT_UNIT,
@@ -176,7 +197,7 @@ export default function ExportToCSVPage(props) {
                 ? {
                     ...exportRow,
                     ...getWeightUnitExportFields(
-                      entryFields.weight,
+                      entryFields,
                       bodyUnitPreference,
                     ),
                   }
