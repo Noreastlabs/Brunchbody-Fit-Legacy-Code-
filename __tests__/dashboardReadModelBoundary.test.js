@@ -99,6 +99,51 @@ describe('dashboard read-model boundary', () => {
     expect(readModel.week.weightData[0]).toBe(19.27);
   });
 
+  test('buildDashboardReadModel falls back to legacy WeightLog pounds when canonical kilograms are not valid', () => {
+    const readModel = buildDashboardReadModel(
+      [
+        createEntry('2026-04-15T12:00:00.000Z', {
+          weight: '181',
+          weightKilograms: 'bad-input',
+          feelingRate: '4',
+          caloriesDifferential: '100',
+        }),
+        createEntry('2026-04-14T12:00:00.000Z', {
+          weight: '',
+          weightKilograms: 0,
+          feelingRate: '3',
+          caloriesDifferential: '-50',
+        }),
+      ],
+      now,
+    );
+
+    expect(readModel.day.weightData).toEqual(['181', '0', 0, 0, 0, 0, 0]);
+    expect(readModel.week.weightData[0]).toBe(25.86);
+  });
+
+  test('buildDashboardReadModel does not mutate source journal entries', () => {
+    const entries = [
+      createEntry('2026-04-15T12:00:00.000Z', {
+        weight: '999',
+        weightKilograms: 61.2,
+        feelingRate: '4',
+        caloriesDifferential: '100',
+      }),
+      createEntry('2026-04-14T12:00:00.000Z', {
+        weight: '181',
+        weightKilograms: 'bad-input',
+        feelingRate: '3',
+        caloriesDifferential: '-50',
+      }),
+    ];
+    const sourceSnapshot = JSON.parse(JSON.stringify(entries));
+
+    buildDashboardReadModel(entries, now);
+
+    expect(entries).toEqual(sourceSnapshot);
+  });
+
   test('journal reducer keeps journal lookup behavior and drops dashboard aggregate ownership', () => {
     const initialState = journalReducer(undefined, { type: '@@INIT' });
 

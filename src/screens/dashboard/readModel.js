@@ -18,19 +18,31 @@ const fillChartData = (values, count) => {
   return values;
 };
 
-const getWeightLogValue = weightLog => {
-  const canonicalKilograms = getBodyWeightKilograms({
+const getWeightLogCanonicalKilograms = weightLog =>
+  getBodyWeightKilograms({
     weightKilograms: weightLog?.weightKilograms,
   });
 
-  if (canonicalKilograms !== null) {
-    const pounds = kilogramsToPounds(canonicalKilograms);
+const getPoundChartValueFromKilograms = canonicalKilograms => {
+  const pounds = kilogramsToPounds(canonicalKilograms);
 
-    return pounds === null ? 0 : roundChartValue(pounds);
+  return pounds === null ? 0 : roundChartValue(pounds);
+};
+
+const getLegacyPoundChartValue = weightLog => weightLog?.weight || '0';
+
+const getWeightLogPoundChartValue = weightLog => {
+  const canonicalKilograms = getWeightLogCanonicalKilograms(weightLog);
+
+  if (canonicalKilograms !== null) {
+    return getPoundChartValueFromKilograms(canonicalKilograms);
   }
 
-  return weightLog?.weight || '0';
+  return getLegacyPoundChartValue(weightLog);
 };
+
+const getWeightLogPoundAggregateValue = weightLog =>
+  parseFloat(getWeightLogPoundChartValue(weightLog), 10);
 
 const buildDailyData = entries => {
   const weightData = [];
@@ -41,7 +53,7 @@ const buildDailyData = entries => {
     .sort((a, b) => b.createdOn - a.createdOn)
     .splice(0, CHART_DATA_LENGTH)
     .forEach(item => {
-      weightData.push(getWeightLogValue(item.WeightLog));
+      weightData.push(getWeightLogPoundChartValue(item.WeightLog));
       outlookData.push(item.DailyEntry?.feelingRate || '0');
       calDiffData.push(item.CaloriesEntry?.caloriesDifferential || '0');
     });
@@ -114,7 +126,7 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         currentKey: moment(currentDate).format('w'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('w'),
         includeEntry: item => Boolean(item.WeightLog),
-        getValue: item => parseFloat(getWeightLogValue(item.WeightLog), 10),
+        getValue: item => getWeightLogPoundAggregateValue(item.WeightLog),
         divisor: CHART_DATA_LENGTH,
       }),
       outlookData: buildPeriodData({
@@ -143,7 +155,7 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         currentKey: moment(currentDate).format('MMM'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('MMM'),
         includeEntry: item => Boolean(item.WeightLog),
-        getValue: item => parseFloat(getWeightLogValue(item.WeightLog), 10),
+        getValue: item => getWeightLogPoundAggregateValue(item.WeightLog),
         divisor: daysInMonth,
       }),
       outlookData: buildPeriodData({
@@ -172,7 +184,7 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         currentKey: moment(currentDate).format('YYYY'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('YYYY'),
         includeEntry: item => Boolean(item.WeightLog),
-        getValue: item => parseFloat(getWeightLogValue(item.WeightLog), 10),
+        getValue: item => getWeightLogPoundAggregateValue(item.WeightLog),
         divisor: 365.24,
       }),
       outlookData: buildPeriodData({
