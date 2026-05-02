@@ -30,12 +30,8 @@ import { RECREATION_ROUTES } from '../../../../navigation/routeNames';
 import {
   calculateCaloriesBurnedFromKilograms,
   calculateCaloriesBurnedFromPounds,
+  selectProfileWeightForCalorieBurn,
 } from '../../../../utils/calorieBurnMetrics';
-
-const hasValidWeightKilograms = weightKilograms =>
-  typeof weightKilograms === 'number' &&
-  Number.isFinite(weightKilograms) &&
-  weightKilograms > 0;
 
 const workoutOptionsData = [
   { id: 1, name: 'BRUNCH BODY' },
@@ -575,15 +571,16 @@ export default function RecreationPage(props) {
 
   const calorieCalculationHandler = item => {
     let calories = 0;
+    const profileWeightInput = selectProfileWeightForCalorieBurn(user);
     const calculateCaloriesForDuration = durationMinutes =>
-      hasValidWeightKilograms(user?.weightKilograms)
+      'weightKilograms' in profileWeightInput
         ? calculateCaloriesBurnedFromKilograms({
-            weightKilograms: user.weightKilograms,
+            ...profileWeightInput,
             met: item?.met,
             durationMinutes,
           })
         : calculateCaloriesBurnedFromPounds({
-            weightPounds: user.weight,
+            ...profileWeightInput,
             met: item?.met,
             durationMinutes,
           });

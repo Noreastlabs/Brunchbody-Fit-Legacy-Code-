@@ -27,6 +27,16 @@ const toPositiveNumber = value => {
   return parsedValue > 0 ? parsedValue : null;
 };
 
+const hasCanonicalProfileWeightKilograms = weightKilograms =>
+  typeof weightKilograms === 'number' &&
+  Number.isFinite(weightKilograms) &&
+  weightKilograms > 0;
+
+export const selectProfileWeightForCalorieBurn = profile =>
+  hasCanonicalProfileWeightKilograms(profile?.weightKilograms)
+    ? {weightKilograms: profile.weightKilograms}
+    : {weightPounds: profile?.weight};
+
 export const legacyWeightPoundsToKilograms = weightPounds => {
   const parsedWeightPounds = toPositiveNumber(weightPounds);
 

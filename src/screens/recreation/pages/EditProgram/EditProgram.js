@@ -11,12 +11,8 @@ import {addWeekPlan, editWeekPlan} from '../../../../redux/actions';
 import {
   calculateCaloriesBurnedFromKilograms,
   calculateCaloriesBurnedFromPounds,
+  selectProfileWeightForCalorieBurn,
 } from '../../../../utils/calorieBurnMetrics';
-
-const hasValidWeightKilograms = weightKilograms =>
-  typeof weightKilograms === 'number' &&
-  Number.isFinite(weightKilograms) &&
-  weightKilograms > 0;
 
 const addExerciseOptions = [
   {id: 1, option: 'SINGLE EXERCISE'},
@@ -505,15 +501,16 @@ export default function EditProgramPage(props) {
 
   const calorieCalculationHandler = item => {
     let calories = 0;
+    const profileWeightInput = selectProfileWeightForCalorieBurn(user);
     const calculateCaloriesForDuration = durationMinutes =>
-      hasValidWeightKilograms(user?.weightKilograms)
+      'weightKilograms' in profileWeightInput
         ? calculateCaloriesBurnedFromKilograms({
-            weightKilograms: user.weightKilograms,
+            ...profileWeightInput,
             met: item?.met || met,
             durationMinutes,
           })
         : calculateCaloriesBurnedFromPounds({
-            weightPounds: user.weight,
+            ...profileWeightInput,
             met: item?.met || met,
             durationMinutes,
           });
