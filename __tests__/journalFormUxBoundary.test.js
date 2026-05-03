@@ -659,6 +659,105 @@ describe('journal form UX boundary', () => {
     ).toBe('61.2');
   });
 
+  test('WeightLogPage preserves conflicting legacy source when saving an unedited canonical entry', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'standard'},
+      route: {
+        params: {
+          entryId: 'entry-conflict',
+          entryData: {
+            date: '2024/01/01',
+            weight: '999',
+            weightKilograms: 61.2,
+            note: 'canonical wins display',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(getProps().weight).toBe('134.9');
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    const savedWeightLog = props.onEditEntry.mock.calls[0][1].WeightLog;
+
+    expect(savedWeightLog).toEqual(
+      expect.objectContaining({
+        weight: '999',
+        weightKilograms: 61.2,
+        note: 'canonical wins display',
+        isDeleted: false,
+      }),
+    );
+    expect(savedWeightLog).not.toHaveProperty('bodyUnitPreference');
+    expect(profile).toHaveBeenCalledWith({
+      weight: '999',
+      weightKilograms: 61.2,
+    });
+  });
+
+  test('WeightLogPage backfills canonical kg for an unedited standard legacy-only entry', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'standard'},
+      route: {
+        params: {
+          entryId: 'entry-standard-legacy',
+          entryData: {
+            date: '2024/01/01',
+            weight: '135',
+            note: 'legacy standard note',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(getProps().weight).toBe('135');
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    const savedWeightLog = props.onEditEntry.mock.calls[0][1].WeightLog;
+
+    expect(savedWeightLog).toEqual(
+      expect.objectContaining({
+        weight: '135',
+        note: 'legacy standard note',
+        isDeleted: false,
+      }),
+    );
+    expect(savedWeightLog).not.toHaveProperty('enteredWeightValue');
+    expect(savedWeightLog).not.toHaveProperty('enteredWeightUnit');
+    expect(savedWeightLog).not.toHaveProperty('bodyUnitPreference');
+    expect(savedWeightLog.weightKilograms).toBeCloseTo(61.23496995);
+
+    const profilePayload = profile.mock.calls[0][0];
+    expect(Object.keys(profilePayload).sort()).toEqual([
+      'weight',
+      'weightKilograms',
+    ]);
+    expect(profilePayload.weight).toBe('135');
+    expect(profilePayload.weightKilograms).toBeCloseTo(61.23496995);
+  });
+
   test('WeightLogPage saves edited metric weight as a deterministic legacy pound payload', async () => {
     const props = {
       navigation: {goBack: jest.fn()},
@@ -750,13 +849,24 @@ describe('journal form UX boundary', () => {
     );
     const savedWeightLog = props.onEditEntry.mock.calls[0][1].WeightLog;
 
+    expect(savedWeightLog).toEqual(
+      expect.objectContaining({
+        weight: '135',
+        note: 'legacy note',
+        isDeleted: false,
+      }),
+    );
     expect(savedWeightLog).not.toHaveProperty('enteredWeightValue');
     expect(savedWeightLog).not.toHaveProperty('enteredWeightUnit');
     expect(savedWeightLog.weightKilograms).toBeCloseTo(61.23496995);
-    expect(profile).toHaveBeenCalledWith(
-      expect.objectContaining({weight: '135'}),
-    );
-    expect(profile.mock.calls[0][0].weightKilograms).toBeCloseTo(61.23496995);
+
+    const profilePayload = profile.mock.calls[0][0];
+    expect(Object.keys(profilePayload).sort()).toEqual([
+      'weight',
+      'weightKilograms',
+    ]);
+    expect(profilePayload.weight).toBe('135');
+    expect(profilePayload.weightKilograms).toBeCloseTo(61.23496995);
   });
 
   test('WeightLogPage preserves existing unedited input provenance fields', async () => {
@@ -835,6 +945,77 @@ describe('journal form UX boundary', () => {
     ReactTestRenderer.act(() => {
       getProps().setWeight('not-a-number');
     });
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    expect(getProps().weightErrorText).toBe('Enter a valid weight.');
+    expect(props.onCreateEntry).not.toHaveBeenCalled();
+    expect(props.onEditEntry).not.toHaveBeenCalled();
+    expect(profile).not.toHaveBeenCalled();
+  });
+
+  test('WeightLogPage blocks unedited invalid canonical kg without overwriting from legacy source', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'standard'},
+      route: {
+        params: {
+          entryId: 'entry-invalid-canonical',
+          entryData: {
+            date: '2024/01/01',
+            weight: '135',
+            weightKilograms: 'bad-input',
+            note: 'invalid canonical',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(getProps().weight).toBe('135');
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onSaveHandler();
+    });
+
+    expect(getProps().weightErrorText).toBe('Enter a valid weight.');
+    expect(props.onCreateEntry).not.toHaveBeenCalled();
+    expect(props.onEditEntry).not.toHaveBeenCalled();
+    expect(profile).not.toHaveBeenCalled();
+  });
+
+  test('WeightLogPage blocks malformed legacy source when canonical kg is missing', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      user: {bodyUnitPreference: 'standard'},
+      route: {
+        params: {
+          entryId: 'entry-malformed-legacy',
+          entryData: {
+            date: '2024/01/01',
+            weight: 'bad-input',
+            note: 'malformed legacy',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<WeightLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-weight-log').props;
+
+    expect(getProps().weight).toBe('bad-input');
 
     await ReactTestRenderer.act(async () => {
       await getProps().onSaveHandler();

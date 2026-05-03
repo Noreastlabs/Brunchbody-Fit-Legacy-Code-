@@ -19,11 +19,30 @@ import {
 const STANDARD_UNIT_PREFERENCE = 'standard';
 const METRIC_UNIT_PREFERENCE = 'metric';
 
+const hasOwn = (value, key) =>
+  Object.prototype.hasOwnProperty.call(value || {}, key);
+
 const resolveBodyUnitPreference = value =>
   isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
 
 const getCanonicalEntryWeightKilograms = entryData =>
   getBodyWeightKilograms({weightKilograms: entryData?.weightKilograms});
+
+const getExistingCanonicalWeightState = entryData => {
+  if (!hasOwn(entryData, 'weightKilograms')) {
+    return {
+      status: 'missing',
+      value: null,
+    };
+  }
+
+  const canonicalWeightKilograms = getCanonicalEntryWeightKilograms(entryData);
+
+  return {
+    status: canonicalWeightKilograms === null ? 'invalid' : 'valid',
+    value: canonicalWeightKilograms,
+  };
+};
 
 const formatStandardDisplayWeight = entryData => {
   const kilograms = getCanonicalEntryWeightKilograms(entryData);
@@ -85,32 +104,41 @@ const getWeightLogSourceAndCanonicalFields = ({
   weight,
   weightEdited,
 }) => {
-  const existingCanonicalWeightKilograms =
-    getCanonicalEntryWeightKilograms(entryData);
   const originalLegacyWeight = entryData?.weight ? `${entryData.weight}` : '';
 
-  if (!weightEdited && existingCanonicalWeightKilograms !== null) {
-    const pounds = kilogramsToPounds(existingCanonicalWeightKilograms);
-    const legacyWeight =
-      originalLegacyWeight || (pounds === null ? null : pounds.toFixed(1));
+  if (!weightEdited) {
+    const existingCanonicalWeight = getExistingCanonicalWeightState(entryData);
 
-    return {
-      legacySourceWeight: legacyWeight,
-      canonicalWeightKilograms: existingCanonicalWeightKilograms,
-    };
+    if (existingCanonicalWeight.status === 'invalid') {
+      return {
+        legacySourceWeight: null,
+        canonicalWeightKilograms: null,
+      };
+    }
+
+    if (existingCanonicalWeight.status === 'valid') {
+      const pounds = kilogramsToPounds(existingCanonicalWeight.value);
+      const legacyWeight =
+        originalLegacyWeight || (pounds === null ? null : pounds.toFixed(1));
+
+      return {
+        legacySourceWeight: legacyWeight,
+        canonicalWeightKilograms: existingCanonicalWeight.value,
+      };
+    }
+
+    if (originalLegacyWeight) {
+      return {
+        legacySourceWeight: originalLegacyWeight,
+        canonicalWeightKilograms: poundsToKilograms(originalLegacyWeight),
+      };
+    }
   }
 
   if (unitPreference !== METRIC_UNIT_PREFERENCE) {
     return {
       legacySourceWeight: weight,
       canonicalWeightKilograms: poundsToKilograms(weight),
-    };
-  }
-
-  if (!weightEdited && originalLegacyWeight) {
-    return {
-      legacySourceWeight: originalLegacyWeight,
-      canonicalWeightKilograms: poundsToKilograms(originalLegacyWeight),
     };
   }
 
