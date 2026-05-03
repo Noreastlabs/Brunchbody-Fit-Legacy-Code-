@@ -53,7 +53,13 @@ const formatStandardDisplayWeight = entryData => {
     return pounds === null ? '' : pounds.toFixed(1);
   }
 
-  return entryData?.weight ? `${entryData.weight}` : '';
+  if (!hasOwn(entryData, 'weight')) {
+    return '';
+  }
+
+  const legacyWeight = `${entryData.weight}`.trim();
+
+  return poundsToKilograms(legacyWeight) === null ? '' : legacyWeight;
 };
 
 const formatMetricDisplayWeight = entryData => {

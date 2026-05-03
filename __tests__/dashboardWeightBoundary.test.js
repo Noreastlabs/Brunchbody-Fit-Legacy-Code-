@@ -42,7 +42,7 @@ const baseProps = {
   labelsData: ['Mon', 'Tue', 'Wed'],
 };
 
-const renderWeightChartData = user => {
+const renderChartData = user => {
   let renderer;
 
   ReactTestRenderer.act(() => {
@@ -51,19 +51,27 @@ const renderWeightChartData = user => {
     );
   });
 
-  return renderer.root.findAllByType('mock-line-chart')[1].props.data;
+  const [outlookChart, weightChart, calorieChart] = renderer.root
+    .findAllByType('mock-line-chart')
+    .map(chart => chart.props.data);
+
+  return {
+    outlookChart,
+    weightChart,
+    calorieChart,
+  };
 };
 
 describe('dashboard weight display boundary', () => {
   test('falls back to pounds label and values without a preference', () => {
-    const weightChart = renderWeightChartData(undefined);
+    const {weightChart} = renderChartData(undefined);
 
     expect(weightChart.legend).toEqual(['Weight (lbs)']);
     expect(weightChart.datasets[0].data).toEqual(['135', 0, 'bad-input']);
   });
 
   test('falls back to pounds label and values without a supported preference', () => {
-    const weightChart = renderWeightChartData({
+    const {weightChart} = renderChartData({
       bodyUnitPreference: 'unsupported',
     });
 
@@ -72,7 +80,7 @@ describe('dashboard weight display boundary', () => {
   });
 
   test('uses pounds label and values for standard preference', () => {
-    const weightChart = renderWeightChartData({
+    const {weightChart} = renderChartData({
       bodyUnitPreference: 'standard',
     });
 
@@ -81,11 +89,22 @@ describe('dashboard weight display boundary', () => {
   });
 
   test('uses kilogram label and converted display values for metric preference', () => {
-    const weightChart = renderWeightChartData({
+    const {weightChart} = renderChartData({
       bodyUnitPreference: 'metric',
     });
 
     expect(weightChart.legend).toEqual(['Weight (kg)']);
     expect(weightChart.datasets[0].data).toEqual([61.23, 0, 0]);
+  });
+
+  test('does not convert Outlook or Calorie Differential chart data for metric preference', () => {
+    const {outlookChart, calorieChart} = renderChartData({
+      bodyUnitPreference: 'metric',
+    });
+
+    expect(outlookChart.legend).toEqual(['Outlook']);
+    expect(outlookChart.datasets[0].data).toEqual(baseProps.outlookData);
+    expect(calorieChart.legend).toEqual(['Calorie Differential']);
+    expect(calorieChart.datasets[0].data).toEqual(baseProps.calDiffData);
   });
 });

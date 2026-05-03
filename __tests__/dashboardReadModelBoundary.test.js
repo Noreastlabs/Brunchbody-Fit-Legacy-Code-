@@ -6,6 +6,8 @@ import journalReducer from '../src/redux/reducer/journal';
 import { buildDashboardReadModel } from '../src/screens/dashboard/readModel';
 
 const now = new Date('2026-04-15T12:00:00.000Z');
+const dashboardPeriods = ['day', 'week', 'month', 'year'];
+const dashboardSeries = ['weightData', 'outlookData', 'calDiffData'];
 
 const createEntry = (
   date,
@@ -76,13 +78,14 @@ describe('dashboard read-model boundary', () => {
       },
     });
 
-    expect(readModel.day.weightData).toHaveLength(7);
-    expect(readModel.week.outlookData).toHaveLength(7);
-    expect(readModel.month.calDiffData).toHaveLength(7);
-    expect(readModel.year.weightData).toHaveLength(7);
+    dashboardPeriods.forEach(period => {
+      dashboardSeries.forEach(series => {
+        expect(readModel[period][series]).toHaveLength(7);
+      });
+    });
   });
 
-  test('buildDashboardReadModel prefers canonical WeightLog kilograms over legacy pounds', () => {
+  test('buildDashboardReadModel prefers canonical WeightLog kilograms over conflicting legacy pounds', () => {
     const readModel = buildDashboardReadModel(
       [
         createEntry('2026-04-15T12:00:00.000Z', {
@@ -95,11 +98,28 @@ describe('dashboard read-model boundary', () => {
       now,
     );
 
+    expect(readModel.day.weightData).toEqual([134.92, 0, 0, 0, 0, 0, 0]);
     expect(readModel.day.weightData[0]).toBe(134.92);
     expect(readModel.week.weightData[0]).toBe(19.27);
   });
 
-  test('buildDashboardReadModel falls back to legacy WeightLog pounds when canonical kilograms are not valid', () => {
+  test('buildDashboardReadModel falls back to legacy WeightLog pounds when canonical kilograms are absent', () => {
+    const readModel = buildDashboardReadModel(
+      [
+        createEntry('2026-04-15T12:00:00.000Z', {
+          weight: '181',
+          feelingRate: '4',
+          caloriesDifferential: '100',
+        }),
+      ],
+      now,
+    );
+
+    expect(readModel.day.weightData).toEqual(['181', 0, 0, 0, 0, 0, 0]);
+    expect(readModel.week.weightData[0]).toBe(25.86);
+  });
+
+  test('buildDashboardReadModel falls back to legacy WeightLog pounds when canonical kilograms are invalid', () => {
     const readModel = buildDashboardReadModel(
       [
         createEntry('2026-04-15T12:00:00.000Z', {
