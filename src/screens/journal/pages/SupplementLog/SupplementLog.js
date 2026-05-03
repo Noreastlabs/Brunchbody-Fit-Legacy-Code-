@@ -43,6 +43,14 @@ const createItemFields = [
   },
 ];
 
+const isFiniteDecimal = value => {
+  if (value.trim() === '') {
+    return false;
+  }
+
+  return Number.isFinite(Number(value));
+};
+
 export default function SupplementLogPage(props) {
   const {
     route,
@@ -190,6 +198,11 @@ export default function SupplementLogPage(props) {
       supplementAmount.trim() &&
       supplementUnit.trim()
     ) {
+      if (!isFiniteDecimal(supplementAmount)) {
+        showMessage('Error!', 'Amount must be a number.');
+        return;
+      }
+
       const supplementObj = {
         stackId: selectedSupplements.length + 1,
         name: supplementName,

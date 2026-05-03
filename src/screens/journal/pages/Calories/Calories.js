@@ -62,6 +62,30 @@ const addCaloriesOutFields = [
   },
 ];
 
+const isFiniteDecimal = value => {
+  if (value.trim() === '') {
+    return false;
+  }
+
+  return Number.isFinite(Number(value));
+};
+
+const getMacroNumberError = ({fat, protein, carbs}) => {
+  if (!isFiniteDecimal(fat)) {
+    return 'Fat must be a number.';
+  }
+
+  if (!isFiniteDecimal(protein)) {
+    return 'Protein must be a number.';
+  }
+
+  if (!isFiniteDecimal(carbs)) {
+    return 'Carbs must be a number.';
+  }
+
+  return '';
+};
+
 export default function CaloriesPage(props) {
   const {
     route,
@@ -376,6 +400,17 @@ export default function CaloriesPage(props) {
         itemProtein.trim() &&
         itemCarbs.trim()
       ) {
+        const macroNumberError = getMacroNumberError({
+          fat: itemFat,
+          protein: itemProtein,
+          carbs: itemCarbs,
+        });
+
+        if (macroNumberError) {
+          showMessage('Error!', macroNumberError);
+          return;
+        }
+
         const data = {
           type: 'Single Exercise',
           id: selectedMeals.length + 1,
@@ -411,6 +446,11 @@ export default function CaloriesPage(props) {
         showMessage('Error!', 'All fields are required.');
       }
     } else if (additionalCalories.trim()) {
+      if (!isFiniteDecimal(additionalCalories)) {
+        showMessage('Error!', 'Amount must be a number.');
+        return;
+      }
+
       const data = {
         id: completedWorkoutData.length + 1,
         type: 'not a program',

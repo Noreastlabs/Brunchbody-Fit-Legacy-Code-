@@ -16,7 +16,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../src/redux/actions', () => ({
   addJournalEntry: jest.fn(() => ({type: 'ADD_JOURNAL_ENTRY'})),
   editJournalEntry: jest.fn(() => ({type: 'EDIT_JOURNAL_ENTRY'})),
+  getMealItems: jest.fn(() => ({type: 'GET_MEAL_ITEMS'})),
   getJournalEntries: jest.fn(() => ({type: 'GET_JOURNAL_ENTRIES'})),
+  getSupplementItems: jest.fn(() => ({type: 'GET_SUPPLEMENT_ITEMS'})),
+  getWorkouts: jest.fn(() => ({type: 'GET_WORKOUTS'})),
   profile: jest.fn(data => ({type: 'PROFILE', payload: data})),
 }));
 
@@ -59,6 +62,9 @@ jest.mock('../src/resources', () => ({
       content9: 'Routine',
     },
   },
+  wheelPickerItems: {
+    units: [{id: 1, value: 'g'}],
+  },
 }));
 
 jest.mock('react-native-vector-icons/AntDesign', () => 'AntDesign');
@@ -87,6 +93,10 @@ jest.mock('../src/screens/journal/components', () => {
       ReactLocal.createElement('mock-journal-quarterly-entry', props),
     WeightLog: props =>
       ReactLocal.createElement('mock-journal-weight-log', props),
+    SupplementLog: props =>
+      ReactLocal.createElement('mock-journal-supplement-log', props),
+    Calories: props =>
+      ReactLocal.createElement('mock-journal-calories', props),
   };
 });
 
@@ -96,6 +106,8 @@ import DailyEntryPage from '../src/screens/journal/pages/DailyEntry/DailyEntry';
 import WeeklyEntryPage from '../src/screens/journal/pages/WeeklyEntry/WeeklyEntry';
 import QuarterlyEntryPage from '../src/screens/journal/pages/QuarterlyEntry/QuarterlyEntry';
 import WeightLogPage from '../src/screens/journal/pages/WeightLog/WeightLog';
+import SupplementLogPage from '../src/screens/journal/pages/SupplementLog/SupplementLog';
+import CaloriesPage from '../src/screens/journal/pages/Calories/Calories';
 import TraitDirectory from '../src/screens/journal/components/TraitDirectory';
 
 const createDeferred = () => {
@@ -1025,5 +1037,121 @@ describe('journal form UX boundary', () => {
     expect(props.onCreateEntry).not.toHaveBeenCalled();
     expect(props.onEditEntry).not.toHaveBeenCalled();
     expect(profile).not.toHaveBeenCalled();
+  });
+
+  test('SupplementLogPage blocks non-numeric single supplement amounts before adding items', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            supplements: [],
+            totalItems: [],
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+      mySupplements: [],
+      mySupplementItems: [],
+      onGetSupplementItems: jest.fn().mockResolvedValue(true),
+    };
+
+    const renderer = await renderInAct(<SupplementLogPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-supplement-log').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().onChangeText('Creatine', 'supplementName');
+      getProps().onChangeText('abc', 'supplementAmount');
+      getProps().setSupplementUnit('g');
+    });
+
+    ReactTestRenderer.act(() => {
+      getProps().onCreateSingleSupplement();
+    });
+
+    expect(getProps().alertHeading).toBe('Error!');
+    expect(getProps().alertText).toBe('Amount must be a number.');
+    expect(getProps().selectedSupplements).toEqual([]);
+    expect(getProps().totalItems).toEqual([]);
+    expect(props.onCreateEntry).not.toHaveBeenCalled();
+    expect(props.onEditEntry).not.toHaveBeenCalled();
+  });
+
+  test('CaloriesPage blocks non-numeric single item and calories-out amounts before mutating totals', async () => {
+    const props = {
+      navigation: {goBack: jest.fn()},
+      route: {
+        params: {
+          entryData: {
+            date: '2024/01/01',
+            actualCalories: [],
+            completedWorkouts: [],
+            note: '',
+          },
+        },
+      },
+      onCreateEntry: jest.fn().mockResolvedValue(true),
+      getAllJournalEntries: jest.fn().mockResolvedValue(undefined),
+      onEditEntry: jest.fn().mockResolvedValue(true),
+      myMeals: [],
+      onGetMealItems: jest.fn().mockResolvedValue(true),
+      myMealItems: [],
+      onGetMyWorkouts: jest.fn().mockResolvedValue(true),
+      myCompletedWorkouts: [],
+      user: {
+        bmr: '1600',
+        targetCalories: [
+          {id: 1, name: 'fat', value: '30'},
+          {id: 2, name: 'prt', value: '40'},
+          {id: 3, name: 'cho', value: '30'},
+          {id: 4, name: 'cal', value: '2000'},
+        ],
+      },
+    };
+
+    const renderer = await renderInAct(<CaloriesPage {...props} />);
+    const getProps = () =>
+      renderer.root.findByType('mock-journal-calories').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().setCheck('addMeal');
+      getProps().onChangeText('Snack', 'itemName');
+      getProps().onChangeText('abc', 'itemFat');
+      getProps().onChangeText('1', 'itemProtein');
+      getProps().onChangeText('2', 'itemCarbs');
+    });
+
+    ReactTestRenderer.act(() => {
+      getProps().onCreateSingleItem();
+    });
+
+    expect(getProps().alertHeading).toBe('Error!');
+    expect(getProps().alertText).toBe('Fat must be a number.');
+    expect(getProps().selectedMeals).toEqual([]);
+    expect(getProps().totalFatFromMeals).toBe(0);
+    expect(getProps().totalProteinFromMeals).toBe(0);
+    expect(getProps().totalCarbsFromMeals).toBe(0);
+    expect(getProps().totalCaloriesFromMeals).toBe(0);
+
+    ReactTestRenderer.act(() => {
+      getProps().setCheck('addAdditionalCalories');
+      getProps().onChangeText('oops', 'additionalCalories');
+    });
+
+    ReactTestRenderer.act(() => {
+      getProps().onCreateSingleItem();
+    });
+
+    expect(getProps().alertHeading).toBe('Error!');
+    expect(getProps().alertText).toBe('Amount must be a number.');
+    expect(getProps().completedWorkoutData).toEqual([]);
+    expect(getProps().calFromExe).toBe(0);
+    expect(props.onCreateEntry).not.toHaveBeenCalled();
+    expect(props.onEditEntry).not.toHaveBeenCalled();
   });
 });
