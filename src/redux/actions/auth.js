@@ -11,7 +11,11 @@ import { getOnboardingDraftKeys } from './onboardingStorage';
 import {
   getBodyHeightCentimeters,
   getBodyWeightKilograms,
+  parseHeightToCentimeters,
+  parseMetricHeightToCentimeters,
+  parseWeightToKilograms,
 } from '../../utils/bodyMeasurementUnits';
+import { strings } from '../../resources';
 
 const LOCAL_PASSWORD_KEY = 'local_password';
 const LOCAL_PASSWORD_RESET_REQUEST_KEY = 'local_password_reset_requested_at';
@@ -23,6 +27,46 @@ const setUser = payload => ({
 
 const hasOwn = (value, key) =>
   Object.prototype.hasOwnProperty.call(value || {}, key);
+
+const STANDARD_UNIT_PREFERENCE = 'standard';
+const METRIC_UNIT_PREFERENCE = 'metric';
+
+const getIncomingBodyMeasurementValidationError = data => {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return null;
+  }
+
+  if (
+    hasOwn(data, 'height') &&
+    parseHeightToCentimeters(data.height, STANDARD_UNIT_PREFERENCE) === null
+  ) {
+    return strings.completeProfile.errors.heightInvalid;
+  }
+
+  if (
+    hasOwn(data, 'heightCentimeters') &&
+    parseMetricHeightToCentimeters(data.heightCentimeters) === null
+  ) {
+    return strings.completeProfile.errors.heightInvalid;
+  }
+
+  if (
+    hasOwn(data, 'weight') &&
+    parseWeightToKilograms(data.weight, STANDARD_UNIT_PREFERENCE) === null
+  ) {
+    return strings.completeProfile.errors.weightMetricInvalid;
+  }
+
+  if (
+    hasOwn(data, 'weightKilograms') &&
+    parseWeightToKilograms(data.weightKilograms, METRIC_UNIT_PREFERENCE) ===
+      null
+  ) {
+    return strings.completeProfile.errors.weightMetricInvalid;
+  }
+
+  return null;
+};
 
 const getCanonicalProfileMeasurements = data => {
   const nextData =
@@ -93,6 +137,12 @@ export const loggedIn = () => async dispatch => {
 };
 
 export const profile = data => async dispatch => {
+  const validationError = getIncomingBodyMeasurementValidationError(data);
+
+  if (validationError) {
+    return validationError;
+  }
+
   const updatedProfile = await mergeProfileWithStoredProfile(data);
   await persistProfileAndDispatch(dispatch, updatedProfile);
   return true;

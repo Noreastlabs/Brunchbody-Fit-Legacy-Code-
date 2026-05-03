@@ -229,6 +229,7 @@ describe('settings form UX boundary', () => {
   });
 
   test('MyVitalsPage reports invalid metric height inline', async () => {
+    const updateUserProfile = jest.fn().mockResolvedValue(true);
     const renderer = await renderInAct(
       <MyVitalsPage
         navigation={{ navigate: jest.fn() }}
@@ -239,7 +240,7 @@ describe('settings form UX boundary', () => {
           height: '5.06',
           bodyUnitPreference: 'metric',
         }}
-        updateUserProfile={jest.fn().mockResolvedValue(true)}
+        updateUserProfile={updateUserProfile}
         getUserData={jest.fn().mockResolvedValue(true)}
       />,
     );
@@ -257,6 +258,7 @@ describe('settings form UX boundary', () => {
     expect(getProps().formErrorText).toBe(
       'Check the highlighted profile fields before saving.',
     );
+    expect(updateUserProfile).not.toHaveBeenCalled();
   });
 
   test('MyVitalsPage discards canceled picker edits and rehydrates from the latest user on refocus', async () => {

@@ -269,6 +269,44 @@ describe('Complete profile flow boundary', () => {
     expect(getDraftWriteCalls('height')).toHaveLength(0);
   });
 
+  test('rejects malformed standard height before draft write or profile save', async () => {
+    const renderer = await renderCompleteProfile();
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.setFeet(5);
+      heightStep.props.setInches(12);
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-height').props.onConfirmHeight();
+      await flushEffects();
+    });
+
+    expect(renderer.root.findByType('mock-height').props.isHeightSelected).toBe(
+      false,
+    );
+    expect(renderer.root.findByType('mock-height').props.errorText).toBe(
+      strings.completeProfile.errors.heightInvalid,
+    );
+    expect(getDraftWriteCalls('height')).toHaveLength(0);
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-height').props.currentScreen(
+        strings.completeProfile.screen.Welcome,
+      );
+      await flushEffects();
+    });
+
+    expect(mockProfile).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockClearCompletedOnboardingDraft).not.toHaveBeenCalled();
+  });
+
   test('allows saved height drafts to advance without re-confirmation', async () => {
     draftValues.dob = '1/1/1990';
     draftValues.height = '5.6';
@@ -409,6 +447,41 @@ describe('Complete profile flow boundary', () => {
     expect(renderer.root.findByType('mock-gender')).toBeTruthy();
   });
 
+  test('blocks invalid metric body measurements from final profile dispatch', async () => {
+    const renderer = await renderCompleteProfile();
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.onChangeBodyUnitPreference('metric');
+      renderer.root.findByType('mock-height').props.onChangeMetricHeight('168');
+      await flushEffects();
+    });
+
+    await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-weight').props.onChangeText('-1');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await renderer.root.findByType('mock-weight').props.currentScreen(
+        strings.completeProfile.screen.Welcome,
+      );
+      await flushEffects();
+    });
+
+    expect(renderer.root.findByType('mock-weight').props.errorText).toBe(
+      strings.completeProfile.errors.weightMetricInvalid,
+    );
+    expect(mockProfile).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockClearCompletedOnboardingDraft).not.toHaveBeenCalled();
+  });
+
   test('completes the local profile flow and hands off to Home dashboard', async () => {
     const renderer = await renderCompleteProfile();
 
@@ -431,7 +504,7 @@ describe('Complete profile flow boundary', () => {
     await goToWeight(renderer);
 
     await ReactTestRenderer.act(async () => {
-      renderer.root.findByType('mock-weight').props.onChangeText('135');
+      renderer.root.findByType('mock-weight').props.onChangeText(' 135 ');
       await flushEffects();
     });
 
@@ -502,14 +575,16 @@ describe('Complete profile flow boundary', () => {
 
     await ReactTestRenderer.act(async () => {
       heightStep.props.onChangeBodyUnitPreference('metric');
-      renderer.root.findByType('mock-height').props.onChangeMetricHeight('168');
+      renderer.root
+        .findByType('mock-height')
+        .props.onChangeMetricHeight(' 168 ');
       await flushEffects();
     });
 
     await goToWeight(renderer);
 
     await ReactTestRenderer.act(async () => {
-      renderer.root.findByType('mock-weight').props.onChangeText('61.2');
+      renderer.root.findByType('mock-weight').props.onChangeText(' 61.2 ');
       await flushEffects();
     });
 

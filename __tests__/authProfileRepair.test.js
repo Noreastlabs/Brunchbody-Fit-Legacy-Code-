@@ -6,6 +6,7 @@ import {
 import { profile } from '../src/redux/actions/auth';
 import authReducer from '../src/redux/reducer/auth';
 import { SET_USER } from '../src/redux/constants';
+import { strings } from '../src/resources';
 
 const reduceProfileWithReferenceDate = payload => {
   jest.useFakeTimers();
@@ -418,6 +419,66 @@ describe('Auth/profile repair boundary', () => {
       }),
     );
     expect(savedProfile.weightKilograms).toBeCloseTo(63.5029318);
+    expect(dispatch).toHaveBeenCalledWith({
+      type: SET_USER,
+      payload: savedProfile,
+    });
+  });
+
+  test.each([
+    [
+      'legacy height',
+      { height: 'bad-input' },
+      strings.completeProfile.errors.heightInvalid,
+    ],
+    [
+      'canonical height',
+      { heightCentimeters: 0 },
+      strings.completeProfile.errors.heightInvalid,
+    ],
+    [
+      'legacy weight',
+      { weight: 'bad-input' },
+      strings.completeProfile.errors.weightMetricInvalid,
+    ],
+    [
+      'canonical weight',
+      { weightKilograms: Infinity },
+      strings.completeProfile.errors.weightMetricInvalid,
+    ],
+  ])(
+    'profile save rejects invalid explicit %s update before storage',
+    async (_label, payload, expectedError) => {
+      const dispatch = jest.fn();
+
+      await expect(profile(payload)(dispatch)).resolves.toBe(expectedError);
+
+      expect(AsyncStorage.getItem).not.toHaveBeenCalled();
+      expect(AsyncStorage.setItem).not.toHaveBeenCalled();
+      expect(dispatch).not.toHaveBeenCalled();
+    },
+  );
+
+  test('profile save does not validate invalid stored body fields on non-body updates', async () => {
+    const dispatch = jest.fn();
+    const storedProfile = {
+      name: 'Taylor',
+      dob: '01/01/1995',
+      gender: 'female',
+      height: 'bad-input',
+      weight: 'bad-input',
+      bodyUnitPreference: 'standard',
+    };
+
+    AsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(storedProfile));
+
+    await expect(profile({ name: 'Taylor Rae' })(dispatch)).resolves.toBe(true);
+
+    const savedProfile = JSON.parse(AsyncStorage.setItem.mock.calls.at(-1)[1]);
+    expect(savedProfile).toEqual({
+      ...storedProfile,
+      name: 'Taylor Rae',
+    });
     expect(dispatch).toHaveBeenCalledWith({
       type: SET_USER,
       payload: savedProfile,

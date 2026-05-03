@@ -7,9 +7,12 @@ import {
   getBodyWeightKilograms,
   isBodyUnitPreference,
   kilogramsToPounds,
+  parseHeightToCentimeters,
   parseLegacyHeightToCentimeters,
+  parseMetricHeightToCentimeters,
   parseWeightToKilograms,
   poundsToKilograms,
+  resolveBodyUnitPreference,
 } from '../src/utils/bodyMeasurementUnits';
 
 describe('body measurement unit utilities', () => {
@@ -21,6 +24,14 @@ describe('body measurement unit utilities', () => {
       expect(isBodyUnitPreference('imperial')).toBe(false);
       expect(isBodyUnitPreference('')).toBe(false);
       expect(isBodyUnitPreference(null)).toBe(false);
+    });
+
+    test('resolves missing or unsupported preferences to standard display behavior', () => {
+      expect(resolveBodyUnitPreference('metric')).toBe('metric');
+      expect(resolveBodyUnitPreference('standard')).toBe('standard');
+      expect(resolveBodyUnitPreference('imperial')).toBe('standard');
+      expect(resolveBodyUnitPreference(null)).toBe('standard');
+      expect(resolveBodyUnitPreference(undefined)).toBe('standard');
     });
   });
 
@@ -42,6 +53,17 @@ describe('body measurement unit utilities', () => {
       expect(parseLegacyHeightToCentimeters('6.00')).toBeCloseTo(182.88);
     });
 
+    test('parses profile height by unit preference with trimmed inputs', () => {
+      expect(
+        parseHeightToCentimeters({feet: 5, inches: 6}, 'standard'),
+      ).toBeCloseTo(167.64);
+      expect(parseHeightToCentimeters(' 5.06 ', 'standard')).toBeCloseTo(
+        167.64,
+      );
+      expect(parseHeightToCentimeters(' 168 ', 'metric')).toBe(168);
+      expect(parseMetricHeightToCentimeters(' 168.5 ')).toBe(168.5);
+    });
+
     test('rejects malformed legacy height and invalid standard height components', () => {
       ['', ' ', 'bad-input', '5', '-5.06', '5.-1', '5.6.1'].forEach(
         value => {
@@ -58,6 +80,22 @@ describe('body measurement unit utilities', () => {
       expect(feetInchesToCentimeters(0, 10)).toBeNull();
       expect(feetInchesToCentimeters(5, 12)).toBeNull();
       expect(feetInchesToCentimeters(5, -1)).toBeNull();
+      expect(
+        parseHeightToCentimeters({feet: 5, inches: 12}, 'standard'),
+      ).toBeNull();
+      expect(
+        parseHeightToCentimeters({feet: 0, inches: 10}, 'standard'),
+      ).toBeNull();
+      expect(
+        parseHeightToCentimeters({feet: 5.5, inches: 6}, 'standard'),
+      ).toBeNull();
+      expect(
+        parseHeightToCentimeters({feet: 5, inches: Infinity}, 'standard'),
+      ).toBeNull();
+      expect(parseMetricHeightToCentimeters('bad-input')).toBeNull();
+      expect(parseMetricHeightToCentimeters('0')).toBeNull();
+      expect(parseMetricHeightToCentimeters('-1')).toBeNull();
+      expect(parseMetricHeightToCentimeters(Infinity)).toBeNull();
       expect(centimetersToFeetInches(0)).toBeNull();
       expect(centimetersToFeetInches(10)).toBeNull();
     });
@@ -96,7 +134,11 @@ describe('body measurement unit utilities', () => {
       expect(parseWeightToKilograms('135', 'standard')).toBeCloseTo(
         61.23496995,
       );
+      expect(parseWeightToKilograms(' 135 ', 'standard')).toBeCloseTo(
+        61.23496995,
+      );
       expect(parseWeightToKilograms('61.2', 'metric')).toBe(61.2);
+      expect(parseWeightToKilograms(' 61.2 ', 'metric')).toBe(61.2);
       expect(parseWeightToKilograms('135', 'metric')).toBe(135);
       expect(parseWeightToKilograms('135', 'imperial')).toBeNull();
     });

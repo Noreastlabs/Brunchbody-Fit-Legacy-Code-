@@ -8,10 +8,11 @@ import { loggedIn, profile } from '../../../../redux/actions';
 import { strings } from '../../../../resources';
 import {
   centimetersToFeetInches,
-  feetInchesToCentimeters,
   formatHeight as formatCanonicalHeight,
-  isBodyUnitPreference,
+  parseHeightToCentimeters,
   parseLegacyHeightToCentimeters,
+  parseMetricHeightToCentimeters,
+  resolveBodyUnitPreference,
 } from '../../../../utils/bodyMeasurementUnits';
 
 const DEFAULT_HEIGHT = {
@@ -24,26 +25,6 @@ const SUCCESS_MESSAGE = 'Profile updated successfully.';
 const DEFAULT_SUBMIT_ERROR = strings.completeProfile.errors.submit;
 const STANDARD_UNIT_PREFERENCE = 'standard';
 const METRIC_UNIT_PREFERENCE = 'metric';
-const NUMERIC_TEXT_PATTERN = /^(?:\d+|\d*\.\d+)$/;
-
-const resolveBodyUnitPreference = value =>
-  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
-
-const parsePositiveNumericText = value => {
-  if (typeof value !== 'string' && typeof value !== 'number') {
-    return null;
-  }
-
-  const valueText = `${value}`.trim();
-
-  if (!NUMERIC_TEXT_PATTERN.test(valueText)) {
-    return null;
-  }
-
-  const parsedValue = Number(valueText);
-
-  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
-};
 
 const formatMetricDraftValue = value => {
   if (!Number.isFinite(value)) {
@@ -88,7 +69,9 @@ const formatDob = dob =>
   dob ? `${dob.month}/${dob.date}/${dob.year}` : 'Not set';
 
 const getInitialHeightCentimeters = user => {
-  const storedCentimeters = parsePositiveNumericText(user?.heightCentimeters);
+  const storedCentimeters = parseMetricHeightToCentimeters(
+    user?.heightCentimeters,
+  );
 
   return storedCentimeters === null
     ? parseLegacyHeightToCentimeters(user?.height)
@@ -97,7 +80,7 @@ const getInitialHeightCentimeters = user => {
 
 const formatHeight = (height, unitPreference, metricHeightText) => {
   if (unitPreference === METRIC_UNIT_PREFERENCE) {
-    const centimeters = parsePositiveNumericText(metricHeightText);
+    const centimeters = parseMetricHeightToCentimeters(metricHeightText);
     const formattedHeight =
       centimeters === null
         ? null
@@ -106,9 +89,10 @@ const formatHeight = (height, unitPreference, metricHeightText) => {
     return formattedHeight || 'Not set';
   }
 
-  const centimeters = height
-    ? feetInchesToCentimeters(height.feet, height.inches)
-    : null;
+  const centimeters = parseHeightToCentimeters(
+    height,
+    STANDARD_UNIT_PREFERENCE,
+  );
   const formattedHeight =
     centimeters === null
       ? null
@@ -306,10 +290,17 @@ export default function MyVitalsPage(props) {
       feet: tempFeet,
       inches: tempInches,
     };
-    const nextHeightCentimeters = feetInchesToCentimeters(
-      nextHeight.feet,
-      nextHeight.inches,
+    const nextHeightCentimeters = parseHeightToCentimeters(
+      nextHeight,
+      STANDARD_UNIT_PREFERENCE,
     );
+
+    if (nextHeightCentimeters === null) {
+      setHeightErrorText(strings.completeProfile.errors.heightInvalid);
+      setFormErrorText('');
+      setHeightPickerModal(false);
+      return;
+    }
 
     setDraftHeight(nextHeight);
     setDraftMetricHeightText(formatMetricDraftValue(nextHeightCentimeters));
@@ -333,9 +324,9 @@ export default function MyVitalsPage(props) {
 
     const currentHeightCentimeters =
       bodyUnitPreference === METRIC_UNIT_PREFERENCE
-        ? parsePositiveNumericText(draftMetricHeightText)
+        ? parseMetricHeightToCentimeters(draftMetricHeightText)
         : draftHeight
-          ? feetInchesToCentimeters(draftHeight.feet, draftHeight.inches)
+          ? parseHeightToCentimeters(draftHeight, STANDARD_UNIT_PREFERENCE)
           : null;
 
     if (currentHeightCentimeters !== null) {
@@ -362,9 +353,9 @@ export default function MyVitalsPage(props) {
 
   const getDraftHeightCentimeters = () =>
     bodyUnitPreference === METRIC_UNIT_PREFERENCE
-      ? parsePositiveNumericText(draftMetricHeightText)
+      ? parseMetricHeightToCentimeters(draftMetricHeightText)
       : draftHeight
-        ? feetInchesToCentimeters(draftHeight.feet, draftHeight.inches)
+        ? parseHeightToCentimeters(draftHeight, STANDARD_UNIT_PREFERENCE)
         : null;
 
   const onUpdateHandler = async () => {

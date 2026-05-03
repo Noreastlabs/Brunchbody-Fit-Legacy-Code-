@@ -14,11 +14,11 @@ import {HeightWrapper} from './Height';
 import {strings} from '../../../../resources';
 import {
   centimetersToFeetInches,
-  feetInchesToCentimeters,
-  isBodyUnitPreference,
   kilogramsToPounds,
-  parseLegacyHeightToCentimeters,
+  parseHeightToCentimeters,
+  parseMetricHeightToCentimeters,
   parseWeightToKilograms,
+  resolveBodyUnitPreference,
 } from '../../../../utils/bodyMeasurementUnits';
 
 const {
@@ -43,26 +43,6 @@ const DEFAULT_HEIGHT = {
 
 const STANDARD_UNIT_PREFERENCE = 'standard';
 const METRIC_UNIT_PREFERENCE = 'metric';
-const NUMERIC_TEXT_PATTERN = /^(?:\d+|\d*\.\d+)$/;
-
-const resolveBodyUnitPreference = value =>
-  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
-
-const parsePositiveNumericText = value => {
-  if (typeof value !== 'string' && typeof value !== 'number') {
-    return null;
-  }
-
-  const valueText = `${value}`.trim();
-
-  if (!NUMERIC_TEXT_PATTERN.test(valueText)) {
-    return null;
-  }
-
-  const parsedValue = Number(valueText);
-
-  return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : null;
-};
 
 const formatMetricDraftValue = value => {
   if (!Number.isFinite(value)) {
@@ -133,7 +113,10 @@ const parseStoredDob = value => {
 };
 
 const parseStoredHeight = value => {
-  const centimeters = parseLegacyHeightToCentimeters(value);
+  const centimeters = parseHeightToCentimeters(
+    value,
+    STANDARD_UNIT_PREFERENCE,
+  );
 
   return centimeters === null ? null : centimetersToFeetInches(centimeters);
 };
@@ -221,7 +204,7 @@ export const CompleteProfilePage = () => {
       }
 
       if (nextBodyUnitPreference === METRIC_UNIT_PREFERENCE) {
-        const parsedMetricHeight = parsePositiveNumericText(draftHeight);
+        const parsedMetricHeight = parseMetricHeightToCentimeters(draftHeight);
 
         if (parsedMetricHeight !== null) {
           setMetricHeight(`${parsedMetricHeight}`);
@@ -273,6 +256,17 @@ export const CompleteProfilePage = () => {
   };
 
   const onConfirmHeight = value => {
+    const heightCentimeters = parseHeightToCentimeters(
+      value,
+      STANDARD_UNIT_PREFERENCE,
+    );
+
+    if (heightCentimeters === null) {
+      setIsHeightConfirmed(false);
+      setStepError(HEIGHT_SCREEN, strings.completeProfile.errors.heightInvalid);
+      return;
+    }
+
     setHeight(value);
     setIsHeightConfirmed(true);
     clearStepError(HEIGHT_SCREEN);
@@ -282,13 +276,29 @@ export const CompleteProfilePage = () => {
   const onSetMetricHeight = value => {
     setMetricHeight(value);
     clearStepError(HEIGHT_SCREEN);
-    setOnboardingDraftValue('height', value);
+
+    const trimmedValue = value.trim();
+
+    if (parseMetricHeightToCentimeters(trimmedValue) !== null) {
+      setOnboardingDraftValue('height', trimmedValue);
+    }
   };
 
   const onSetWeight = value => {
     setWeight(value);
     clearStepError(WEIGHT_SCREEN);
-    setOnboardingDraftValue('weight', value);
+
+    const trimmedValue = value.trim();
+    const isValidDraftWeight =
+      bodyUnitPreference === METRIC_UNIT_PREFERENCE
+        ? parseWeightToKilograms(trimmedValue, METRIC_UNIT_PREFERENCE) !== null
+        : isWholeNumber(trimmedValue) &&
+          parseWeightToKilograms(trimmedValue, STANDARD_UNIT_PREFERENCE) !==
+            null;
+
+    if (isValidDraftWeight) {
+      setOnboardingDraftValue('weight', trimmedValue);
+    }
   };
 
   const onSetGender = value => {
@@ -299,10 +309,10 @@ export const CompleteProfilePage = () => {
 
   const getCurrentHeightCentimeters = preference => {
     if (preference === METRIC_UNIT_PREFERENCE) {
-      return parsePositiveNumericText(metricHeight);
+      return parseMetricHeightToCentimeters(metricHeight);
     }
 
-    return feetInchesToCentimeters(height.feet, height.inches);
+    return parseHeightToCentimeters(height, STANDARD_UNIT_PREFERENCE);
   };
 
   const onSetBodyUnitPreference = value => {
@@ -315,9 +325,9 @@ export const CompleteProfilePage = () => {
 
     const currentHeightCentimeters =
       currentPreference === METRIC_UNIT_PREFERENCE
-        ? parsePositiveNumericText(metricHeight)
+        ? parseMetricHeightToCentimeters(metricHeight)
         : isHeightConfirmed
-          ? feetInchesToCentimeters(height.feet, height.inches)
+          ? parseHeightToCentimeters(height, STANDARD_UNIT_PREFERENCE)
           : null;
     const currentWeightKilograms = weight.trim()
       ? parseWeightToKilograms(weight.trim(), currentPreference)
@@ -359,26 +369,89 @@ export const CompleteProfilePage = () => {
     }
   };
 
-  const getCurrentBodyMeasurementPayload = trimmedWeight => {
-    const heightCentimeters = getCurrentHeightCentimeters(bodyUnitPreference);
-    const weightKilograms = parseWeightToKilograms(
-      trimmedWeight,
-      bodyUnitPreference,
-    );
-
-    return buildProfileBodyMeasurementPayload({
+  const getCurrentBodyMeasurementPayload = ({
+    heightCentimeters,
+    trimmedWeight,
+    weightKilograms,
+  }) =>
+    buildProfileBodyMeasurementPayload({
       bodyUnitPreference,
       heightCentimeters,
       height,
       weight: trimmedWeight,
       weightKilograms,
     });
+
+  const getValidatedBodyMeasurementFields = () => {
+    const heightCentimeters = getCurrentHeightCentimeters(bodyUnitPreference);
+    const trimmedWeight = weight.trim();
+
+    if (
+      bodyUnitPreference === STANDARD_UNIT_PREFERENCE &&
+      !isHeightConfirmed
+    ) {
+      setStepError(HEIGHT_SCREEN, strings.completeProfile.errors.heightRequired);
+      setCurrentScreen(HEIGHT_SCREEN);
+      return null;
+    }
+
+    if (heightCentimeters === null) {
+      setStepError(
+        HEIGHT_SCREEN,
+        bodyUnitPreference === METRIC_UNIT_PREFERENCE && metricHeight.trim()
+          ? strings.completeProfile.errors.heightInvalid
+          : strings.completeProfile.errors.heightRequired,
+      );
+      setCurrentScreen(HEIGHT_SCREEN);
+      return null;
+    }
+
+    if (!trimmedWeight) {
+      setStepError(
+        WEIGHT_SCREEN,
+        bodyUnitPreference === METRIC_UNIT_PREFERENCE
+          ? strings.completeProfile.errors.weightMetricRequired
+          : strings.completeProfile.errors.weightRequired,
+      );
+      setCurrentScreen(WEIGHT_SCREEN);
+      return null;
+    }
+
+    const weightKilograms = parseWeightToKilograms(
+      trimmedWeight,
+      bodyUnitPreference,
+    );
+    const isValidWeight =
+      bodyUnitPreference === METRIC_UNIT_PREFERENCE
+        ? weightKilograms !== null
+        : isWholeNumber(trimmedWeight) && weightKilograms !== null;
+
+    if (!isValidWeight) {
+      setStepError(
+        WEIGHT_SCREEN,
+        bodyUnitPreference === METRIC_UNIT_PREFERENCE
+          ? strings.completeProfile.errors.weightMetricInvalid
+          : strings.completeProfile.errors.weightInvalid,
+      );
+      setCurrentScreen(WEIGHT_SCREEN);
+      return null;
+    }
+
+    return {
+      heightCentimeters,
+      trimmedWeight,
+      weightKilograms,
+    };
   };
 
   const onSubmitProfile = async () => {
-    const trimmedWeight = weight.trim();
-
     if (loader) {
+      return;
+    }
+
+    const bodyMeasurementFields = getValidatedBodyMeasurementFields();
+
+    if (!bodyMeasurementFields) {
       return;
     }
 
@@ -390,7 +463,7 @@ export const CompleteProfilePage = () => {
         profile({
           name: name.trim(),
           dob: getStoredDobValue(dateOfBirth),
-          ...getCurrentBodyMeasurementPayload(trimmedWeight),
+          ...getCurrentBodyMeasurementPayload(bodyMeasurementFields),
           gender: gender || 'male',
           targetCalories: getDefaultTargetCalories(),
         }),
@@ -464,6 +537,18 @@ export const CompleteProfilePage = () => {
         return;
       }
 
+      if (
+        bodyUnitPreference === STANDARD_UNIT_PREFERENCE &&
+        parseHeightToCentimeters(height, STANDARD_UNIT_PREFERENCE) === null
+      ) {
+        setStepError(
+          HEIGHT_SCREEN,
+          strings.completeProfile.errors.heightInvalid,
+        );
+        setCurrentScreen(HEIGHT_SCREEN);
+        return;
+      }
+
       if (bodyUnitPreference === METRIC_UNIT_PREFERENCE) {
         const trimmedMetricHeight = metricHeight.trim();
 
@@ -476,7 +561,7 @@ export const CompleteProfilePage = () => {
           return;
         }
 
-        if (parsePositiveNumericText(trimmedMetricHeight) === null) {
+        if (parseMetricHeightToCentimeters(trimmedMetricHeight) === null) {
           setStepError(
             HEIGHT_SCREEN,
             strings.completeProfile.errors.heightInvalid,

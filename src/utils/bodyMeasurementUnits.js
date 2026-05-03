@@ -62,6 +62,9 @@ const getStandardHeightParts = (feetValue, inchesValue) => {
 export const isBodyUnitPreference = value =>
   value === STANDARD_UNIT_PREFERENCE || value === METRIC_UNIT_PREFERENCE;
 
+export const resolveBodyUnitPreference = value =>
+  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
+
 export const feetInchesToCentimeters = (feetValue, inchesValue) => {
   const height = getStandardHeightParts(feetValue, inchesValue);
 
@@ -130,6 +133,28 @@ export const parseLegacyHeightToCentimeters = value => {
   const [, feetText, inchesText] = heightMatch;
 
   return feetInchesToCentimeters(feetText, inchesText);
+};
+
+export const parseMetricHeightToCentimeters = value => toPositiveNumber(value);
+
+export const parseHeightToCentimeters = (value, unitPreference) => {
+  const resolvedUnitPreference = resolveBodyUnitPreference(unitPreference);
+
+  if (resolvedUnitPreference === METRIC_UNIT_PREFERENCE) {
+    return parseMetricHeightToCentimeters(value);
+  }
+
+  if (
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.prototype.hasOwnProperty.call(value, 'feet') &&
+    Object.prototype.hasOwnProperty.call(value, 'inches')
+  ) {
+    return feetInchesToCentimeters(value.feet, value.inches);
+  }
+
+  return parseLegacyHeightToCentimeters(value);
 };
 
 export const getBodyHeightCentimeters = ({heightCentimeters, height} = {}) => {
