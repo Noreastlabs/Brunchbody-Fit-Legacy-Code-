@@ -7,7 +7,7 @@ import { MyProfile } from '../../components';
 import {
   formatWeight,
   getBodyWeightKilograms,
-  isBodyUnitPreference,
+  resolveBodyUnitPreference,
 } from '../../../../utils/bodyMeasurementUnits';
 
 const DEFAULT_TARGET_TOTALS = [
@@ -16,11 +16,6 @@ const DEFAULT_TARGET_TOTALS = [
   { id: 3, name: 'CHO', value: '--' },
   { id: 4, name: 'CAL', value: '--' },
 ];
-const STANDARD_UNIT_PREFERENCE = 'standard';
-
-const resolveBodyUnitPreference = value =>
-  isBodyUnitPreference(value) ? value : STANDARD_UNIT_PREFERENCE;
-
 const hasDisplayValue = value =>
   value !== null && value !== undefined && `${value}`.trim() !== '';
 
@@ -35,9 +30,7 @@ const getWeightText = user => {
   });
 
   if (weightKilograms === null) {
-    return hasDisplayValue(user?.weight)
-      ? `${getTrimmedDisplayValue(user.weight)} LBS`
-      : 'Not set';
+    return 'Not set';
   }
 
   const formattedWeight = formatWeight(

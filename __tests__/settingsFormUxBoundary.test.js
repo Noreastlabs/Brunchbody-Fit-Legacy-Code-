@@ -66,6 +66,24 @@ const expectNoDurableDerivedProfileFields = payload => {
   expect(payload).not.toHaveProperty('bmr');
 };
 
+const getMyProfileListData = async user => {
+  const renderer = await renderInAct(
+    <MyProfilePage
+      navigation={{ navigate: jest.fn() }}
+      user={user}
+    />,
+  );
+
+  return renderer.root.findByType('mock-setting-my-profile').props.listData;
+};
+
+const getCurrentWeightDisplayValue = async user => {
+  const listData = await getMyProfileListData(user);
+  const weightItem = listData.find(item => item.title === 'Current Weight');
+
+  return weightItem.options[0].displayValue;
+};
+
 describe('settings form UX boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -330,6 +348,29 @@ describe('settings form UX boundary', () => {
     expect(getProps().heightPickerModal).toBe(false);
   });
 
+  test('MyVitalsPage hydrates height from canonical centimeters and defaults unsupported preference to standard', async () => {
+    const renderer = await renderInAct(
+      <MyVitalsPage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          name: 'Lane',
+          dob: '01/01/1990',
+          gender: 'female',
+          height: '5.06',
+          heightCentimeters: 182.88,
+          bodyUnitPreference: 'unsupported',
+        }}
+        updateUserProfile={jest.fn().mockResolvedValue(true)}
+        getUserData={jest.fn().mockResolvedValue(true)}
+      />,
+    );
+    const props = renderer.root.findByType('mock-setting-my-vitals').props;
+
+    expect(props.bodyUnitPreference).toBe('standard');
+    expect(props.draftHeightText).toBe('6 ft 0 in');
+    expect(props.draftMetricHeightText).toBe('182.9');
+  });
+
   test('MyProfilePage passes truthful summary fallbacks while keeping the live vitals route', async () => {
     const renderer = await renderInAct(
       <MyProfilePage
@@ -366,6 +407,16 @@ describe('settings form UX boundary', () => {
     ]);
   });
 
+  test('MyProfilePage formats standard current weight in pounds', async () => {
+    await expect(
+      getCurrentWeightDisplayValue({
+        weight: '135',
+        bodyUnitPreference: 'standard',
+        targetCalories: [],
+      }),
+    ).resolves.toBe('135.0 lb');
+  });
+
   test('MyProfilePage formats current weight from the profile preference without changing calculations', async () => {
     const renderer = await renderInAct(
       <MyProfilePage
@@ -389,6 +440,22 @@ describe('settings form UX boundary', () => {
     expect(bmrItem.options[0].displayValue).toBe('1406.75 CALORIES');
   });
 
+  test.each([
+    ['missing', undefined],
+    ['unsupported', 'unsupported'],
+  ])(
+    'MyProfilePage defaults %s current weight preference to pounds',
+    async (_label, bodyUnitPreference) => {
+      await expect(
+        getCurrentWeightDisplayValue({
+          weight: '135',
+          bodyUnitPreference,
+          targetCalories: [],
+        }),
+      ).resolves.toBe('135.0 lb');
+    },
+  );
+
   test('MyProfilePage prefers canonical current weight over conflicting legacy weight', async () => {
     const renderer = await renderInAct(
       <MyProfilePage
@@ -406,5 +473,33 @@ describe('settings form UX boundary', () => {
     const weightItem = listData.find(item => item.title === 'Current Weight');
 
     expect(weightItem.options[0].displayValue).toBe('61.2 kg');
+  });
+
+  test('MyProfilePage falls back to valid legacy weight when canonical weight is invalid', async () => {
+    await expect(
+      getCurrentWeightDisplayValue({
+        weight: '135',
+        weightKilograms: 'bad-input',
+        bodyUnitPreference: 'metric',
+        targetCalories: [],
+      }),
+    ).resolves.toBe('61.2 kg');
+  });
+
+  test.each([
+    ['invalid legacy text', { weight: 'bad-input' }],
+    [
+      'invalid canonical and invalid legacy',
+      { weight: 'bad-input', weightKilograms: 0 },
+    ],
+    ['missing values', {}],
+  ])('MyProfilePage shows Not set for %s current weight', async (_label, user) => {
+    await expect(
+      getCurrentWeightDisplayValue({
+        ...user,
+        bodyUnitPreference: 'metric',
+        targetCalories: [],
+      }),
+    ).resolves.toBe('Not set');
   });
 });

@@ -9,8 +9,8 @@ import { strings } from '../../../../resources';
 import {
   centimetersToFeetInches,
   formatHeight as formatCanonicalHeight,
+  getBodyHeightCentimeters,
   parseHeightToCentimeters,
-  parseLegacyHeightToCentimeters,
   parseMetricHeightToCentimeters,
   resolveBodyUnitPreference,
 } from '../../../../utils/bodyMeasurementUnits';
@@ -68,15 +68,7 @@ const parseStoredDob = value => {
 const formatDob = dob =>
   dob ? `${dob.month}/${dob.date}/${dob.year}` : 'Not set';
 
-const getInitialHeightCentimeters = user => {
-  const storedCentimeters = parseMetricHeightToCentimeters(
-    user?.heightCentimeters,
-  );
-
-  return storedCentimeters === null
-    ? parseLegacyHeightToCentimeters(user?.height)
-    : storedCentimeters;
-};
+const getInitialHeightCentimeters = user => getBodyHeightCentimeters(user);
 
 const formatHeight = (height, unitPreference, metricHeightText) => {
   if (unitPreference === METRIC_UNIT_PREFERENCE) {
