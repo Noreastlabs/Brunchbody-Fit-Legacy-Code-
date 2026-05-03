@@ -35,6 +35,9 @@ export default function CustomOptions(props) {
             {isRemove ? (
               <View style={styles.closeBtnView}>
                 <CloseButton
+                  accessibilityLabel={['Remove', item.name || item.title]
+                    .filter(Boolean)
+                    .join(' ')}
                   style={styles.closeBtnStyle}
                   closeIconSize={15}
                   onPress={() => onRemove(item.id)}

@@ -7,10 +7,20 @@ import styles from './style';
 import {colors} from '../../resources';
 
 export default function CloseButton(props) {
-  const {onPress, style, closeIconSize, iconColor} = props;
+  const {
+    onPress,
+    style,
+    closeIconSize,
+    iconColor,
+    accessibilityLabel = 'Close',
+    accessibilityHint,
+  } = props;
 
   return (
     <TouchableOpacity
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
       activeOpacity={0.8}
       onPress={onPress}
       style={[styles.btnContainer, style]}>
@@ -28,6 +38,8 @@ CloseButton.defaultProps = {
   closeIconSize: null,
   onPress: () => {},
   iconColor: '',
+  accessibilityLabel: 'Close',
+  accessibilityHint: undefined,
 };
 
 CloseButton.propTypes = {
@@ -35,4 +47,6 @@ CloseButton.propTypes = {
   style: PropTypes.objectOf(PropTypes.any),
   closeIconSize: PropTypes.number,
   iconColor: PropTypes.string,
+  accessibilityLabel: PropTypes.string,
+  accessibilityHint: PropTypes.string,
 };

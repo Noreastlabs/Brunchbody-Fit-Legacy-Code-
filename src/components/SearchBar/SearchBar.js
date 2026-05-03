@@ -25,6 +25,7 @@ export default function SearchBar(props) {
         onChangeText={text => onChangeText(text)}
       />
       <CloseButton
+        accessibilityLabel="Clear search"
         closeIconSize={13}
         iconColor={colors.nonEditableOverlays}
         style={styles.closeBtnStyle}

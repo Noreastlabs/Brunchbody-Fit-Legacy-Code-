@@ -5,6 +5,8 @@ import {colors} from '../../../resources';
 
 const CloseIcon = ({onPress}) => (
   <IconButton
+    accessibilityLabel="Close"
+    accessibilityRole="button"
     icon="close-circle-outline"
     color={colors.white}
     size={40}

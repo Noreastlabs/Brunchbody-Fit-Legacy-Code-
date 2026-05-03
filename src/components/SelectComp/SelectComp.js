@@ -7,7 +7,18 @@ import {colors} from '../../resources';
 import styles from './style';
 
 export default function SelectComp(props) {
-  const {title, type, style, onPress, pickerViewStyle, textStyle} = props;
+  const {
+    title,
+    type,
+    style,
+    onPress,
+    pickerViewStyle,
+    textStyle,
+    accessibilityLabel = '',
+    accessibilityHint,
+  } = props;
+  const selectAccessibilityLabel =
+    accessibilityLabel || [title, type].filter(Boolean).join(', ');
 
   return (
     <View style={[styles.container, style]}>
@@ -16,6 +27,9 @@ export default function SelectComp(props) {
       ) : null}
 
       <TouchableOpacity
+        accessibilityHint={accessibilityHint}
+        accessibilityLabel={selectAccessibilityLabel}
+        accessibilityRole="button"
         activeOpacity={0.5}
         style={[styles.pickerView, pickerViewStyle]}
         onPress={onPress}>
@@ -39,6 +53,8 @@ SelectComp.defaultProps = {
   onPress: () => {},
   pickerViewStyle: {},
   textStyle: {},
+  accessibilityLabel: '',
+  accessibilityHint: undefined,
 };
 
 SelectComp.propTypes = {
@@ -48,4 +64,6 @@ SelectComp.propTypes = {
   onPress: PropTypes.func,
   pickerViewStyle: PropTypes.objectOf(PropTypes.any),
   textStyle: PropTypes.objectOf(PropTypes.any),
+  accessibilityLabel: PropTypes.string,
+  accessibilityHint: PropTypes.string,
 };

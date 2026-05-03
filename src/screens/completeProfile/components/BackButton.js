@@ -7,6 +7,9 @@ import styles from './style';
 const BackButton = ({previousScreen, currentScreen, disabled}) => (
   <View style={styles.headerStyle}>
     <TouchableOpacity
+      accessibilityLabel="Back"
+      accessibilityRole="button"
+      accessibilityState={{disabled}}
       activeOpacity={0.5}
       disabled={disabled}
       style={disabled ? styles.disabledBackButton : null}

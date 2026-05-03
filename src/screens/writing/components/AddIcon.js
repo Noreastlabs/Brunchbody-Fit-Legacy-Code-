@@ -6,6 +6,8 @@ import {colors} from '../../../resources';
 
 const AddIcon = ({onPress}) => (
   <IconButton
+    accessibilityLabel="Add itinerary item"
+    accessibilityRole="button"
     color={colors.icon}
     size={40}
     icon={({size, color}) => (
