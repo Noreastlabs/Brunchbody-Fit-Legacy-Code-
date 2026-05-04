@@ -5,6 +5,8 @@ import {
   calculateBmiFromMetric,
   calculateBmrFromImperial,
   calculateBmrFromMetric,
+  legacyHeightToInches,
+  legacyWeightToPounds,
 } from '../../utils/bodyMetrics';
 
 const initialState = {
@@ -24,22 +26,6 @@ const stripDerivedProfileFields = userData => {
   });
 
   return sanitizedUserData;
-};
-
-const getLegacyHeightInches = userData => {
-  if (typeof userData?.height !== 'string') {
-    return null;
-  }
-
-  const [feetValue, inchesValue] = userData.height.split('.');
-  const feet = parseInt(feetValue, 10);
-  const inches = parseInt(inchesValue, 10);
-
-  if (!Number.isFinite(feet) || !Number.isFinite(inches)) {
-    return null;
-  }
-
-  return feet * 12 + inches;
 };
 
 const getCurrentDateArr = (date = new Date()) => [
@@ -86,12 +72,6 @@ const getActualAge = userdob => {
   return currentYear - dobYear;
 };
 
-const getParsedWeight = weight => {
-  const parsedWeight = parseInt(weight, 10);
-
-  return Number.isFinite(parsedWeight) ? parsedWeight : null;
-};
-
 const isPositiveFiniteNumber = value =>
   typeof value === 'number' && Number.isFinite(value) && value > 0;
 
@@ -109,10 +89,41 @@ const getCanonicalBodyMetricInputs = userData => {
   };
 };
 
-const getLegacyBodyMetricInputs = userData => ({
-  heightInches: getLegacyHeightInches(userData),
-  weightPounds: getParsedWeight(userData?.weight),
-});
+const getLegacyBodyMetricInputs = userData => {
+  const heightInches = legacyHeightToInches(userData?.height);
+  const weightPounds = legacyWeightToPounds(userData?.weight);
+
+  if (heightInches === null || weightPounds === null) {
+    return null;
+  }
+
+  return {
+    heightInches,
+    weightPounds,
+  };
+};
+
+const getBodyMetricInputs = userData => {
+  const canonicalInputs = getCanonicalBodyMetricInputs(userData);
+
+  if (canonicalInputs) {
+    return {
+      source: 'canonical',
+      values: canonicalInputs,
+    };
+  }
+
+  const legacyInputs = getLegacyBodyMetricInputs(userData);
+
+  if (legacyInputs) {
+    return {
+      source: 'legacy',
+      values: legacyInputs,
+    };
+  }
+
+  return null;
+};
 
 const formatDerivedMetric = calculatedMetric => {
   if (!Number.isFinite(calculatedMetric)) {
@@ -128,16 +139,14 @@ const getLegacyBmi = legacyInputs =>
 const getCanonicalBmi = canonicalInputs =>
   formatDerivedMetric(calculateBmiFromMetric(canonicalInputs));
 
-const getBmi = ({canonicalInputs, legacyInputs}) => {
-  if (canonicalInputs) {
-    const canonicalBmi = getCanonicalBmi(canonicalInputs);
-
-    if (canonicalBmi !== null) {
-      return canonicalBmi;
-    }
+const getBmi = bodyMetricInputs => {
+  if (!bodyMetricInputs) {
+    return null;
   }
 
-  return getLegacyBmi(legacyInputs);
+  return bodyMetricInputs.source === 'canonical'
+    ? getCanonicalBmi(bodyMetricInputs.values)
+    : getLegacyBmi(bodyMetricInputs.values);
 };
 
 const getLegacyBmr = ({legacyInputs, age, gender}) =>
@@ -158,29 +167,32 @@ const getCanonicalBmr = ({canonicalInputs, age, gender}) =>
     }),
   );
 
-const getBmr = ({canonicalInputs, legacyInputs, age, gender}) => {
-  if (canonicalInputs) {
-    const canonicalBmr = getCanonicalBmr({
-      canonicalInputs,
+const getBmr = ({bodyMetricInputs, age, gender}) => {
+  if (!bodyMetricInputs) {
+    return null;
+  }
+
+  if (bodyMetricInputs.source === 'canonical') {
+    return getCanonicalBmr({
+      canonicalInputs: bodyMetricInputs.values,
       age,
       gender,
     });
-
-    if (canonicalBmr !== null) {
-      return canonicalBmr;
-    }
   }
 
-  return getLegacyBmr({legacyInputs, age, gender});
+  return getLegacyBmr({
+    legacyInputs: bodyMetricInputs.values,
+    age,
+    gender,
+  });
 };
 
 const deriveUserMetrics = userData => {
-  const canonicalInputs = getCanonicalBodyMetricInputs(userData);
-  const legacyInputs = getLegacyBodyMetricInputs(userData);
+  const bodyMetricInputs = getBodyMetricInputs(userData);
   const age = getActualAge(userData?.dob);
   const gender = userData?.gender;
-  const bmi = getBmi({canonicalInputs, legacyInputs});
-  const bmr = getBmr({canonicalInputs, legacyInputs, age, gender});
+  const bmi = getBmi(bodyMetricInputs);
+  const bmr = getBmr({bodyMetricInputs, age, gender});
 
   return {
     ...(bmi ? { bmi } : {}),

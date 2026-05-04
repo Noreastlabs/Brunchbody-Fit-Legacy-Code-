@@ -608,6 +608,44 @@ describe('Auth/profile repair boundary', () => {
     expect(user.weightKilograms).toBe(200);
   });
 
+  test('auth reducer does not mix canonical height with legacy weight', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: 'bad-input',
+      weight: '135',
+      heightCentimeters: 200,
+      weightKilograms: 0,
+      bodyUnitPreference: 'standard',
+      dob: '01/01/1995',
+      gender: 'female',
+      bmi: '99.99',
+      bmr: '9999.99',
+    });
+
+    expect(user).not.toHaveProperty('bmi');
+    expect(user).not.toHaveProperty('bmr');
+    expect(user.heightCentimeters).toBe(200);
+    expect(user.weight).toBe('135');
+  });
+
+  test('auth reducer does not mix legacy height with canonical weight', () => {
+    const user = reduceProfileWithReferenceDate({
+      height: '5.06',
+      weight: 'bad-input',
+      heightCentimeters: 0,
+      weightKilograms: 200,
+      bodyUnitPreference: 'standard',
+      dob: '01/01/1995',
+      gender: 'female',
+      bmi: '99.99',
+      bmr: '9999.99',
+    });
+
+    expect(user).not.toHaveProperty('bmi');
+    expect(user).not.toHaveProperty('bmr');
+    expect(user.height).toBe('5.06');
+    expect(user.weightKilograms).toBe(200);
+  });
+
   test('auth reducer falls back to legacy fields when canonical fields are missing', () => {
     const user = reduceProfileWithReferenceDate({
       height: '5.06',
@@ -661,6 +699,35 @@ describe('Auth/profile repair boundary', () => {
       expect(user.bmr).toBe('1406.75');
     });
   });
+
+  test.each([
+    ['missing values', {}],
+    ['placeholder legacy values', { height: 'undefined', weight: 'null' }],
+    ['malformed legacy height', { height: '5.12', weight: '135' }],
+    ['malformed legacy weight', { height: '5.06', weight: '135lbs' }],
+    ['blank legacy values', { height: '', weight: ' ' }],
+    ['zero legacy values', { height: '0.10', weight: '0' }],
+    ['negative legacy weight', { height: '5.06', weight: '-1' }],
+    ['non-finite legacy weight', { height: '5.06', weight: Infinity }],
+    [
+      'non-finite canonical values without legacy fallback',
+      { heightCentimeters: Infinity, weightKilograms: NaN },
+    ],
+  ])(
+    'auth reducer strips stale metrics for %s',
+    (_label, bodyFields) => {
+      const user = reduceProfileWithReferenceDate({
+        dob: '01/01/1995',
+        gender: 'female',
+        bmi: '99.99',
+        bmr: '9999.99',
+        ...bodyFields,
+      });
+
+      expect(user).not.toHaveProperty('bmi');
+      expect(user).not.toHaveProperty('bmr');
+    },
+  );
 
   test('auth reducer preserves male BMR fallback on the canonical path', () => {
     const unsupportedGenderUser = reduceProfileWithReferenceDate({

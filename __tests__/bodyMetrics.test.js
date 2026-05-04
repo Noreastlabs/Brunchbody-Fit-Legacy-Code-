@@ -4,6 +4,7 @@ import {
   calculateBmrFromImperial,
   calculateBmrFromMetric,
   legacyHeightToInches,
+  legacyWeightToPounds,
   normalizeGenderForBmr,
 } from '../src/utils/bodyMetrics';
 
@@ -33,6 +34,38 @@ describe('body metrics helpers', () => {
       expect(legacyHeightToInches('5.13')).toBeNull();
       expect(legacyHeightToInches(null)).toBeNull();
       expect(legacyHeightToInches(undefined)).toBeNull();
+    });
+  });
+
+  describe('legacy weight parsing', () => {
+    test('parses valid legacy pounds without display rounding', () => {
+      expect(legacyWeightToPounds('135')).toBe(135);
+      expect(legacyWeightToPounds(' 135.5 ')).toBe(135.5);
+      expect(legacyWeightToPounds(135)).toBe(135);
+    });
+
+    test('returns null for malformed or placeholder legacy weights', () => {
+      [
+        '',
+        ' ',
+        '135lbs',
+        '135 lb',
+        'NaN',
+        'Infinity',
+        'undefined',
+        'null',
+        'bad-input',
+        '-1',
+      ].forEach(weight => {
+        expect(legacyWeightToPounds(weight)).toBeNull();
+      });
+
+      expect(legacyWeightToPounds(0)).toBeNull();
+      expect(legacyWeightToPounds(-1)).toBeNull();
+      expect(legacyWeightToPounds(NaN)).toBeNull();
+      expect(legacyWeightToPounds(Infinity)).toBeNull();
+      expect(legacyWeightToPounds(null)).toBeNull();
+      expect(legacyWeightToPounds(undefined)).toBeNull();
     });
   });
 
@@ -77,8 +110,26 @@ describe('body metrics helpers', () => {
       expect(calculateBmiFromImperial()).toBeNull();
       expect(
         calculateBmiFromImperial({
+          heightInches: '',
+          weightPounds: STANDARD_WEIGHT_POUNDS,
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmiFromImperial({
           heightInches: 0,
           weightPounds: STANDARD_WEIGHT_POUNDS,
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmiFromImperial({
+          heightInches: STANDARD_HEIGHT_INCHES,
+          weightPounds: '135lbs',
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmiFromImperial({
+          heightInches: STANDARD_HEIGHT_INCHES,
+          weightPounds: ' ',
         }),
       ).toBeNull();
       expect(
@@ -90,6 +141,12 @@ describe('body metrics helpers', () => {
       expect(
         calculateBmiFromMetric({
           heightCentimeters: NaN,
+          weightKilograms: STANDARD_WEIGHT_KILOGRAMS,
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmiFromMetric({
+          heightCentimeters: 'bad-input',
           weightKilograms: STANDARD_WEIGHT_KILOGRAMS,
         }),
       ).toBeNull();
@@ -196,6 +253,14 @@ describe('body metrics helpers', () => {
       expect(calculateBmrFromImperial()).toBeNull();
       expect(
         calculateBmrFromImperial({
+          heightInches: '66in',
+          weightPounds: STANDARD_WEIGHT_POUNDS,
+          age: STANDARD_AGE,
+          gender: 'female',
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmrFromImperial({
           heightInches: 0,
           weightPounds: STANDARD_WEIGHT_POUNDS,
           age: STANDARD_AGE,
@@ -205,8 +270,24 @@ describe('body metrics helpers', () => {
       expect(
         calculateBmrFromImperial({
           heightInches: STANDARD_HEIGHT_INCHES,
+          weightPounds: '135lbs',
+          age: STANDARD_AGE,
+          gender: 'female',
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmrFromImperial({
+          heightInches: STANDARD_HEIGHT_INCHES,
           weightPounds: 0,
           age: STANDARD_AGE,
+          gender: 'female',
+        }),
+      ).toBeNull();
+      expect(
+        calculateBmrFromImperial({
+          heightInches: STANDARD_HEIGHT_INCHES,
+          weightPounds: STANDARD_WEIGHT_POUNDS,
+          age: '31 years',
           gender: 'female',
         }),
       ).toBeNull();

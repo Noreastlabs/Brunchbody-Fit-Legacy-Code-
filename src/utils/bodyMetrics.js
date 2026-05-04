@@ -50,6 +50,8 @@ export const legacyHeightToInches = height => {
     : heightCentimeters / CENTIMETERS_PER_INCH;
 };
 
+export const legacyWeightToPounds = weight => toPositiveNumber(weight);
+
 export const calculateBmiFromImperial = values => {
   const {heightInches, weightPounds} = values || {};
   const parsedHeightInches = toPositiveNumber(heightInches);

@@ -177,4 +177,87 @@ describe('body measurement unit utilities', () => {
       expect(formatWeight(61.2, 'unsupported')).toBeNull();
     });
   });
+
+  describe('display formatting standards', () => {
+    test('formatHeight keeps canonical height display preference-specific', () => {
+      expect(formatHeight(167.64, 'standard')).toBe('5 ft 6 in');
+      expect(formatHeight(182.88, 'standard')).toBe('6 ft 0 in');
+      expect(formatHeight(167.64, 'metric')).toBe('168 cm');
+      expect(formatHeight(168.5, 'metric')).toBe('169 cm');
+    });
+
+    test('formatHeight keeps invalid formatter inputs on the safe empty path', () => {
+      [
+        undefined,
+        null,
+        '',
+        ' ',
+        0,
+        -1,
+        NaN,
+        Infinity,
+        -Infinity,
+        'NaN',
+        'undefined',
+        'null',
+        'bad-input',
+      ].forEach(value => {
+        expect(formatHeight(value, 'standard')).toBeNull();
+        expect(formatHeight(value, 'metric')).toBeNull();
+      });
+
+      expect(formatHeight(167.64, 'unsupported')).toBeNull();
+      expect(
+        formatHeight({heightCentimeters: 167.64, height: '5.06'}, 'metric'),
+      ).toBeNull();
+    });
+
+    test('formatWeight keeps canonical weight display preference-specific', () => {
+      expect(formatWeight(61.23496995, 'standard')).toBe('135.0 lb');
+      expect(formatWeight(61.23496995, 'metric')).toBe('61.2 kg');
+      expect(formatWeight(61.26, 'metric')).toBe('61.3 kg');
+    });
+
+    test('formatWeight keeps invalid formatter inputs on the safe empty path', () => {
+      [
+        undefined,
+        null,
+        '',
+        ' ',
+        0,
+        -1,
+        NaN,
+        Infinity,
+        -Infinity,
+        'LBS',
+        'NaN',
+        'undefined',
+        'null',
+        'bad-input',
+      ].forEach(value => {
+        expect(formatWeight(value, 'standard')).toBeNull();
+        expect(formatWeight(value, 'metric')).toBeNull();
+      });
+
+      expect(formatWeight(61.2, 'unsupported')).toBeNull();
+      expect(
+        formatWeight({weightKilograms: 61.2, weight: '135'}, 'metric'),
+      ).toBeNull();
+    });
+
+    test('resolver helpers keep canonical measurements authoritative before legacy fallback', () => {
+      expect(
+        getBodyHeightCentimeters({
+          heightCentimeters: 180,
+          height: '5.06',
+        }),
+      ).toBe(180);
+      expect(
+        getBodyWeightKilograms({
+          weightKilograms: 70,
+          weight: '135',
+        }),
+      ).toBe(70);
+    });
+  });
 });
