@@ -193,7 +193,7 @@ describe('settings form UX boundary', () => {
     expect(updateUserProfile).toHaveBeenCalledWith({
       name: 'Lane',
       dob: '1/1/1990',
-      height: '5.6',
+      height: '5.06',
       heightCentimeters: expect.any(Number),
       bodyUnitPreference: 'standard',
       gender: 'female',
@@ -266,7 +266,7 @@ describe('settings form UX boundary', () => {
           dob: '01/01/1990',
           gender: 'female',
           height: '5.06',
-          heightCentimeters: 168,
+          heightCentimeters: 167.64,
           weight: '135',
           weightKilograms: 61.2,
           bodyUnitPreference: 'standard',
@@ -291,14 +291,18 @@ describe('settings form UX boundary', () => {
       await getProps().onUpdateHandler();
     });
 
-    expect(updateUserProfile).toHaveBeenCalledWith({
-      name: 'Lane',
-      dob: '1/1/1990',
-      height: '5.6',
-      heightCentimeters: 168,
-      bodyUnitPreference: 'metric',
-      gender: 'female',
-    });
+    expect(updateUserProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Lane',
+        dob: '1/1/1990',
+        height: '5.06',
+        bodyUnitPreference: 'metric',
+        gender: 'female',
+      }),
+    );
+    expect(updateUserProfile.mock.calls[0][0].heightCentimeters).toBeCloseTo(
+      167.64,
+    );
     expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty('weight');
     expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty(
       'weightKilograms',
@@ -307,6 +311,44 @@ describe('settings form UX boundary', () => {
       'targetCalories',
     );
     expectNoDurableDerivedProfileFields(updateUserProfile.mock.calls[0][0]);
+  });
+
+  test('MyVitalsPage does not hide invalid metric height by switching preferences', async () => {
+    const updateUserProfile = jest.fn().mockResolvedValue(true);
+    const renderer = await renderInAct(
+      <MyVitalsPage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          name: 'Lane',
+          dob: '01/01/1990',
+          gender: 'female',
+          height: '5.06',
+          heightCentimeters: 167.64,
+          bodyUnitPreference: 'metric',
+        }}
+        updateUserProfile={updateUserProfile}
+        getUserData={jest.fn().mockResolvedValue(true)}
+      />,
+    );
+    const getProps = () => renderer.root.findByType('mock-setting-my-vitals').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().onChangeMetricHeightText('bad');
+    });
+
+    ReactTestRenderer.act(() => {
+      getProps().onSelectBodyUnitPreference('standard');
+    });
+
+    expect(getProps().bodyUnitPreference).toBe('metric');
+    expect(getProps().draftMetricHeightText).toBe('bad');
+    expect(getProps().heightErrorText).toBe('Use a positive number for height.');
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onUpdateHandler();
+    });
+
+    expect(updateUserProfile).not.toHaveBeenCalled();
   });
 
   test('MyVitalsPage reports invalid metric height inline', async () => {

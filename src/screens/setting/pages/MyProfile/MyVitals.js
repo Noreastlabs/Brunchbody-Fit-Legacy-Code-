@@ -97,6 +97,28 @@ const getStoredDobValue = dob => `${dob.date}/${dob.month}/${dob.year}`;
 
 const getStoredHeightValue = height => `${height.feet}.${height.inches}`;
 
+const hasOwn = (value, key) =>
+  Object.prototype.hasOwnProperty.call(value || {}, key);
+
+const getSavedCanonicalHeightCentimeters = user => {
+  if (!hasOwn(user, 'heightCentimeters')) {
+    return null;
+  }
+
+  return parseMetricHeightToCentimeters(user.heightCentimeters);
+};
+
+const getSavedLegacyHeight = user => {
+  if (
+    !hasOwn(user, 'height') ||
+    parseHeightToCentimeters(user.height, STANDARD_UNIT_PREFERENCE) === null
+  ) {
+    return null;
+  }
+
+  return user.height;
+};
+
 const getLegacyHeightValueFromCentimeters = centimeters => {
   const nextHeight = centimetersToFeetInches(centimeters);
 
@@ -106,13 +128,14 @@ const getLegacyHeightValueFromCentimeters = centimeters => {
 const buildMyVitalsProfileUpdatePayload = ({
   name,
   dob,
+  height,
   heightCentimeters,
   bodyUnitPreference,
   gender,
 }) => ({
   name,
   dob: getStoredDobValue(dob),
-  height: getLegacyHeightValueFromCentimeters(heightCentimeters),
+  height,
   heightCentimeters,
   bodyUnitPreference,
   gender,
@@ -168,6 +191,7 @@ export default function MyVitalsPage(props) {
   const [isPermissionModal, setIsPermissionModal] = useState(false);
   const [alertHeading, setAlertHeading] = useState('');
   const [alertText, setAlertText] = useState('');
+  const [heightDraftEdited, setHeightDraftEdited] = useState(false);
 
   useEffect(() => {
     latestUserRef.current = user || {};
@@ -209,6 +233,7 @@ export default function MyVitalsPage(props) {
     setHeightErrorText('');
     setFormErrorText('');
     setLoader(false);
+    setHeightDraftEdited(false);
     submitLockRef.current = false;
 
     if (closeFeedback) {
@@ -296,6 +321,7 @@ export default function MyVitalsPage(props) {
 
     setDraftHeight(nextHeight);
     setDraftMetricHeightText(formatMetricDraftValue(nextHeightCentimeters));
+    setHeightDraftEdited(true);
     setHeightErrorText('');
     setFormErrorText('');
     setHeightPickerModal(false);
@@ -303,6 +329,7 @@ export default function MyVitalsPage(props) {
 
   const onChangeMetricHeightText = value => {
     setDraftMetricHeightText(value);
+    setHeightDraftEdited(true);
     setHeightErrorText('');
     setFormErrorText('');
   };
@@ -311,6 +338,16 @@ export default function MyVitalsPage(props) {
     const nextBodyUnitPreference = resolveBodyUnitPreference(value);
 
     if (nextBodyUnitPreference === bodyUnitPreference) {
+      return;
+    }
+
+    if (
+      bodyUnitPreference === METRIC_UNIT_PREFERENCE &&
+      draftMetricHeightText.trim() &&
+      parseMetricHeightToCentimeters(draftMetricHeightText) === null
+    ) {
+      setHeightErrorText(strings.completeProfile.errors.heightInvalid);
+      setFormErrorText('');
       return;
     }
 
@@ -349,6 +386,32 @@ export default function MyVitalsPage(props) {
       : draftHeight
         ? parseHeightToCentimeters(draftHeight, STANDARD_UNIT_PREFERENCE)
         : null;
+
+  const getProfileHeightCentimetersForSave = draftHeightCentimeters => {
+    if (heightDraftEdited) {
+      return draftHeightCentimeters;
+    }
+
+    const savedCanonicalHeightCentimeters = getSavedCanonicalHeightCentimeters(
+      latestUserRef.current,
+    );
+
+    return savedCanonicalHeightCentimeters === null
+      ? draftHeightCentimeters
+      : savedCanonicalHeightCentimeters;
+  };
+
+  const getProfileLegacyHeightForSave = heightCentimetersForSave => {
+    if (heightDraftEdited) {
+      return getLegacyHeightValueFromCentimeters(heightCentimetersForSave);
+    }
+
+    const savedLegacyHeight = getSavedLegacyHeight(latestUserRef.current);
+
+    return savedLegacyHeight === null
+      ? getLegacyHeightValueFromCentimeters(heightCentimetersForSave)
+      : savedLegacyHeight;
+  };
 
   const onUpdateHandler = async () => {
     if (submitLockRef.current || loader) {
@@ -391,10 +454,16 @@ export default function MyVitalsPage(props) {
 
     try {
       const trimmedName = draftName.trim();
+      const heightCentimetersForSave =
+        getProfileHeightCentimetersForSave(draftHeightCentimeters);
+      const legacyHeightForSave = getProfileLegacyHeightForSave(
+        heightCentimetersForSave,
+      );
       const profileUpdatePayload = buildMyVitalsProfileUpdatePayload({
         name: trimmedName,
         dob: draftDob,
-        heightCentimeters: draftHeightCentimeters,
+        height: legacyHeightForSave,
+        heightCentimeters: heightCentimetersForSave,
         bodyUnitPreference,
         gender: draftGender,
       });

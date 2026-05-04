@@ -127,6 +127,39 @@ const isWholeNumber = value => /^\d+$/.test(value);
 
 const isAdultDob = dob => new Date().getFullYear() - dob.year >= 18;
 
+const getValidDraftWeightKilograms = (value, unitPreference) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return null;
+  }
+
+  const weightKilograms = parseWeightToKilograms(
+    trimmedValue,
+    unitPreference,
+  );
+
+  if (unitPreference === STANDARD_UNIT_PREFERENCE) {
+    return isWholeNumber(trimmedValue) ? weightKilograms : null;
+  }
+
+  return weightKilograms;
+};
+
+const getWeightValidationError = (value, unitPreference) => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return '';
+  }
+
+  return getValidDraftWeightKilograms(trimmedValue, unitPreference) === null
+    ? unitPreference === METRIC_UNIT_PREFERENCE
+      ? strings.completeProfile.errors.weightMetricInvalid
+      : strings.completeProfile.errors.weightInvalid
+    : '';
+};
+
 const getDefaultTargetCalories = () => [
   {
     id: 1,
@@ -290,11 +323,7 @@ export const CompleteProfilePage = () => {
 
     const trimmedValue = value.trim();
     const isValidDraftWeight =
-      bodyUnitPreference === METRIC_UNIT_PREFERENCE
-        ? parseWeightToKilograms(trimmedValue, METRIC_UNIT_PREFERENCE) !== null
-        : isWholeNumber(trimmedValue) &&
-          parseWeightToKilograms(trimmedValue, STANDARD_UNIT_PREFERENCE) !==
-            null;
+      getValidDraftWeightKilograms(trimmedValue, bodyUnitPreference) !== null;
 
     if (isValidDraftWeight) {
       setOnboardingDraftValue('weight', trimmedValue);
@@ -323,15 +352,35 @@ export const CompleteProfilePage = () => {
       return;
     }
 
+    if (
+      currentPreference === METRIC_UNIT_PREFERENCE &&
+      metricHeight.trim() &&
+      parseMetricHeightToCentimeters(metricHeight) === null
+    ) {
+      setStepError(HEIGHT_SCREEN, strings.completeProfile.errors.heightInvalid);
+      return;
+    }
+
+    const currentWeightError = getWeightValidationError(
+      weight,
+      currentPreference,
+    );
+
+    if (currentWeightError) {
+      setStepError(WEIGHT_SCREEN, currentWeightError);
+      return;
+    }
+
     const currentHeightCentimeters =
       currentPreference === METRIC_UNIT_PREFERENCE
         ? parseMetricHeightToCentimeters(metricHeight)
         : isHeightConfirmed
           ? parseHeightToCentimeters(height, STANDARD_UNIT_PREFERENCE)
           : null;
-    const currentWeightKilograms = weight.trim()
-      ? parseWeightToKilograms(weight.trim(), currentPreference)
-      : null;
+    const currentWeightKilograms = getValidDraftWeightKilograms(
+      weight,
+      currentPreference,
+    );
 
     setBodyUnitPreference(nextPreference);
     clearStepError(HEIGHT_SCREEN);

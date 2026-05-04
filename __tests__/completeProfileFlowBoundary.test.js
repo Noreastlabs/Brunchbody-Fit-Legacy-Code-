@@ -447,6 +447,144 @@ describe('Complete profile flow boundary', () => {
     expect(renderer.root.findByType('mock-gender')).toBeTruthy();
   });
 
+  test('converts valid active onboarding drafts when body preference changes', async () => {
+    const renderer = await renderCompleteProfile();
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.setFeet(5);
+      heightStep.props.setInches(6);
+      await flushEffects();
+    });
+
+    await confirmHeight(renderer);
+    const weightStep = await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      weightStep.props.onChangeText('135');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-weight')
+        .props.onChangeBodyUnitPreference('metric');
+      await flushEffects();
+    });
+
+    const convertedWeightStep = renderer.root.findByType('mock-weight');
+
+    expect(convertedWeightStep.props.bodyUnitPreference).toBe('metric');
+    expect(convertedWeightStep.props.text).toBe('61.2');
+    expect(getDraftWriteCalls('height')).toContainEqual(['height', '168']);
+    expect(getDraftWriteCalls('weight')).toContainEqual(['weight', '61.2']);
+    expect(getDraftWriteCalls('bodyUnitPreference')).toEqual([
+      ['bodyUnitPreference', 'metric'],
+    ]);
+
+    await ReactTestRenderer.act(async () => {
+      await convertedWeightStep.props.currentScreen(
+        strings.completeProfile.screen.Height,
+      );
+      await flushEffects();
+    });
+
+    const convertedHeightStep = renderer.root.findByType('mock-height');
+
+    expect(convertedHeightStep.props.bodyUnitPreference).toBe('metric');
+    expect(convertedHeightStep.props.metricHeightText).toBe('168');
+  });
+
+  test('keeps invalid visible onboarding drafts from being normalized on preference change', async () => {
+    const renderer = await renderCompleteProfile();
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+
+    const heightStep = await goToHeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      heightStep.props.onChangeBodyUnitPreference('metric');
+      renderer.root.findByType('mock-height').props.onChangeMetricHeight('bad');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-height')
+        .props.onChangeBodyUnitPreference('standard');
+      await flushEffects();
+    });
+
+    const metricHeightStep = renderer.root.findByType('mock-height');
+
+    expect(metricHeightStep.props.bodyUnitPreference).toBe('metric');
+    expect(metricHeightStep.props.metricHeightText).toBe('bad');
+    expect(metricHeightStep.props.errorText).toBe(
+      strings.completeProfile.errors.heightInvalid,
+    );
+
+    await ReactTestRenderer.act(async () => {
+      metricHeightStep.props.onChangeMetricHeight('168');
+      await flushEffects();
+    });
+
+    await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root.findByType('mock-weight').props.onChangeText('bad');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-weight')
+        .props.onChangeBodyUnitPreference('standard');
+      await flushEffects();
+    });
+
+    const metricWeightStep = renderer.root.findByType('mock-weight');
+
+    expect(metricWeightStep.props.bodyUnitPreference).toBe('metric');
+    expect(metricWeightStep.props.text).toBe('bad');
+    expect(metricWeightStep.props.errorText).toBe(
+      strings.completeProfile.errors.weightMetricInvalid,
+    );
+  });
+
+  test('keeps invalid standard onboarding weight from being reinterpreted as metric', async () => {
+    const renderer = await renderCompleteProfile();
+    await goToDateOfBirth(renderer);
+    await confirmAdultDateOfBirth(renderer);
+    await goToHeight(renderer);
+    await confirmHeight(renderer);
+
+    const weightStep = await goToWeight(renderer);
+
+    await ReactTestRenderer.act(async () => {
+      weightStep.props.onChangeText('12.5');
+      await flushEffects();
+    });
+
+    await ReactTestRenderer.act(async () => {
+      renderer.root
+        .findByType('mock-weight')
+        .props.onChangeBodyUnitPreference('metric');
+      await flushEffects();
+    });
+
+    const standardWeightStep = renderer.root.findByType('mock-weight');
+
+    expect(standardWeightStep.props.bodyUnitPreference).toBe('standard');
+    expect(standardWeightStep.props.text).toBe('12.5');
+    expect(standardWeightStep.props.errorText).toBe(
+      strings.completeProfile.errors.weightInvalid,
+    );
+    expect(getDraftWriteCalls('bodyUnitPreference')).toHaveLength(0);
+  });
+
   test('blocks invalid metric body measurements from final profile dispatch', async () => {
     const renderer = await renderCompleteProfile();
     await goToDateOfBirth(renderer);
