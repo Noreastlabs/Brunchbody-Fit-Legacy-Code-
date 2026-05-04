@@ -35,7 +35,7 @@ module.exports.strings = {
     },
     helperText: {
       localDataNotice:
-        'Your profile details are saved on this device and used for in-app calculations and display.',
+        'Your profile details are saved on this device only and used for in-app calculations and display.',
       dob: 'Use the picker to confirm your birth date.',
       height: 'Choose your height in feet and inches.',
       heightMetric: 'Enter your height in centimeters.',

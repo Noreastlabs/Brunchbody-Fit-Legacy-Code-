@@ -83,6 +83,9 @@ const Height = props => {
             value={bodyUnitPreference}
             onChange={onChangeBodyUnitPreference}
           />
+          <SupportingText
+            text={strings.completeProfile.helperText.bodyUnitPreference}
+          />
           <View style={style.dropdownContainer}>
             {isMetric ? (
               <Input

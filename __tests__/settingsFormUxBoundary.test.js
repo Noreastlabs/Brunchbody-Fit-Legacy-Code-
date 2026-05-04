@@ -65,6 +65,14 @@ const expectNoDurableDerivedProfileFields = payload => {
   expect(payload).not.toHaveProperty('bmi');
   expect(payload).not.toHaveProperty('bmr');
 };
+const FORBIDDEN_BODY_UNIT_UX_COPY = [
+  'Account',
+  'Login',
+  'Logout',
+  'Password',
+  'Delete account',
+  'Reset password',
+];
 
 const getMyProfileListData = async user => {
   const renderer = await renderInAct(
@@ -496,10 +504,12 @@ describe('settings form UX boundary', () => {
       expect.arrayContaining([
         expect.objectContaining({
           screen: SETTINGS_ROUTES.MY_VITALS,
+          name: 'Edit profile details',
           displayValue: 'No nickname set',
         }),
       ]),
     );
+    expect(profileItem.options[0].name).not.toBe('Edit nickname and vitals');
     expect(weightItem.options[0].displayValue).toBe('Not set');
     expect(bmiItem.options[0].displayValue).toBe('--');
     expect(bmiItem.options[0].badgeText).toBe('');
@@ -545,6 +555,28 @@ describe('settings form UX boundary', () => {
         screen: SETTINGS_ROUTES.MY_VITALS,
       }),
     );
+  });
+
+  test('MyProfilePage keeps body measurement summary terminology narrow', async () => {
+    const standardListData = await getMyProfileListData({
+      bodyUnitPreference: 'standard',
+      targetCalories: [],
+    });
+    const metricListData = await getMyProfileListData({
+      bodyUnitPreference: 'metric',
+      targetCalories: [],
+    });
+    const summaryText = JSON.stringify([...standardListData, ...metricListData]);
+
+    expect(summaryText).toContain('Profile');
+    expect(summaryText).toContain('Edit profile details');
+    expect(summaryText).toContain('Body measurement units');
+    expect(summaryText).toContain('Standard');
+    expect(summaryText).toContain('Metric');
+    expect(summaryText).not.toContain('Edit nickname and vitals');
+    FORBIDDEN_BODY_UNIT_UX_COPY.forEach(copy => {
+      expect(summaryText).not.toContain(copy);
+    });
   });
 
   test('MyProfilePage formats standard current weight in pounds', async () => {

@@ -79,6 +79,9 @@ const Weight = ({
             value={bodyUnitPreference}
             onChange={onChangeBodyUnitPreference}
           />
+          <SupportingText
+            text={strings.completeProfile.helperText.bodyUnitPreference}
+          />
           <Input
             text={text}
             maxLength={8}

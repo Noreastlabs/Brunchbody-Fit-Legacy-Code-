@@ -114,7 +114,7 @@ export default function MyProfilePage(props) {
       options: [
         {
           id: 1,
-          name: 'Edit nickname and vitals',
+          name: 'Edit profile details',
           displayValue: nickname,
           type: '',
           screen: SETTINGS_ROUTES.MY_VITALS,
