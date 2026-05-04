@@ -41,6 +41,8 @@ const UnitPreferenceSelector = ({value, onChange}) => (
         <TouchableOpacity
           key={unitPreference}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{selected: isSelected}}
           onPress={() => onChange(unitPreference)}
           style={[
             styles.unitPreferenceOption,
@@ -136,6 +138,10 @@ export default function MyVitals(props) {
               value={bodyUnitPreference}
               onChange={onSelectBodyUnitPreference}
             />
+            {renderSupportingText(
+              strings.completeProfile.helperText.bodyUnitPreference,
+              [styles.supportingText, styles.supportingTextInfo],
+            )}
           </View>
         </View>
         <View>

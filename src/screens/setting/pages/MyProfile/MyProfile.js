@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import { SETTINGS_ROUTES } from '../../../../navigation/routeNames';
 import { MyProfile } from '../../components';
+import { strings } from '../../../../resources';
 import {
   formatWeight,
   getBodyWeightKilograms,
@@ -20,6 +21,12 @@ const hasDisplayValue = value =>
   value !== null && value !== undefined && `${value}`.trim() !== '';
 
 const getTrimmedDisplayValue = value => `${value}`.trim();
+
+const getBodyUnitPreferenceText = user => {
+  const bodyUnitPreference = resolveBodyUnitPreference(user?.bodyUnitPreference);
+
+  return strings.completeProfile.bodyUnitPreference[bodyUnitPreference];
+};
 
 const getWeightText = user => {
   const weightKilograms = getBodyWeightKilograms({
@@ -82,6 +89,7 @@ export default function MyProfilePage(props) {
   const nickname = hasDisplayValue(user?.name)
     ? getTrimmedDisplayValue(user.name)
     : 'No nickname set';
+  const bodyUnitPreferenceText = getBodyUnitPreferenceText(user);
   const weightText = getWeightText(user);
   const bmrText = hasDisplayValue(user?.bmr)
     ? `${getTrimmedDisplayValue(user.bmr)} CALORIES`
@@ -115,12 +123,25 @@ export default function MyProfilePage(props) {
     },
     {
       id: 2,
+      title: strings.completeProfile.labels.bodyUnitPreference,
+      options: [
+        {
+          id: 1,
+          displayValue: bodyUnitPreferenceText,
+          type: '',
+          screen: SETTINGS_ROUTES.MY_VITALS,
+        },
+      ],
+      screen: '',
+    },
+    {
+      id: 3,
       title: 'Current Weight',
       options: [{ id: 1, displayValue: weightText, screen: '' }],
       screen: '',
     },
     {
-      id: 3,
+      id: 4,
       title: 'BMI',
       options: [
         {
@@ -135,13 +156,13 @@ export default function MyProfilePage(props) {
       screen: '',
     },
     {
-      id: 4,
+      id: 5,
       title: 'BMR',
       options: [{ id: 1, displayValue: bmrText, type: '', screen: '' }],
       screen: '',
     },
     {
-      id: 5,
+      id: 6,
       title: 'Current Target Totals',
       options: [
         {

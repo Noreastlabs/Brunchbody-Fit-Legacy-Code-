@@ -29,6 +29,7 @@ import MyVitals from '../src/screens/setting/components/My Profile/MyVitals';
 const PROFILE_VITALS_HELPER =
   'Saved on this device only and used for in-app calculations and display.';
 const GENDER_HELPER = 'Used for local BMI and BMR calculations.';
+const BODY_UNIT_HELPER = 'Used for body measurements like height and weight.';
 const FORBIDDEN_COPY = [
   'Account',
   'Login',
@@ -47,6 +48,20 @@ const FORBIDDEN_COPY = [
   'sync',
   'stored in your account',
   'Delete account',
+];
+const FORBIDDEN_BODY_UNIT_COPY = [
+  'app-wide units',
+  'app wide units',
+  'all app units',
+  'nutrition units',
+  'workout units',
+  'supplement units',
+  'calendar units',
+  'export units',
+  'import units',
+  'synced units',
+  'cloud units',
+  'account units',
 ];
 
 const collectRenderedText = value => {
@@ -73,6 +88,23 @@ const renderInAct = async element => {
   });
 
   return renderer;
+};
+
+const getBodyUnitControl = (renderer, label) => {
+  const labelNode = renderer.root.findAll(
+    node => node.props.children === label,
+  )[0];
+  let currentNode = labelNode;
+
+  while (currentNode) {
+    if (currentNode.props.accessibilityState?.selected !== undefined) {
+      return currentNode;
+    }
+
+    currentNode = currentNode.parent;
+  }
+
+  return null;
 };
 
 const defaultVitalsProps = {
@@ -147,8 +179,41 @@ describe('Profile and vitals transparency helper copy', () => {
     expect(renderedText).toContain('Profile details');
     expect(renderedText).toContain(PROFILE_VITALS_HELPER);
     expect(renderedText).toContain(GENDER_HELPER);
+    expect(renderedText).toContain('Body measurement units');
+    expect(renderedText).toContain('Standard');
+    expect(renderedText).toContain('Metric');
+    expect(renderedText).toContain(BODY_UNIT_HELPER);
     FORBIDDEN_COPY.forEach(copy => {
       expect(renderedText).not.toContain(copy);
     });
+    FORBIDDEN_BODY_UNIT_COPY.forEach(copy => {
+      expect(renderedText.toLowerCase()).not.toContain(copy);
+    });
   });
+
+  test.each([
+    ['standard', true, false],
+    ['metric', false, true],
+  ])(
+    'My Vitals exposes selected-state semantics for %s body units',
+    async (bodyUnitPreference, standardSelected, metricSelected) => {
+      const renderer = await renderInAct(
+        <MyVitals
+          {...defaultVitalsProps}
+          bodyUnitPreference={bodyUnitPreference}
+        />,
+      );
+      const standardControl = getBodyUnitControl(renderer, 'Standard');
+      const metricControl = getBodyUnitControl(renderer, 'Metric');
+
+      expect(standardControl.props.accessibilityRole).toBe('button');
+      expect(metricControl.props.accessibilityRole).toBe('button');
+      expect(standardControl.props.accessibilityState.selected).toBe(
+        standardSelected,
+      );
+      expect(metricControl.props.accessibilityState.selected).toBe(
+        metricSelected,
+      );
+    },
+  );
 });

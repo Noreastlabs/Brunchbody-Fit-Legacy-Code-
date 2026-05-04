@@ -42,6 +42,7 @@ module.exports.strings = {
       weight: 'Enter your weight in pounds using whole numbers only.',
       weightMetric: 'Enter your weight in kilograms.',
       gender: 'Used for local BMI and BMR calculations.',
+      bodyUnitPreference: 'Used for body measurements like height and weight.',
     },
     errors: {
       dobRequired: 'Select and confirm your date of birth to continue.',

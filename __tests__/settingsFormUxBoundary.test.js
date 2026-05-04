@@ -84,6 +84,15 @@ const getCurrentWeightDisplayValue = async user => {
   return weightItem.options[0].displayValue;
 };
 
+const getBodyUnitPreferenceOption = async user => {
+  const listData = await getMyProfileListData(user);
+  const bodyUnitPreferenceItem = listData.find(
+    item => item.title === 'Body measurement units',
+  );
+
+  return bodyUnitPreferenceItem.options[0];
+};
+
 describe('settings form UX boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -242,6 +251,60 @@ describe('settings form UX boundary', () => {
     expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty('weight');
     expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty(
       'weightKilograms',
+    );
+    expectNoDurableDerivedProfileFields(updateUserProfile.mock.calls[0][0]);
+  });
+
+  test('MyVitalsPage saves body unit preference through the profile path only', async () => {
+    const updateUserProfile = jest.fn().mockResolvedValue(true);
+    const getUserData = jest.fn().mockResolvedValue(true);
+    const renderer = await renderInAct(
+      <MyVitalsPage
+        navigation={{ navigate: jest.fn() }}
+        user={{
+          name: 'Lane',
+          dob: '01/01/1990',
+          gender: 'female',
+          height: '5.06',
+          heightCentimeters: 168,
+          weight: '135',
+          weightKilograms: 61.2,
+          bodyUnitPreference: 'standard',
+          targetCalories: [
+            { id: 1, name: 'fat', value: '133' },
+            { id: 2, name: 'prt', value: '150' },
+            { id: 3, name: 'cho', value: '50' },
+            { id: 4, name: 'cal', value: '2000' },
+          ],
+        }}
+        updateUserProfile={updateUserProfile}
+        getUserData={getUserData}
+      />,
+    );
+    const getProps = () => renderer.root.findByType('mock-setting-my-vitals').props;
+
+    ReactTestRenderer.act(() => {
+      getProps().onSelectBodyUnitPreference('metric');
+    });
+
+    await ReactTestRenderer.act(async () => {
+      await getProps().onUpdateHandler();
+    });
+
+    expect(updateUserProfile).toHaveBeenCalledWith({
+      name: 'Lane',
+      dob: '1/1/1990',
+      height: '5.6',
+      heightCentimeters: 168,
+      bodyUnitPreference: 'metric',
+      gender: 'female',
+    });
+    expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty('weight');
+    expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty(
+      'weightKilograms',
+    );
+    expect(updateUserProfile.mock.calls[0][0]).not.toHaveProperty(
+      'targetCalories',
     );
     expectNoDurableDerivedProfileFields(updateUserProfile.mock.calls[0][0]);
   });
@@ -405,6 +468,41 @@ describe('settings form UX boundary', () => {
       { id: 3, name: 'CHO', value: '--' },
       { id: 4, name: 'CAL', value: '--' },
     ]);
+  });
+
+  test.each([
+    ['standard', { bodyUnitPreference: 'standard' }],
+    ['missing', {}],
+    ['unsupported', { bodyUnitPreference: 'unsupported' }],
+  ])(
+    'MyProfilePage shows Standard body measurement preference for %s preference',
+    async (_label, user) => {
+      await expect(
+        getBodyUnitPreferenceOption({
+          ...user,
+          targetCalories: [],
+        }),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          displayValue: 'Standard',
+          screen: SETTINGS_ROUTES.MY_VITALS,
+        }),
+      );
+    },
+  );
+
+  test('MyProfilePage shows Metric body measurement preference', async () => {
+    await expect(
+      getBodyUnitPreferenceOption({
+        bodyUnitPreference: 'metric',
+        targetCalories: [],
+      }),
+    ).resolves.toEqual(
+      expect.objectContaining({
+        displayValue: 'Metric',
+        screen: SETTINGS_ROUTES.MY_VITALS,
+      }),
+    );
   });
 
   test('MyProfilePage formats standard current weight in pounds', async () => {
