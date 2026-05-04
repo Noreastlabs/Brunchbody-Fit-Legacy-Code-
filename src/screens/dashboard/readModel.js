@@ -5,8 +5,50 @@ import {
 } from '../../utils/bodyMeasurementUnits';
 
 const CHART_DATA_LENGTH = 7;
+const NUMERIC_TEXT_PATTERN = /^-?(?:\d+|\d*\.\d+)$/;
 
-const roundChartValue = value => Math.round(value * 100) / 100;
+const toFiniteNumber = value => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (!NUMERIC_TEXT_PATTERN.test(trimmedValue)) {
+    return null;
+  }
+
+  const parsedValue = Number(trimmedValue);
+
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+};
+
+const toSafeChartValue = value => {
+  const parsedValue = toFiniteNumber(value);
+
+  return parsedValue === null ? 0 : parsedValue;
+};
+
+const toSafePositiveChartValue = value => {
+  const parsedValue = toFiniteNumber(value);
+
+  return parsedValue !== null && parsedValue > 0 ? parsedValue : 0;
+};
+
+const roundChartValue = value => {
+  const parsedValue = toFiniteNumber(value);
+
+  return parsedValue === null ? 0 : Math.round(parsedValue * 100) / 100;
+};
+
+const getCreatedOnTime = entry => toSafeChartValue(entry?.createdOn);
+
+const sortByCreatedOnDescending = (a, b) =>
+  getCreatedOnTime(b) - getCreatedOnTime(a);
 
 const fillChartData = (values, count) => {
   Array(CHART_DATA_LENGTH - count)
@@ -29,7 +71,8 @@ const getPoundChartValueFromKilograms = canonicalKilograms => {
   return pounds === null ? 0 : roundChartValue(pounds);
 };
 
-const getLegacyPoundChartValue = weightLog => weightLog?.weight || '0';
+const getLegacyPoundChartValue = weightLog =>
+  toSafePositiveChartValue(weightLog?.weight);
 
 const getWeightLogPoundChartValue = weightLog => {
   const canonicalKilograms = getWeightLogCanonicalKilograms(weightLog);
@@ -42,7 +85,13 @@ const getWeightLogPoundChartValue = weightLog => {
 };
 
 const getWeightLogPoundAggregateValue = weightLog =>
-  parseFloat(getWeightLogPoundChartValue(weightLog), 10);
+  getWeightLogPoundChartValue(weightLog);
+
+const getOutlookChartValue = dailyEntry =>
+  toSafeChartValue(dailyEntry?.feelingRate);
+
+const getCalorieDifferentialChartValue = caloriesEntry =>
+  toSafeChartValue(caloriesEntry?.caloriesDifferential);
 
 const buildDailyData = entries => {
   const weightData = [];
@@ -50,12 +99,12 @@ const buildDailyData = entries => {
   const calDiffData = [];
 
   [...entries]
-    .sort((a, b) => b.createdOn - a.createdOn)
+    .sort(sortByCreatedOnDescending)
     .splice(0, CHART_DATA_LENGTH)
     .forEach(item => {
-      weightData.push(getWeightLogPoundChartValue(item.WeightLog));
-      outlookData.push(item.DailyEntry?.feelingRate || '0');
-      calDiffData.push(item.CaloriesEntry?.caloriesDifferential || '0');
+      weightData.push(getWeightLogPoundChartValue(item?.WeightLog));
+      outlookData.push(getOutlookChartValue(item?.DailyEntry));
+      calDiffData.push(getCalorieDifferentialChartValue(item?.CaloriesEntry));
     });
 
   if (entries.length < CHART_DATA_LENGTH) {
@@ -86,7 +135,7 @@ const buildPeriodData = ({
 
   [...entries]
     .splice(0, CHART_DATA_LENGTH)
-    .sort((a, b) => b.createdOn - a.createdOn)
+    .sort(sortByCreatedOnDescending)
     .filter(includeEntry)
     .forEach((item, index, self) => {
       const itemKey = getPeriodKey(item);
@@ -95,15 +144,15 @@ const buildPeriodData = ({
         count += 1;
         values.push(roundChartValue(sum / divisor));
         sum = 0;
-        sum += getValue(item);
+        sum += toSafeChartValue(getValue(item));
         periodKey = itemKey;
       } else if (self.length - 1 === index) {
         count += 1;
-        sum += getValue(item);
+        sum += toSafeChartValue(getValue(item));
         values.push(roundChartValue(sum / divisor));
         sum = 0;
       } else {
-        sum += getValue(item);
+        sum += toSafeChartValue(getValue(item));
       }
     });
 
@@ -117,7 +166,6 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
   const currentYear = currentDate.getFullYear();
   const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
 
-  // Preserve the current chart output exactly while moving ownership to dashboard.
   return {
     day: buildDailyData(sourceEntries),
     week: {
@@ -125,7 +173,7 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         entries: sourceEntries,
         currentKey: moment(currentDate).format('w'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('w'),
-        includeEntry: item => Boolean(item.WeightLog),
+        includeEntry: item => Boolean(item?.WeightLog),
         getValue: item => getWeightLogPoundAggregateValue(item.WeightLog),
         divisor: CHART_DATA_LENGTH,
       }),
@@ -133,19 +181,17 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         entries: sourceEntries,
         currentKey: moment(currentDate).format('w'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('w'),
-        includeEntry: item => Boolean(item.DailyEntry),
-        getValue: item => parseInt(item.DailyEntry.feelingRate, 10),
+        includeEntry: item => Boolean(item?.DailyEntry),
+        getValue: item => getOutlookChartValue(item.DailyEntry),
         divisor: CHART_DATA_LENGTH,
       }),
       calDiffData: buildPeriodData({
         entries: sourceEntries,
         currentKey: moment(currentDate).format('w'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('w'),
-        includeEntry: item => Boolean(item.CaloriesEntry),
+        includeEntry: item => Boolean(item?.CaloriesEntry),
         getValue: item =>
-          item.CaloriesEntry.caloriesDifferential
-            ? parseFloat(item.CaloriesEntry.caloriesDifferential, 10)
-            : 0,
+          getCalorieDifferentialChartValue(item.CaloriesEntry),
         divisor: CHART_DATA_LENGTH,
       }),
     },
@@ -154,7 +200,7 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         entries: sourceEntries,
         currentKey: moment(currentDate).format('MMM'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('MMM'),
-        includeEntry: item => Boolean(item.WeightLog),
+        includeEntry: item => Boolean(item?.WeightLog),
         getValue: item => getWeightLogPoundAggregateValue(item.WeightLog),
         divisor: daysInMonth,
       }),
@@ -162,19 +208,17 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         entries: sourceEntries,
         currentKey: moment(currentDate).format('MMM'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('MMM'),
-        includeEntry: item => Boolean(item.DailyEntry),
-        getValue: item => parseInt(item.DailyEntry.feelingRate, 10),
+        includeEntry: item => Boolean(item?.DailyEntry),
+        getValue: item => getOutlookChartValue(item.DailyEntry),
         divisor: daysInMonth,
       }),
       calDiffData: buildPeriodData({
         entries: sourceEntries,
         currentKey: moment(currentDate).format('MMM'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('MMM'),
-        includeEntry: item => Boolean(item.CaloriesEntry),
+        includeEntry: item => Boolean(item?.CaloriesEntry),
         getValue: item =>
-          item.CaloriesEntry.caloriesDifferential
-            ? parseFloat(item.CaloriesEntry.caloriesDifferential, 10)
-            : 0,
+          getCalorieDifferentialChartValue(item.CaloriesEntry),
         divisor: daysInMonth,
       }),
     },
@@ -183,7 +227,7 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         entries: sourceEntries,
         currentKey: moment(currentDate).format('YYYY'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('YYYY'),
-        includeEntry: item => Boolean(item.WeightLog),
+        includeEntry: item => Boolean(item?.WeightLog),
         getValue: item => getWeightLogPoundAggregateValue(item.WeightLog),
         divisor: 365.24,
       }),
@@ -191,19 +235,17 @@ export const buildDashboardReadModel = (entries = [], now = new Date()) => {
         entries: sourceEntries,
         currentKey: moment(currentDate).format('YYYY'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('YYYY'),
-        includeEntry: item => Boolean(item.DailyEntry),
-        getValue: item => parseInt(item.DailyEntry.feelingRate, 10),
+        includeEntry: item => Boolean(item?.DailyEntry),
+        getValue: item => getOutlookChartValue(item.DailyEntry),
         divisor: 365.24,
       }),
       calDiffData: buildPeriodData({
         entries: sourceEntries,
         currentKey: moment(currentDate).format('YYYY'),
         getPeriodKey: item => moment(item.createdOn, 'x').format('YYYY'),
-        includeEntry: item => Boolean(item.CaloriesEntry),
+        includeEntry: item => Boolean(item?.CaloriesEntry),
         getValue: item =>
-          item.CaloriesEntry.caloriesDifferential
-            ? parseFloat(item.CaloriesEntry.caloriesDifferential, 10)
-            : 0,
+          getCalorieDifferentialChartValue(item.CaloriesEntry),
         divisor: 365.24,
       }),
     },

@@ -11,20 +11,48 @@ const dashboardSeries = ['weightData', 'outlookData', 'calDiffData'];
 
 const createEntry = (
   date,
-  { weight, weightKilograms, feelingRate, caloriesDifferential },
+  {
+    weight,
+    weightKilograms,
+    feelingRate,
+    caloriesDifferential,
+    includeWeightLog = true,
+    includeDailyEntry = true,
+    includeCaloriesEntry = true,
+  } = {},
 ) => ({
   id: `${date}-${weight}-${feelingRate}`,
   createdOn: new Date(date).getTime(),
-  WeightLog: {
-    weight,
-    ...(weightKilograms === undefined ? {} : { weightKilograms }),
-  },
-  DailyEntry: { feelingRate },
-  CaloriesEntry: { caloriesDifferential },
+  ...(includeWeightLog
+    ? {
+        WeightLog: {
+          weight,
+          ...(weightKilograms === undefined ? {} : { weightKilograms }),
+        },
+      }
+    : {}),
+  ...(includeDailyEntry ? { DailyEntry: { feelingRate } } : {}),
+  ...(includeCaloriesEntry
+    ? { CaloriesEntry: { caloriesDifferential } }
+    : {}),
 });
 
+const expectSafeSevenPointDashboardData = readModel => {
+  dashboardPeriods.forEach(period => {
+    dashboardSeries.forEach(series => {
+      const values = readModel[period][series];
+
+      expect(values).toHaveLength(7);
+      values.forEach(value => {
+        expect(typeof value).toBe('number');
+        expect(Number.isFinite(value)).toBe(true);
+      });
+    });
+  });
+};
+
 describe('dashboard read-model boundary', () => {
-  test('buildDashboardReadModel preserves the current dashboard output contract', () => {
+  test('buildDashboardReadModel preserves the dashboard output contract with finite numeric chart values', () => {
     const entries = [
       createEntry('2026-04-15T12:00:00.000Z', {
         weight: '180',
@@ -57,9 +85,9 @@ describe('dashboard read-model boundary', () => {
 
     expect(readModel).toEqual({
       day: {
-        weightData: ['180', '179', '178', '177', '176', 0, 0],
-        outlookData: ['4', '3', '2', '5', '1', 0, 0],
-        calDiffData: ['100', '-50', '25', '200', '0', 0, 0],
+        weightData: [180, 179, 178, 177, 176, 0, 0],
+        outlookData: [4, 3, 2, 5, 1, 0, 0],
+        calDiffData: [100, -50, 25, 200, 0, 0, 0],
       },
       week: {
         weightData: [51.29, 25.43, 25.29, 0, 0, 0, 0],
@@ -78,11 +106,85 @@ describe('dashboard read-model boundary', () => {
       },
     });
 
+    expectSafeSevenPointDashboardData(readModel);
+  });
+
+  test('buildDashboardReadModel returns safe seven-point arrays for empty journal input', () => {
+    const readModel = buildDashboardReadModel([], now);
+    const emptySeries = Array(7).fill(0);
+
     dashboardPeriods.forEach(period => {
       dashboardSeries.forEach(series => {
-        expect(readModel[period][series]).toHaveLength(7);
+        expect(readModel[period][series]).toEqual(emptySeries);
       });
     });
+    expectSafeSevenPointDashboardData(readModel);
+  });
+
+  test('buildDashboardReadModel safely fills sparse entries with missing sections', () => {
+    const readModel = buildDashboardReadModel(
+      [
+        createEntry('2026-04-15T12:00:00.000Z', {
+          weight: '180',
+          includeDailyEntry: false,
+          includeCaloriesEntry: false,
+        }),
+        createEntry('2026-04-14T12:00:00.000Z', {
+          feelingRate: '3',
+          includeWeightLog: false,
+          includeCaloriesEntry: false,
+        }),
+        createEntry('2026-04-13T12:00:00.000Z', {
+          caloriesDifferential: '-50',
+          includeWeightLog: false,
+          includeDailyEntry: false,
+        }),
+      ],
+      now,
+    );
+
+    expect(readModel.day.weightData).toEqual([180, 0, 0, 0, 0, 0, 0]);
+    expect(readModel.day.outlookData).toEqual([0, 3, 0, 0, 0, 0, 0]);
+    expect(readModel.day.calDiffData).toEqual([0, 0, -50, 0, 0, 0, 0]);
+    expect(readModel.week.calDiffData[0]).toBe(-7.14);
+    expectSafeSevenPointDashboardData(readModel);
+  });
+
+  test('buildDashboardReadModel sanitizes malformed and non-finite chart inputs', () => {
+    const readModel = buildDashboardReadModel(
+      [
+        createEntry('2026-04-15T12:00:00.000Z', {
+          weight: 'bad-input',
+          weightKilograms: 'bad-input',
+          feelingRate: 'bad-input',
+          caloriesDifferential: 'bad-input',
+        }),
+        createEntry('2026-04-14T12:00:00.000Z', {
+          weight: '0',
+          weightKilograms: 0,
+          feelingRate: undefined,
+          caloriesDifferential: undefined,
+        }),
+        createEntry('2026-04-13T12:00:00.000Z', {
+          weight: '-10',
+          weightKilograms: Infinity,
+          feelingRate: Infinity,
+          caloriesDifferential: -Infinity,
+        }),
+        createEntry('2026-04-12T12:00:00.000Z', {
+          weight: null,
+          weightKilograms: NaN,
+          feelingRate: null,
+          caloriesDifferential: null,
+        }),
+      ],
+      now,
+    );
+
+    expect(readModel.day.weightData).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    expect(readModel.day.outlookData).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    expect(readModel.day.calDiffData).toEqual([0, 0, 0, 0, 0, 0, 0]);
+    expectSafeSevenPointDashboardData(readModel);
   });
 
   test('buildDashboardReadModel prefers canonical WeightLog kilograms over conflicting legacy pounds', () => {
@@ -115,8 +217,9 @@ describe('dashboard read-model boundary', () => {
       now,
     );
 
-    expect(readModel.day.weightData).toEqual(['181', 0, 0, 0, 0, 0, 0]);
+    expect(readModel.day.weightData).toEqual([181, 0, 0, 0, 0, 0, 0]);
     expect(readModel.week.weightData[0]).toBe(25.86);
+    expectSafeSevenPointDashboardData(readModel);
   });
 
   test('buildDashboardReadModel falls back to legacy WeightLog pounds when canonical kilograms are invalid', () => {
@@ -138,8 +241,9 @@ describe('dashboard read-model boundary', () => {
       now,
     );
 
-    expect(readModel.day.weightData).toEqual(['181', '0', 0, 0, 0, 0, 0]);
+    expect(readModel.day.weightData).toEqual([181, 0, 0, 0, 0, 0, 0]);
     expect(readModel.week.weightData[0]).toBe(25.86);
+    expectSafeSevenPointDashboardData(readModel);
   });
 
   test('buildDashboardReadModel does not mutate source journal entries', () => {
