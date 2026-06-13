@@ -29,6 +29,9 @@ const UnitPreferenceSelector = ({value, onChange}) => (
         <TouchableOpacity
           key={unitPreference}
           activeOpacity={0.7}
+          accessibilityLabel={`${strings.completeProfile.bodyUnitPreference[unitPreference]} body measurement units`}
+          accessibilityRole="button"
+          accessibilityState={{selected: isSelected}}
           onPress={() => onChange(unitPreference)}
           style={[
             style.unitPreferenceOption,
@@ -85,6 +88,9 @@ const Weight = ({
           <Input
             text={text}
             maxLength={8}
+            accessibilityLabel={
+              isMetric ? 'Weight in kilograms' : 'Weight in pounds'
+            }
             keyboardType={
               Platform.OS === 'ios'
                 ? isMetric
@@ -98,6 +104,7 @@ const Weight = ({
                 ? strings.completeProfile.placeholders.weightMetric
                 : strings.completeProfile.placeholders.weight
             }
+            returnKeyType="done"
           />
           <SupportingText
             text={

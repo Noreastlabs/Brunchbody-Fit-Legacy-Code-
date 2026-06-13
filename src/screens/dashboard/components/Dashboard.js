@@ -6,6 +6,7 @@ import Month from './Month';
 import Week from './Week';
 import Year from './Year';
 import style from './style';
+import { dashboardTodayCopy } from '../../../resources';
 
 export default function Dashboard(props) {
   const { tabs, selectedTab } = props;
@@ -14,6 +15,7 @@ export default function Dashboard(props) {
     <SafeAreaWrapper>
       <View style={style.headingView}>
         <Text style={style.headingText1}>Dashboard</Text>
+        <Text style={style.helperText}>{dashboardTodayCopy}</Text>
       </View>
 
       <View>

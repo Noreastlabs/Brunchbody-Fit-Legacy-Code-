@@ -42,6 +42,7 @@ const DateOfBirth = props => {
           <View style={style.dropdownContainer}>
             <InputModal
               value={isDateSelected ? formatVisibleDob({date, month, year}) : ''}
+              accessibilityLabel="Date of birth"
               placeholder={strings.completeProfile.placeholders.dob}
               toggleDatePicker={toggleDatePicker}
             />

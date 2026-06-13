@@ -4,7 +4,16 @@ import PropTypes from 'prop-types';
 import {colors} from '../../../resources';
 import style from './style';
 
-const Input = ({placeholder, onChangeText, keyboardType, maxLength, text}) => (
+const Input = ({
+  accessibilityLabel,
+  autoCapitalize,
+  keyboardType,
+  maxLength,
+  onChangeText,
+  placeholder,
+  returnKeyType,
+  text,
+}) => (
   <View style={style.dropdownInput}>
     <TextInput
       value={text}
@@ -13,21 +22,31 @@ const Input = ({placeholder, onChangeText, keyboardType, maxLength, text}) => (
       placeholderTextColor={colors.grey}
       onChangeText={onChangeText}
       keyboardType={keyboardType}
+      returnKeyType={returnKeyType}
+      autoCapitalize={autoCapitalize}
+      autoCorrect={false}
+      accessibilityLabel={accessibilityLabel || placeholder}
       style={style.input}
     />
   </View>
 );
 
 Input.defaultProps = {
+  accessibilityLabel: '',
+  autoCapitalize: 'none',
   keyboardType: 'default',
   maxLength: undefined,
+  returnKeyType: 'next',
 };
 
 Input.propTypes = {
   text: PropTypes.string.isRequired,
   placeholder: PropTypes.string.isRequired,
   onChangeText: PropTypes.func.isRequired,
+  accessibilityLabel: PropTypes.string,
+  autoCapitalize: PropTypes.string,
   keyboardType: PropTypes.string,
   maxLength: PropTypes.number,
+  returnKeyType: PropTypes.string,
 };
 export default Input;

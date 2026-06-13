@@ -16,6 +16,7 @@ import {
   PermissionModal,
   SafeAreaWrapper,
 } from '../../../../components';
+import {exportIntroCopy} from '../../portabilityCopy';
 
 export default function ExportToCSV(props) {
   const {
@@ -37,20 +38,13 @@ export default function ExportToCSV(props) {
         <CustomHeader />
         <View style={styles.headingView}>
           <Text style={styles.headingText1}>Export Journal Data</Text>
-          <Text style={styles.headingText3}>
-            Exports selected journal entries as an Excel workbook (.xlsx).
-          </Text>
-          <Text style={styles.helperText}>
-            Exported files may contain personal fitness, journal, nutrition,
-            supplement, reflection, or profile-related information depending on
-            what you export.
-          </Text>
-          <Text style={styles.helperText}>
-            Exported files are user-managed copies after export. Brunch Body
-            does not currently provide app-managed import or restore for
-            exported files. Files saved outside the app are not removed by
-            Delete local data.
-          </Text>
+          {exportIntroCopy.map((copy, index) => (
+            <Text
+              key={copy}
+              style={index === 0 ? styles.headingText3 : styles.helperText}>
+              {copy}
+            </Text>
+          ))}
         </View>
         <View style={{paddingVertical: 10, marginHorizontal: 20}}>
           {listData.map(item => (

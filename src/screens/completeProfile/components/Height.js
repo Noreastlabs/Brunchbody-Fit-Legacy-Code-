@@ -32,6 +32,9 @@ const UnitPreferenceSelector = ({value, onChange}) => (
         <TouchableOpacity
           key={unitPreference}
           activeOpacity={0.7}
+          accessibilityLabel={`${strings.completeProfile.bodyUnitPreference[unitPreference]} body measurement units`}
+          accessibilityRole="button"
+          accessibilityState={{selected: isSelected}}
           onPress={() => onChange(unitPreference)}
           style={[
             style.unitPreferenceOption,
@@ -91,17 +94,20 @@ const Height = props => {
               <Input
                 text={metricHeightText}
                 maxLength={6}
+                accessibilityLabel="Height in centimeters"
                 keyboardType={
                   Platform.OS === 'ios' ? 'decimal-pad' : 'numeric'
                 }
                 onChangeText={onChangeMetricHeight}
                 placeholder={strings.completeProfile.placeholders.heightMetric}
+                returnKeyType="done"
               />
             ) : (
               <InputModal
                 value={
                   isHeightSelected ? formatVisibleHeight({feet, inches}) : ''
                 }
+                accessibilityLabel="Height in feet and inches"
                 placeholder={strings.completeProfile.placeholders.height}
                 toggleDatePicker={() => setModalVisible(true)}
               />

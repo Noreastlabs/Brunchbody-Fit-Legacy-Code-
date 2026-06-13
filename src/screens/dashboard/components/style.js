@@ -17,6 +17,15 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     color: colors.white,
   },
+  helperText: {
+    maxWidth: RFValue(330),
+    color: colors.white,
+    fontSize: RFValue(13),
+    lineHeight: RFValue(18),
+    marginHorizontal: RFValue(20),
+    marginBottom: RFValue(8),
+    textAlign: 'center',
+  },
   activityIndicatorContainer: {
     height: '100%',
     width: '100%',

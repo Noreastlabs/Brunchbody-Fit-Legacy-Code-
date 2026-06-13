@@ -64,7 +64,10 @@ describe('Privacy & Data screen', () => {
       'Once exported, you are responsible for where the file is saved, copied, shared, uploaded, or deleted.',
     );
     expect(renderedText).toContain(
-      'Delete local data removes saved Brunch Body data from this device. It does not remove files you exported, copied, shared, uploaded, or saved outside the app.',
+      'Android and iOS backups, device-transfer tools, cloud folders, and file apps can create or keep copies outside Brunch Body app-managed storage.',
+    );
+    expect(renderedText).toContain(
+      'Delete local data removes saved Brunch Body data from this device. It does not remove files you exported, copied, shared, uploaded, backed up, transferred, or saved outside the app.',
     );
     expect(renderedText).toContain(
       'This screen is a plain-English explanation of current app behavior. It is not the legal Privacy Policy or Terms of Use.',

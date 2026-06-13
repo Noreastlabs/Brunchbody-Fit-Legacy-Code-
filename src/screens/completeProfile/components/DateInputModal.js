@@ -6,9 +6,12 @@ import PropTypes from 'prop-types';
 import style from './style';
 import {colors} from '../../../resources';
 
-const InputModal = ({toggleDatePicker, placeholder, value}) => (
+const InputModal = ({accessibilityLabel, toggleDatePicker, placeholder, value}) => (
   <View style={style.dropdownInput}>
-    <TouchableOpacity onPress={toggleDatePicker}>
+    <TouchableOpacity
+      accessibilityLabel={accessibilityLabel || placeholder}
+      accessibilityRole="button"
+      onPress={toggleDatePicker}>
       <TextInput
         style={style.input}
         value={value}
@@ -19,7 +22,10 @@ const InputModal = ({toggleDatePicker, placeholder, value}) => (
       />
     </TouchableOpacity>
 
-    <TouchableOpacity onPress={toggleDatePicker}>
+    <TouchableOpacity
+      accessibilityLabel={accessibilityLabel || placeholder}
+      accessibilityRole="button"
+      onPress={toggleDatePicker}>
       <Icon
         style={style.arrowIcon}
         name="caretdown"
@@ -30,7 +36,12 @@ const InputModal = ({toggleDatePicker, placeholder, value}) => (
   </View>
 );
 
+InputModal.defaultProps = {
+  accessibilityLabel: '',
+};
+
 InputModal.propTypes = {
+  accessibilityLabel: PropTypes.string,
   toggleDatePicker: PropTypes.func.isRequired,
   placeholder: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,

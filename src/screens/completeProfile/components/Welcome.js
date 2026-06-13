@@ -9,8 +9,12 @@ import {
 import PropTypes from 'prop-types';
 import style from './style';
 import {LogoHeader} from '../../../components';
-import { ROOT_ROUTES } from '../../../navigation/routeNames';
-import {strings} from '../../../resources';
+import {ROOT_ROUTES} from '../../../navigation/routeNames';
+import {
+  completeProfileTutorialCopy,
+  completeProfileValueCopy,
+  strings,
+} from '../../../resources';
 import Label from './Label';
 import NextButton from './NextButton';
 
@@ -22,9 +26,10 @@ const Welcome = ({currentScreen, navigation}) => (
       </View>
       <View style={style.nameInputContainer}>
         <Label text={strings.completeProfile.labels.welcome} />
+        <Text style={style.dataSelectionNote}>{completeProfileValueCopy}</Text>
         <View style={style.welcomeText}>
           <Text style={style.tutorial}>
-            {strings.completeProfile.labels.tutorial}
+            {completeProfileTutorialCopy}
           </Text>
           <TouchableOpacity
             onPress={() => navigation.navigate(ROOT_ROUTES.TUTORIALS)}

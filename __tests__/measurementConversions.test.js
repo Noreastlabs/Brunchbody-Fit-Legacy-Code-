@@ -250,4 +250,16 @@ describe('measurement conversion engine', () => {
       MEASUREMENT_CONVERSION_ERROR_CODES.UNSUPPORTED_UNIT,
     );
   });
+
+  test('keeps category boundaries strict when units are individually supported', () => {
+    expectFailureCode(
+      convertMeasurement({
+        value: 5,
+        category: MEASUREMENT_CATEGORIES.DISTANCE,
+        fromUnit: MEASUREMENT_UNITS.POUND,
+        toUnit: MEASUREMENT_UNITS.KILOGRAM,
+      }),
+      MEASUREMENT_CONVERSION_ERROR_CODES.UNSUPPORTED_UNIT_PAIR,
+    );
+  });
 });

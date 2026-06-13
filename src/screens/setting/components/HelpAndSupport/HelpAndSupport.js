@@ -1,6 +1,7 @@
 import React from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {CustomHeader, SafeAreaWrapper} from '../../../../components';
+import {feedbackCaptureCopy} from '../../../../resources';
 import styles from '../PrivacyAndData/style';
 
 const helpAndSupportCopy = [
@@ -23,6 +24,7 @@ const trustRecoveryCopy = [
 ];
 
 const feedbackCopy = [
+  feedbackCaptureCopy,
   'Feedback is always your choice. Brunch Body does not automatically monitor what you do in the app.',
   'Helpful feedback can include confusing wording, broken screens, unclear delete/export behavior, privacy or trust concerns, or missing help topics.',
   'You do not need to include exported files, screenshots with private details, or sensitive health information unless you choose to.',

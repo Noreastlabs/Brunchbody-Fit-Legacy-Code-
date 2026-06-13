@@ -17,6 +17,8 @@ jest.mock('../src/resources', () => ({
     background: 'background',
     white: 'white',
   },
+  feedbackCaptureCopy:
+    'Use Help & Support for feedback about confusing copy, broken flows, privacy wording, or release-readiness issues.',
 }));
 
 import HelpAndSupport from '../src/screens/setting/components/HelpAndSupport/HelpAndSupport';
@@ -100,6 +102,9 @@ describe('Help & Support screen', () => {
       'Brunch Body cannot inspect or restore device-local app data for you.',
     );
     expect(renderedText).toContain('Share feedback');
+    expect(renderedText).toContain(
+      'Use Help & Support for feedback about confusing copy, broken flows, privacy wording, or release-readiness issues.',
+    );
     expect(renderedText).toContain(
       'Brunch Body does not automatically monitor what you do in the app.',
     );

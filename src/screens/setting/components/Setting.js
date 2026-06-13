@@ -15,6 +15,7 @@ import {
   TimePickerModal,
   SafeAreaWrapper,
 } from '../../../components';
+import { settingsIntroCopy } from '../../../resources';
 import styles from './style';
 
 export default function Setting(props) {
@@ -37,15 +38,23 @@ export default function Setting(props) {
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.headingView}>
           <Text style={styles.headingText1}>Settings</Text>
+          <Text style={styles.headingHelperText}>{settingsIntroCopy}</Text>
         </View>
-        <View style={{ paddingVertical: 10, marginHorizontal: 20 }}>
+        <View style={styles.contentView}>
           {listing.map(item => (
             <View key={item.id} style={styles.listView}>
               <Text style={styles.textStyle1}>{item.title}</Text>
+              {item.helperText ? (
+                <Text style={styles.sectionHelperText}>{item.helperText}</Text>
+              ) : null}
               {item.options.map((option, index) => (
                 <View key={option.id}>
                   <TouchableOpacity
                     activeOpacity={0.5}
+                    accessibilityLabel={option.name}
+                    accessibilityRole={
+                      option.type === 'toggle' ? 'switch' : 'button'
+                    }
                     style={styles.linkView}
                     onPress={() => {
                       option.screen
@@ -74,11 +83,7 @@ export default function Setting(props) {
                     )}
 
                     <View
-                      style={{
-                        flex: 1,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                      }}
+                      style={styles.optionContentView}
                     >
                       <Text style={styles.textStyle2}>{option.name}</Text>
                       <AntDesign

@@ -20,6 +20,8 @@ const Name = ({currentScreen, onChangeText, text}) => (
         <Label text={strings.completeProfile.labels.name} />
         <Input
           text={text}
+          accessibilityLabel="Nickname"
+          autoCapitalize="words"
           placeholder={strings.completeProfile.placeholders.name}
           onChangeText={onChangeText}
         />

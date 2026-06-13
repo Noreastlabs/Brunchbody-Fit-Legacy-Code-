@@ -7,6 +7,7 @@ import { useFocusEffect } from '@react-navigation/core';
 import moment from 'moment';
 import { Setting } from '../../components';
 import { ROOT_ROUTES, SETTINGS_ROUTES } from '../../../../navigation/routeNames';
+import {notificationUxCopy, settingsSectionHelp} from '../../../../resources';
 
 const initialState = {
   clockToggle: true,
@@ -24,10 +25,40 @@ const ABOUT_LINKS = {
   supportAndContact: 'https://brunchbodyfit.com/contact-us/',
 };
 
+const DEFAULT_SETTINGS_SECTION_HELP = Object.freeze({
+  Profile:
+    'Edit device-local profile details used for in-app display and calculations.',
+  Clock: 'Choose how time appears in the app.',
+  Alerts:
+    'Reminder controls are local app preferences; notification behavior must stay truthful to the current build.',
+  'Export data':
+    'Create selected journal exports as user-managed files outside app-managed storage.',
+  'Delete local data':
+    'Clear app-managed local data on this device only; exported or external copies are not removed.',
+  About:
+    'Find privacy notes, tutorials, support links, release information, and app reference material.',
+});
+
+const DEFAULT_NOTIFICATION_UX_COPY = Object.freeze({
+  disabledBuildInfo:
+    'Reminder time saved locally. Alarm notifications are disabled in this build.',
+});
+
+const settingsHelpCopy = {
+  ...DEFAULT_SETTINGS_SECTION_HELP,
+  ...(settingsSectionHelp || {}),
+};
+
+const notificationCopy = {
+  ...DEFAULT_NOTIFICATION_UX_COPY,
+  ...(notificationUxCopy || {}),
+};
+
 const listData = [
   {
     id: 1,
     title: 'Profile',
+    helperText: settingsHelpCopy.Profile,
     options: [
       {
         id: 1,
@@ -40,6 +71,7 @@ const listData = [
   {
     id: 2,
     title: 'Clock',
+    helperText: settingsHelpCopy.Clock,
     options: [
       {
         id: 1,
@@ -55,6 +87,7 @@ const listData = [
   {
     id: 3,
     title: 'Alerts',
+    helperText: settingsHelpCopy.Alerts,
     options: [
       {
         id: 1,
@@ -104,6 +137,7 @@ const listData = [
   {
     id: 4,
     title: 'Export data',
+    helperText: settingsHelpCopy['Export data'],
     options: [
       {
         id: 1,
@@ -117,6 +151,7 @@ const listData = [
   {
     id: 5,
     title: 'Delete local data',
+    helperText: settingsHelpCopy['Delete local data'],
     options: [
       {
         id: 1,
@@ -130,6 +165,7 @@ const listData = [
   {
     id: 6,
     title: 'About',
+    helperText: settingsHelpCopy.About,
     options: [
       { id: 1, name: 'Version', type: '', screen: '' },
       {
@@ -153,7 +189,7 @@ const listData = [
       { id: 5, name: 'Tutorial', type: '', screen: ROOT_ROUTES.TUTORIALS },
       {
         id: 6,
-        name: 'Abbrevations',
+        name: 'Abbreviations',
         type: '',
         screen: SETTINGS_ROUTES.ABBREVIATIONS,
       },
@@ -244,7 +280,7 @@ export default function SettingPage(props) {
       value: false,
     });
 
-    showMessage('Info', 'Alarm notifications are disabled in this build.');
+    showMessage('Info', notificationCopy.disabledBuildInfo);
   };
 
   return (

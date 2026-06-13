@@ -11,6 +11,10 @@ export default StyleSheet.create({
     flexGrow: 1,
     paddingBottom: RFValue(20),
   },
+  contentView: {
+    paddingVertical: RFValue(10),
+    marginHorizontal: RFValue(20),
+  },
   headingView: {
     marginTop: RFValue(10),
     alignSelf: 'center',
@@ -29,6 +33,11 @@ export default StyleSheet.create({
     marginTop: RFValue(15),
     justifyContent: 'space-between',
     flexDirection: 'row',
+  },
+  optionContentView: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   btnView: {
     marginTop: RFValue(50),
@@ -66,6 +75,14 @@ export default StyleSheet.create({
     fontSize: RFValue(60),
     fontWeight: 'bold',
     color: colors.white,
+  },
+  headingHelperText: {
+    maxWidth: RFValue(330),
+    color: colors.white,
+    fontSize: RFValue(13),
+    lineHeight: RFValue(18),
+    marginHorizontal: RFValue(20),
+    textAlign: 'center',
   },
   headingText2: {
     fontSize: RFValue(35),
@@ -105,6 +122,12 @@ export default StyleSheet.create({
     fontWeight: 'bold',
     fontSize: RFValue(22),
     color: colors.white,
+  },
+  sectionHelperText: {
+    color: colors.white,
+    fontSize: RFValue(12),
+    lineHeight: RFValue(17),
+    marginTop: RFValue(4),
   },
   textStyle2: {
     fontSize: RFValue(18),

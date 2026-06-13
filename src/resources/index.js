@@ -7,3 +7,5 @@ export * from './TimeBlockData';
 export * from './traits';
 export * from './meals';
 export * from './exercises';
+export * from './experienceCopy';
+export * from './domainPlanning';

@@ -12,6 +12,7 @@ import {
   isBodyUnitPreference,
   kilogramsToPounds,
 } from '../../../../utils/bodyMeasurementUnits';
+import {EXPORT_SUCCESS_COPY} from '../../portabilityCopy';
 
 const STANDARD_UNIT_PREFERENCE = 'standard';
 const METRIC_UNIT_PREFERENCE = 'metric';
@@ -226,10 +227,7 @@ export default function ExportToCSVPage(props) {
 
       RNFS.writeFile(filePath, wbout, 'ascii')
         .then(() => {
-          showMessage(
-            'Success!',
-            'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.',
-          );
+          showMessage('Success!', EXPORT_SUCCESS_COPY);
         })
         .catch(e => {
           console.log('Error in file', e);
@@ -244,10 +242,7 @@ export default function ExportToCSVPage(props) {
         false,
       )
         .then(() => {
-          showMessage(
-            'Success!',
-            'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.',
-          );
+          showMessage('Success!', EXPORT_SUCCESS_COPY);
         })
         .catch(e => {
           console.log('Error in file', e);

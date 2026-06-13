@@ -55,7 +55,7 @@ import ExportToCSVSurface from '../src/screens/setting/components/Export To CSV/
 import ExportToCSVPage from '../src/screens/setting/pages/Export To CSV/ExportToCSV';
 
 const EXPORT_SUCCESS_MESSAGE =
-  'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export.';
+  'Journal data was exported as an Excel workbook (.xlsx).\n\nExported files are user-managed copies after export. Brunch Body does not automatically import, restore, sync, or delete exported files.';
 const FORBIDDEN_REACHABLE_ACCOUNT_AUTH_COPY = [
   /\baccount\b/i,
   /\blog(?:\s|-)?in\b/i,
@@ -152,6 +152,9 @@ describe('Export transparency copy', () => {
     );
     expect(renderedText).toContain(
       'Files saved outside the app are not removed by Delete local data.',
+    );
+    expect(renderedText).toContain(
+      'Android and iOS device backups, file apps, cloud folders, and device-transfer tools are outside Brunch Body app-managed storage.',
     );
     FORBIDDEN_REACHABLE_ACCOUNT_AUTH_COPY.forEach(pattern => {
       expect(renderedText).not.toMatch(pattern);

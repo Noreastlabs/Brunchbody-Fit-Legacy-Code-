@@ -17,15 +17,35 @@ const DEFAULT_TARGET_TOTALS = [
   { id: 3, name: 'CHO', value: '--' },
   { id: 4, name: 'CAL', value: '--' },
 ];
+const DEFAULT_COMPLETE_PROFILE_STRINGS = Object.freeze({
+  labels: {
+    bodyUnitPreference: 'Body measurement units',
+  },
+  bodyUnitPreference: {
+    standard: 'Standard',
+    metric: 'Metric',
+  },
+});
 const hasDisplayValue = value =>
   value !== null && value !== undefined && `${value}`.trim() !== '';
 
 const getTrimmedDisplayValue = value => `${value}`.trim();
 
+const getCompleteProfileStrings = () => ({
+  labels: {
+    ...DEFAULT_COMPLETE_PROFILE_STRINGS.labels,
+    ...(strings.completeProfile?.labels || {}),
+  },
+  bodyUnitPreference: {
+    ...DEFAULT_COMPLETE_PROFILE_STRINGS.bodyUnitPreference,
+    ...(strings.completeProfile?.bodyUnitPreference || {}),
+  },
+});
+
 const getBodyUnitPreferenceText = user => {
   const bodyUnitPreference = resolveBodyUnitPreference(user?.bodyUnitPreference);
 
-  return strings.completeProfile.bodyUnitPreference[bodyUnitPreference];
+  return getCompleteProfileStrings().bodyUnitPreference[bodyUnitPreference];
 };
 
 const getWeightText = user => {
@@ -86,6 +106,7 @@ const getTargetTotals = user => {
 
 export default function MyProfilePage(props) {
   const { navigation, user } = props;
+  const completeProfileStrings = getCompleteProfileStrings();
   const nickname = hasDisplayValue(user?.name)
     ? getTrimmedDisplayValue(user.name)
     : 'No nickname set';
@@ -123,7 +144,7 @@ export default function MyProfilePage(props) {
     },
     {
       id: 2,
-      title: strings.completeProfile.labels.bodyUnitPreference,
+      title: completeProfileStrings.labels.bodyUnitPreference,
       options: [
         {
           id: 1,
